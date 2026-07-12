@@ -1,5 +1,7 @@
 # MM POS — Admin dashboard (Flutter Web)
 
+**Live:** https://goldposmm-admin.vercel.app
+
 Vendor console for managing licenses. Separate from the POS app: its own entry
 point (`admin_main.dart`), tree-shaken out of the mobile build. All privileged
 work goes through the `admin` Edge Function (service role stays server-side).
@@ -34,11 +36,18 @@ flutter run -d chrome -t lib/admin/admin_main.dart \
   --dart-define-from-file=env.local.json
 ```
 
-## Deploy the dashboard (static hosting)
+## Deploy the dashboard (Vercel)
+Hosted at **https://goldposmm-admin.vercel.app** (Vercel project `goldposmm-admin`,
+scope `nyi-nyi-s-projects1`). To ship a new build:
 ```bash
 flutter build web -t lib/admin/admin_main.dart \
-  --dart-define-from-file=env.local.json
-# upload build/web/ to Cloudflare Pages / Vercel / Netlify / GitHub Pages
+  --dart-define-from-file=env.local.json --no-web-resources-cdn
+cd build/web
+# SPA fallback so deep links resolve to index.html:
+cat > vercel.json <<'JSON'
+{ "routes": [ { "handle": "filesystem" }, { "src": "/.*", "dest": "/index.html" } ] }
+JSON
+vercel deploy --prod --yes --scope nyi-nyi-s-projects1
 ```
 Only the anon key ships in the web bundle (safe — the `admin` function enforces
 the admin check). Never put the service-role key in this app.
