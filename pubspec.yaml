@@ -1,0 +1,61 @@
+name: mm_pos
+description: "Offline-first POS for Myanmar retailers."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.12.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+
+  # State management & routing
+  flutter_riverpod: ^2.6.1
+  go_router: ^14.6.2
+
+  # Local database (offline-first source of truth)
+  drift: ^2.20.3
+  sqlite3: ^2.4.7
+  sqlite3_flutter_libs: ^0.5.26
+  path_provider: ^2.1.5
+  path: ^1.9.0
+
+  # Backend / sync
+  supabase_flutter: ^2.8.0
+  connectivity_plus: ^6.1.0
+
+  # Utilities
+  intl: ^0.20.1
+  uuid: ^4.5.1
+  collection: ^1.19.0
+
+  # Charts (analytics)
+  fl_chart: ^0.69.2
+
+  # Bluetooth thermal printing (ESC/POS)
+  esc_pos_utils_plus: ^2.0.4
+  print_bluetooth_thermal: ^1.1.1
+  image: ^4.3.0
+  share_plus: ^13.2.0
+  file_picker: ^3.0.4
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+  # Drift codegen
+  drift_dev: ^2.20.3
+  build_runner: ^2.4.13
+
+flutter:
+  uses-material-design: true
+  generate: true # enables gen_l10n
+
+  assets:
+    - assets/

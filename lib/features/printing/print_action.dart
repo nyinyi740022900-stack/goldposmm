@@ -1,0 +1,40 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../data/local/database.dart';
+import '../../l10n/app_localizations.dart';
+import '../invoices/receipt_mapper.dart';
+import 'printing_providers.dart';
+
+/// Prints (or reprints) a receipt for the given sale. Returns silently after
+/// showing a snackbar with the outcome. Safe to call from any screen.
+Future<void> printSaleReceipt(
+  BuildContext context,
+  WidgetRef ref, {
+  required Sale sale,
+  required List<SaleItem> items,
+}) async {
+  final l = AppLocalizations.of(context);
+  final messenger = ScaffoldMessenger.of(context);
+  final settings = ref.read(settingsRepositoryProvider);
+
+  final config = await settings.printerConfig();
+  if (!config.hasPrinter) {
+    messenger.showSnackBar(SnackBar(content: Text(l.printerNone)));
+    return;
+  }
+
+  final shop = await settings.shopProfile();
+  final data = receiptFromSale(sale, items, shop);
+
+  final result = await ref.read(printerServiceProvider).printReceipt(
+        data,
+        paper: config.paper,
+        mac: config.mac!,
+        labels: receiptLabels(l),
+      );
+
+  messenger.showSnackBar(SnackBar(
+    content: Text(result.ok ? l.printSuccess : l.printFailed),
+  ));
+}

@@ -1,0 +1,1214 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:intl/intl.dart' as intl;
+
+import 'app_localizations_en.dart';
+import 'app_localizations_my.dart';
+
+// ignore_for_file: type=lint
+
+/// Callers can lookup localized strings with an instance of AppLocalizations
+/// returned by `AppLocalizations.of(context)`.
+///
+/// Applications need to include `AppLocalizations.delegate()` in their app's
+/// `localizationDelegates` list, and the locales they support in the app's
+/// `supportedLocales` list. For example:
+///
+/// ```dart
+/// import 'l10n/app_localizations.dart';
+///
+/// return MaterialApp(
+///   localizationsDelegates: AppLocalizations.localizationsDelegates,
+///   supportedLocales: AppLocalizations.supportedLocales,
+///   home: MyApplicationHome(),
+/// );
+/// ```
+///
+/// ## Update pubspec.yaml
+///
+/// Please make sure to update your pubspec.yaml to include the following
+/// packages:
+///
+/// ```yaml
+/// dependencies:
+///   # Internationalization support.
+///   flutter_localizations:
+///     sdk: flutter
+///   intl: any # Use the pinned version from flutter_localizations
+///
+///   # Rest of dependencies
+/// ```
+///
+/// ## iOS Applications
+///
+/// iOS applications define key application metadata, including supported
+/// locales, in an Info.plist file that is built into the application bundle.
+/// To configure the locales supported by your app, you’ll need to edit this
+/// file.
+///
+/// First, open your project’s ios/Runner.xcworkspace Xcode workspace file.
+/// Then, in the Project Navigator, open the Info.plist file under the Runner
+/// project’s Runner folder.
+///
+/// Next, select the Information Property List item, select Add Item from the
+/// Editor menu, then select Localizations from the pop-up menu.
+///
+/// Select and expand the newly-created Localizations item then, for each
+/// locale your application supports, add a new item and select the locale
+/// you wish to add from the pop-up menu in the Value field. This list should
+/// be consistent with the languages listed in the AppLocalizations.supportedLocales
+/// property.
+abstract class AppLocalizations {
+  AppLocalizations(String locale)
+    : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+
+  final String localeName;
+
+  static AppLocalizations of(BuildContext context) {
+    return Localizations.of<AppLocalizations>(context, AppLocalizations)!;
+  }
+
+  static const LocalizationsDelegate<AppLocalizations> delegate =
+      _AppLocalizationsDelegate();
+
+  /// A list of this localizations delegate along with the default localizations
+  /// delegates.
+  ///
+  /// Returns a list of localizations delegates containing this delegate along with
+  /// GlobalMaterialLocalizations.delegate, GlobalCupertinoLocalizations.delegate,
+  /// and GlobalWidgetsLocalizations.delegate.
+  ///
+  /// Additional delegates can be added by appending to this list in
+  /// MaterialApp. This list does not have to be used at all if a custom list
+  /// of delegates is preferred or required.
+  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
+      <LocalizationsDelegate<dynamic>>[
+        delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ];
+
+  /// A list of this localizations delegate's supported locales.
+  static const List<Locale> supportedLocales = <Locale>[
+    Locale('en'),
+    Locale('my'),
+  ];
+
+  /// Application title
+  ///
+  /// In en, this message translates to:
+  /// **'MM POS'**
+  String get appTitle;
+
+  /// No description provided for @navSell.
+  ///
+  /// In en, this message translates to:
+  /// **'Sell'**
+  String get navSell;
+
+  /// No description provided for @navInventory.
+  ///
+  /// In en, this message translates to:
+  /// **'Inventory'**
+  String get navInventory;
+
+  /// No description provided for @navInvoices.
+  ///
+  /// In en, this message translates to:
+  /// **'Invoices'**
+  String get navInvoices;
+
+  /// No description provided for @navAnalytics.
+  ///
+  /// In en, this message translates to:
+  /// **'Analytics'**
+  String get navAnalytics;
+
+  /// No description provided for @navSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get navSettings;
+
+  /// No description provided for @commonSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get commonSave;
+
+  /// No description provided for @commonCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get commonCancel;
+
+  /// No description provided for @commonDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get commonDelete;
+
+  /// No description provided for @commonEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get commonEdit;
+
+  /// No description provided for @commonAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get commonAdd;
+
+  /// No description provided for @commonSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Search'**
+  String get commonSearch;
+
+  /// No description provided for @commonYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes'**
+  String get commonYes;
+
+  /// No description provided for @commonNo.
+  ///
+  /// In en, this message translates to:
+  /// **'No'**
+  String get commonNo;
+
+  /// No description provided for @commonTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get commonTotal;
+
+  /// No description provided for @commonCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get commonCopy;
+
+  /// No description provided for @copied.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied'**
+  String get copied;
+
+  /// No description provided for @sellTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sell'**
+  String get sellTitle;
+
+  /// No description provided for @sellCart.
+  ///
+  /// In en, this message translates to:
+  /// **'Cart'**
+  String get sellCart;
+
+  /// No description provided for @sellEmptyCart.
+  ///
+  /// In en, this message translates to:
+  /// **'No items yet. Tap a product to add.'**
+  String get sellEmptyCart;
+
+  /// No description provided for @sellCheckout.
+  ///
+  /// In en, this message translates to:
+  /// **'Checkout'**
+  String get sellCheckout;
+
+  /// No description provided for @sellSubtotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Subtotal'**
+  String get sellSubtotal;
+
+  /// No description provided for @sellDiscount.
+  ///
+  /// In en, this message translates to:
+  /// **'Discount'**
+  String get sellDiscount;
+
+  /// No description provided for @sellPaymentMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment method'**
+  String get sellPaymentMethod;
+
+  /// No description provided for @sellAmountPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount paid'**
+  String get sellAmountPaid;
+
+  /// No description provided for @sellChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get sellChange;
+
+  /// No description provided for @sellConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm sale'**
+  String get sellConfirm;
+
+  /// No description provided for @sellClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get sellClear;
+
+  /// No description provided for @sellCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Sale completed'**
+  String get sellCompleted;
+
+  /// No description provided for @sellInsufficientPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount paid is less than total.'**
+  String get sellInsufficientPaid;
+
+  /// No description provided for @paymentCash.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash'**
+  String get paymentCash;
+
+  /// No description provided for @paymentKbzPay.
+  ///
+  /// In en, this message translates to:
+  /// **'KBZPay'**
+  String get paymentKbzPay;
+
+  /// No description provided for @paymentWavePay.
+  ///
+  /// In en, this message translates to:
+  /// **'WavePay'**
+  String get paymentWavePay;
+
+  /// No description provided for @paymentAyaPay.
+  ///
+  /// In en, this message translates to:
+  /// **'AYAPay'**
+  String get paymentAyaPay;
+
+  /// No description provided for @paymentCbPay.
+  ///
+  /// In en, this message translates to:
+  /// **'CBPay'**
+  String get paymentCbPay;
+
+  /// No description provided for @paymentCredit.
+  ///
+  /// In en, this message translates to:
+  /// **'Credit'**
+  String get paymentCredit;
+
+  /// No description provided for @creditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Credit book'**
+  String get creditTitle;
+
+  /// No description provided for @creditCustomerName.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer name'**
+  String get creditCustomerName;
+
+  /// No description provided for @creditCustomerRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a customer name for a credit sale.'**
+  String get creditCustomerRequired;
+
+  /// No description provided for @creditPaidNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid now (optional)'**
+  String get creditPaidNow;
+
+  /// No description provided for @creditOwed.
+  ///
+  /// In en, this message translates to:
+  /// **'Owed'**
+  String get creditOwed;
+
+  /// No description provided for @creditTotalOutstanding.
+  ///
+  /// In en, this message translates to:
+  /// **'Total outstanding'**
+  String get creditTotalOutstanding;
+
+  /// No description provided for @creditTotalDue.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} outstanding'**
+  String creditTotalDue(String amount);
+
+  /// No description provided for @creditNoneDue.
+  ///
+  /// In en, this message translates to:
+  /// **'No outstanding credit'**
+  String get creditNoneDue;
+
+  /// No description provided for @creditEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No one owes you right now.'**
+  String get creditEmpty;
+
+  /// No description provided for @creditOpenInvoices.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} open {count, plural, one{invoice} other{invoices}}'**
+  String creditOpenInvoices(int count);
+
+  /// No description provided for @creditOutstanding.
+  ///
+  /// In en, this message translates to:
+  /// **'Outstanding'**
+  String get creditOutstanding;
+
+  /// No description provided for @creditInvoices.
+  ///
+  /// In en, this message translates to:
+  /// **'Credit invoices'**
+  String get creditInvoices;
+
+  /// No description provided for @creditSettled.
+  ///
+  /// In en, this message translates to:
+  /// **'Settled'**
+  String get creditSettled;
+
+  /// No description provided for @creditRepayments.
+  ///
+  /// In en, this message translates to:
+  /// **'Repayments'**
+  String get creditRepayments;
+
+  /// No description provided for @creditRecordRepayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Record repayment'**
+  String get creditRecordRepayment;
+
+  /// No description provided for @creditAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get creditAmount;
+
+  /// No description provided for @creditRepaymentSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Repayment recorded'**
+  String get creditRepaymentSaved;
+
+  /// No description provided for @inventoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Inventory'**
+  String get inventoryTitle;
+
+  /// No description provided for @inventoryEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No products yet. Add your first product.'**
+  String get inventoryEmpty;
+
+  /// No description provided for @inventoryLowStock.
+  ///
+  /// In en, this message translates to:
+  /// **'Low stock'**
+  String get inventoryLowStock;
+
+  /// No description provided for @inventoryAddProduct.
+  ///
+  /// In en, this message translates to:
+  /// **'Add product'**
+  String get inventoryAddProduct;
+
+  /// No description provided for @inventoryEditProduct.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit product'**
+  String get inventoryEditProduct;
+
+  /// No description provided for @inventoryNoResults.
+  ///
+  /// In en, this message translates to:
+  /// **'No products match your search.'**
+  String get inventoryNoResults;
+
+  /// No description provided for @productName.
+  ///
+  /// In en, this message translates to:
+  /// **'Product name'**
+  String get productName;
+
+  /// No description provided for @productPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Sale price'**
+  String get productPrice;
+
+  /// No description provided for @productCost.
+  ///
+  /// In en, this message translates to:
+  /// **'Cost price'**
+  String get productCost;
+
+  /// No description provided for @productBarcode.
+  ///
+  /// In en, this message translates to:
+  /// **'Barcode'**
+  String get productBarcode;
+
+  /// No description provided for @productSku.
+  ///
+  /// In en, this message translates to:
+  /// **'SKU'**
+  String get productSku;
+
+  /// No description provided for @productStock.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock'**
+  String get productStock;
+
+  /// No description provided for @productQuantity.
+  ///
+  /// In en, this message translates to:
+  /// **'Quantity'**
+  String get productQuantity;
+
+  /// No description provided for @productReorderLevel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reorder level'**
+  String get productReorderLevel;
+
+  /// No description provided for @productUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'Unit'**
+  String get productUnit;
+
+  /// No description provided for @validationRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Required'**
+  String get validationRequired;
+
+  /// No description provided for @deleteConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete?'**
+  String get deleteConfirmTitle;
+
+  /// No description provided for @deleteConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This item will be removed.'**
+  String get deleteConfirmBody;
+
+  /// No description provided for @settingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get settingsTitle;
+
+  /// No description provided for @settingsLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get settingsLanguage;
+
+  /// No description provided for @settingsPrinter.
+  ///
+  /// In en, this message translates to:
+  /// **'Printer'**
+  String get settingsPrinter;
+
+  /// No description provided for @settingsShop.
+  ///
+  /// In en, this message translates to:
+  /// **'Shop profile'**
+  String get settingsShop;
+
+  /// No description provided for @settingsLicense.
+  ///
+  /// In en, this message translates to:
+  /// **'License'**
+  String get settingsLicense;
+
+  /// No description provided for @settingsSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Support'**
+  String get settingsSupport;
+
+  /// No description provided for @settingsTrackStock.
+  ///
+  /// In en, this message translates to:
+  /// **'Track stock'**
+  String get settingsTrackStock;
+
+  /// No description provided for @settingsTrackStockHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Off = invoice only (no stock counts or alerts).'**
+  String get settingsTrackStockHint;
+
+  /// No description provided for @shopProfileHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Shown on printed receipts.'**
+  String get shopProfileHint;
+
+  /// No description provided for @shopName.
+  ///
+  /// In en, this message translates to:
+  /// **'Shop name'**
+  String get shopName;
+
+  /// No description provided for @shopAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get shopAddress;
+
+  /// No description provided for @shopPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get shopPhone;
+
+  /// No description provided for @receiptFooter.
+  ///
+  /// In en, this message translates to:
+  /// **'Receipt footer'**
+  String get receiptFooter;
+
+  /// No description provided for @shopProfileSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Shop profile saved'**
+  String get shopProfileSaved;
+
+  /// No description provided for @languageEnglish.
+  ///
+  /// In en, this message translates to:
+  /// **'English'**
+  String get languageEnglish;
+
+  /// No description provided for @languageMyanmar.
+  ///
+  /// In en, this message translates to:
+  /// **'Myanmar'**
+  String get languageMyanmar;
+
+  /// No description provided for @invoicesEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No sales yet.'**
+  String get invoicesEmpty;
+
+  /// No description provided for @invoiceFilterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get invoiceFilterAll;
+
+  /// No description provided for @invoiceFilterCredit.
+  ///
+  /// In en, this message translates to:
+  /// **'Credit'**
+  String get invoiceFilterCredit;
+
+  /// No description provided for @invoiceOwed.
+  ///
+  /// In en, this message translates to:
+  /// **'Owed {amount}'**
+  String invoiceOwed(String amount);
+
+  /// No description provided for @invoicePrint.
+  ///
+  /// In en, this message translates to:
+  /// **'Print'**
+  String get invoicePrint;
+
+  /// No description provided for @invoiceReprint.
+  ///
+  /// In en, this message translates to:
+  /// **'Reprint'**
+  String get invoiceReprint;
+
+  /// No description provided for @invoiceDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Invoice'**
+  String get invoiceDetail;
+
+  /// No description provided for @printerSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Printer settings'**
+  String get printerSettings;
+
+  /// No description provided for @printerSelectDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Select printer'**
+  String get printerSelectDevice;
+
+  /// No description provided for @printerPaperSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Paper size'**
+  String get printerPaperSize;
+
+  /// No description provided for @printerTestPrint.
+  ///
+  /// In en, this message translates to:
+  /// **'Test print'**
+  String get printerTestPrint;
+
+  /// No description provided for @printerNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No printer selected'**
+  String get printerNone;
+
+  /// No description provided for @printerPaired.
+  ///
+  /// In en, this message translates to:
+  /// **'Paired devices'**
+  String get printerPaired;
+
+  /// No description provided for @printSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Printed successfully'**
+  String get printSuccess;
+
+  /// No description provided for @printFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Print failed'**
+  String get printFailed;
+
+  /// No description provided for @bluetoothOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Bluetooth is off. Turn it on and pair your printer.'**
+  String get bluetoothOff;
+
+  /// No description provided for @receiptInvoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Invoice'**
+  String get receiptInvoice;
+
+  /// No description provided for @receiptDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get receiptDate;
+
+  /// No description provided for @receiptCashier.
+  ///
+  /// In en, this message translates to:
+  /// **'Cashier'**
+  String get receiptCashier;
+
+  /// No description provided for @receiptThankYou.
+  ///
+  /// In en, this message translates to:
+  /// **'Thank you!'**
+  String get receiptThankYou;
+
+  /// No description provided for @paper58.
+  ///
+  /// In en, this message translates to:
+  /// **'58 mm'**
+  String get paper58;
+
+  /// No description provided for @paper80.
+  ///
+  /// In en, this message translates to:
+  /// **'80 mm'**
+  String get paper80;
+
+  /// No description provided for @categoriesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Categories'**
+  String get categoriesTitle;
+
+  /// No description provided for @manageCategories.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage categories'**
+  String get manageCategories;
+
+  /// No description provided for @categoryAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add category'**
+  String get categoryAdd;
+
+  /// No description provided for @categoryEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit category'**
+  String get categoryEdit;
+
+  /// No description provided for @categoryName.
+  ///
+  /// In en, this message translates to:
+  /// **'Category name'**
+  String get categoryName;
+
+  /// No description provided for @categoryNone.
+  ///
+  /// In en, this message translates to:
+  /// **'Uncategorized'**
+  String get categoryNone;
+
+  /// No description provided for @categoryAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get categoryAll;
+
+  /// No description provided for @categoriesEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No categories yet.'**
+  String get categoriesEmpty;
+
+  /// No description provided for @productCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get productCategory;
+
+  /// No description provided for @analyticsRevenue.
+  ///
+  /// In en, this message translates to:
+  /// **'Revenue'**
+  String get analyticsRevenue;
+
+  /// No description provided for @analyticsProfit.
+  ///
+  /// In en, this message translates to:
+  /// **'Profit'**
+  String get analyticsProfit;
+
+  /// No description provided for @analyticsSalesCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Sales'**
+  String get analyticsSalesCount;
+
+  /// No description provided for @analyticsStockValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock value'**
+  String get analyticsStockValue;
+
+  /// No description provided for @analyticsDiscountGiven.
+  ///
+  /// In en, this message translates to:
+  /// **'Discounts'**
+  String get analyticsDiscountGiven;
+
+  /// No description provided for @analyticsTopProducts.
+  ///
+  /// In en, this message translates to:
+  /// **'Top products'**
+  String get analyticsTopProducts;
+
+  /// No description provided for @analyticsRangeToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get analyticsRangeToday;
+
+  /// No description provided for @analyticsRangeWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'7 days'**
+  String get analyticsRangeWeek;
+
+  /// No description provided for @analyticsRangeMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'30 days'**
+  String get analyticsRangeMonth;
+
+  /// No description provided for @analyticsNoData.
+  ///
+  /// In en, this message translates to:
+  /// **'No sales in this period.'**
+  String get analyticsNoData;
+
+  /// No description provided for @analyticsDailyRevenue.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily revenue'**
+  String get analyticsDailyRevenue;
+
+  /// No description provided for @analyticsCollected.
+  ///
+  /// In en, this message translates to:
+  /// **'Collected'**
+  String get analyticsCollected;
+
+  /// No description provided for @analyticsCreditOutstanding.
+  ///
+  /// In en, this message translates to:
+  /// **'Credit outstanding'**
+  String get analyticsCreditOutstanding;
+
+  /// No description provided for @licenseActivateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Activate license'**
+  String get licenseActivateTitle;
+
+  /// No description provided for @licenseKeyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'License key'**
+  String get licenseKeyLabel;
+
+  /// No description provided for @licenseActivateBtn.
+  ///
+  /// In en, this message translates to:
+  /// **'Activate'**
+  String get licenseActivateBtn;
+
+  /// No description provided for @licenseStatusActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get licenseStatusActive;
+
+  /// No description provided for @licenseStatusGrace.
+  ///
+  /// In en, this message translates to:
+  /// **'Grace period'**
+  String get licenseStatusGrace;
+
+  /// No description provided for @licenseStatusExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Expired'**
+  String get licenseStatusExpired;
+
+  /// No description provided for @licenseStatusNone.
+  ///
+  /// In en, this message translates to:
+  /// **'Not activated'**
+  String get licenseStatusNone;
+
+  /// No description provided for @licenseExpires.
+  ///
+  /// In en, this message translates to:
+  /// **'Expires: {date}'**
+  String licenseExpires(String date);
+
+  /// No description provided for @licenseGraceLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} days of grace left'**
+  String licenseGraceLeft(int days);
+
+  /// No description provided for @licenseReadOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'License expired — read-only. Renew to keep selling.'**
+  String get licenseReadOnly;
+
+  /// No description provided for @licenseInvalidKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid or unknown license key.'**
+  String get licenseInvalidKey;
+
+  /// No description provided for @licenseActivateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Activation failed. Check your connection.'**
+  String get licenseActivateFailed;
+
+  /// No description provided for @licenseActivated.
+  ///
+  /// In en, this message translates to:
+  /// **'License activated'**
+  String get licenseActivated;
+
+  /// No description provided for @licenseRenewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Record renewal payment'**
+  String get licenseRenewTitle;
+
+  /// No description provided for @licenseRecordPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Record payment'**
+  String get licenseRecordPayment;
+
+  /// No description provided for @licensePaymentSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Renewal payment recorded'**
+  String get licensePaymentSaved;
+
+  /// No description provided for @licenseAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get licenseAmount;
+
+  /// No description provided for @licenseRefNo.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference no.'**
+  String get licenseRefNo;
+
+  /// No description provided for @licensePayTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer license fee to:'**
+  String get licensePayTo;
+
+  /// No description provided for @licenseTxnId.
+  ///
+  /// In en, this message translates to:
+  /// **'Transaction ID (last 6 digits)'**
+  String get licenseTxnId;
+
+  /// No description provided for @licenseDeactivate.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove license'**
+  String get licenseDeactivate;
+
+  /// No description provided for @licensePlanLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan'**
+  String get licensePlanLabel;
+
+  /// No description provided for @licenseGetKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the key you received when you subscribed.'**
+  String get licenseGetKey;
+
+  /// No description provided for @licenseCheckRenewal.
+  ///
+  /// In en, this message translates to:
+  /// **'Check for renewal'**
+  String get licenseCheckRenewal;
+
+  /// No description provided for @licenseRefreshed.
+  ///
+  /// In en, this message translates to:
+  /// **'License status updated'**
+  String get licenseRefreshed;
+
+  /// No description provided for @licenseRenewHint.
+  ///
+  /// In en, this message translates to:
+  /// **'After paying (KPay/WavePay) and recording it, ask the admin to approve, then tap Check for renewal.'**
+  String get licenseRenewHint;
+
+  /// No description provided for @backupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup & restore'**
+  String get backupTitle;
+
+  /// No description provided for @backupHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Your data is stored on this device. Export a backup file and keep it safe (e.g. send it to Viber → My Notes).'**
+  String get backupHint;
+
+  /// No description provided for @backupExport.
+  ///
+  /// In en, this message translates to:
+  /// **'Export backup'**
+  String get backupExport;
+
+  /// No description provided for @backupExportHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Save all data to a file and share it.'**
+  String get backupExportHint;
+
+  /// No description provided for @backupImport.
+  ///
+  /// In en, this message translates to:
+  /// **'Import backup'**
+  String get backupImport;
+
+  /// No description provided for @backupImportHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore data from a backup file.'**
+  String get backupImportHint;
+
+  /// No description provided for @backupShareSubject.
+  ///
+  /// In en, this message translates to:
+  /// **'MM POS backup'**
+  String get backupShareSubject;
+
+  /// No description provided for @backupShareText.
+  ///
+  /// In en, this message translates to:
+  /// **'MM POS data backup. Keep this file to restore later.'**
+  String get backupShareText;
+
+  /// No description provided for @backupImportConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace all data?'**
+  String get backupImportConfirmTitle;
+
+  /// No description provided for @backupImportConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This will erase the current products, sales and credit data and replace them with the backup. This cannot be undone.'**
+  String get backupImportConfirmBody;
+
+  /// No description provided for @backupImportConfirmAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace'**
+  String get backupImportConfirmAction;
+
+  /// No description provided for @backupImportDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Restored {count} rows'**
+  String backupImportDone(int count);
+
+  /// No description provided for @backupFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup failed: {error}'**
+  String backupFailed(String error);
+
+  /// No description provided for @settingsSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud sync'**
+  String get settingsSync;
+
+  /// No description provided for @syncNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync now'**
+  String get syncNow;
+
+  /// No description provided for @syncIdle.
+  ///
+  /// In en, this message translates to:
+  /// **'Up to date'**
+  String get syncIdle;
+
+  /// No description provided for @syncSyncing.
+  ///
+  /// In en, this message translates to:
+  /// **'Syncing…'**
+  String get syncSyncing;
+
+  /// No description provided for @syncOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline'**
+  String get syncOffline;
+
+  /// No description provided for @syncError.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync error'**
+  String get syncError;
+
+  /// No description provided for @syncDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud sync not configured'**
+  String get syncDisabled;
+
+  /// No description provided for @syncNever.
+  ///
+  /// In en, this message translates to:
+  /// **'Never synced'**
+  String get syncNever;
+
+  /// No description provided for @syncLastSynced.
+  ///
+  /// In en, this message translates to:
+  /// **'Last synced: {time}'**
+  String syncLastSynced(String time);
+
+  /// No description provided for @currencySymbol.
+  ///
+  /// In en, this message translates to:
+  /// **'Ks'**
+  String get currencySymbol;
+}
+
+class _AppLocalizationsDelegate
+    extends LocalizationsDelegate<AppLocalizations> {
+  const _AppLocalizationsDelegate();
+
+  @override
+  Future<AppLocalizations> load(Locale locale) {
+    return SynchronousFuture<AppLocalizations>(lookupAppLocalizations(locale));
+  }
+
+  @override
+  bool isSupported(Locale locale) =>
+      <String>['en', 'my'].contains(locale.languageCode);
+
+  @override
+  bool shouldReload(_AppLocalizationsDelegate old) => false;
+}
+
+AppLocalizations lookupAppLocalizations(Locale locale) {
+  // Lookup logic when only language code is specified.
+  switch (locale.languageCode) {
+    case 'en':
+      return AppLocalizationsEn();
+    case 'my':
+      return AppLocalizationsMy();
+  }
+
+  throw FlutterError(
+    'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
+    'an issue with the localizations generation tool. Please file an issue '
+    'on GitHub with a reproducible sample app and the gen-l10n configuration '
+    'that was used.',
+  );
+}

@@ -1,0 +1,205 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'package:intl/intl.dart';
+
+import '../../core/locale_controller.dart';
+import '../../data/sync/sync_providers.dart';
+import '../../l10n/app_localizations.dart';
+import '../license/license_providers.dart';
+import '../license/license_screen.dart';
+import '../license/license_status.dart';
+import '../printing/printer_settings_screen.dart';
+import '../printing/printing_providers.dart';
+import '../../core/money.dart';
+import '../backup/backup_screen.dart';
+import '../credit/credit_providers.dart';
+import '../credit/credit_screen.dart';
+import '../support/support_providers.dart';
+import 'shop_profile_screen.dart';
+
+class SettingsScreen extends ConsumerWidget {
+  const SettingsScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
+    final locale = ref.watch(localeControllerProvider);
+    return Scaffold(
+      appBar: AppBar(title: Text(l.settingsTitle)),
+      body: ListView(
+        children: [
+          ListTile(
+            leading: const Icon(Icons.language),
+            title: Text(l.settingsLanguage),
+            trailing: DropdownButton<String>(
+              value: locale,
+              underline: const SizedBox.shrink(),
+              onChanged: (v) {
+                if (v != null) {
+                  ref.read(localeControllerProvider.notifier).set(v);
+                }
+              },
+              items: [
+                DropdownMenuItem(value: 'my', child: Text(l.languageMyanmar)),
+                DropdownMenuItem(value: 'en', child: Text(l.languageEnglish)),
+              ],
+            ),
+          ),
+          ListTile(
+            leading: const Icon(Icons.print),
+            title: Text(l.settingsPrinter),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.of(context).push(MaterialPageRoute(
+              builder: (_) => const PrinterSettingsScreen(),
+            )),
+          ),
+          ListTile(
+            leading: const Icon(Icons.store),
+            title: Text(l.settingsShop),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.of(context).push(MaterialPageRoute(
+              builder: (_) => const ShopProfileScreen(),
+            )),
+          ),
+          _TrackStockTile(),
+          _CreditTile(),
+          ListTile(
+            leading: const Icon(Icons.backup),
+            title: Text(l.backupTitle),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.of(context).push(MaterialPageRoute(
+              builder: (_) => const BackupScreen(),
+            )),
+          ),
+          _LicenseTile(),
+          _SupportTile(),
+          const Divider(),
+          _SyncTile(),
+        ],
+      ),
+    );
+  }
+}
+
+class _TrackStockTile extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
+    final tracking = ref.watch(trackStockProvider).valueOrNull ?? true;
+    return SwitchListTile(
+      secondary: const Icon(Icons.inventory),
+      title: Text(l.settingsTrackStock),
+      subtitle: Text(l.settingsTrackStockHint),
+      value: tracking,
+      onChanged: (v) =>
+          ref.read(settingsRepositoryProvider).setTrackStock(v),
+    );
+  }
+}
+
+class _SupportTile extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
+    final viber = ref.watch(vendorConfigProvider).valueOrNull?.supportViber;
+    if (viber == null || viber.isEmpty) return const SizedBox.shrink();
+    return ListTile(
+      leading: const Icon(Icons.support_agent),
+      title: Text(l.settingsSupport),
+      subtitle: Text('Viber · $viber'),
+      trailing: const Icon(Icons.copy),
+      onTap: () async {
+        await Clipboard.setData(ClipboardData(text: viber));
+        if (context.mounted) {
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text(l.copied)));
+        }
+      },
+    );
+  }
+}
+
+class _CreditTile extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
+    final total = ref.watch(creditOutstandingTotalProvider);
+    return ListTile(
+      leading: const Icon(Icons.account_balance_wallet),
+      title: Text(l.creditTitle),
+      subtitle: Text(total > 0
+          ? l.creditTotalDue(Money(total).withSymbol(l.currencySymbol))
+          : l.creditNoneDue),
+      trailing: const Icon(Icons.chevron_right),
+      onTap: () => Navigator.of(context).push(MaterialPageRoute(
+        builder: (_) => const CreditScreen(),
+      )),
+    );
+  }
+}
+
+class _LicenseTile extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
+    final status = ref.watch(licenseControllerProvider).status;
+    final (String label, Color color) = switch (status.kind) {
+      LicenseStatusKind.active => (l.licenseStatusActive, Colors.green),
+      LicenseStatusKind.grace => (l.licenseStatusGrace, Colors.orange),
+      LicenseStatusKind.expired =>
+        (l.licenseStatusExpired, Theme.of(context).colorScheme.error),
+      LicenseStatusKind.none =>
+        (l.licenseStatusNone, Theme.of(context).colorScheme.outline),
+    };
+    return ListTile(
+      leading: const Icon(Icons.key),
+      title: Text(l.settingsLicense),
+      subtitle: Text(label, style: TextStyle(color: color)),
+      trailing: const Icon(Icons.chevron_right),
+      onTap: () => Navigator.of(context).push(MaterialPageRoute(
+        builder: (_) => const LicenseScreen(),
+      )),
+    );
+  }
+}
+
+class _SyncTile extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
+    final sync = ref.watch(syncControllerProvider);
+
+    final (String status, IconData icon) = switch (sync.phase) {
+      SyncPhase.disabled => (l.syncDisabled, Icons.cloud_off),
+      SyncPhase.syncing => (l.syncSyncing, Icons.cloud_sync),
+      SyncPhase.idle => (l.syncIdle, Icons.cloud_done),
+      SyncPhase.offline => (l.syncOffline, Icons.cloud_off),
+      SyncPhase.error => (sync.error ?? l.syncError, Icons.error_outline),
+    };
+
+    final subtitle = sync.lastSyncedAt != null
+        ? l.syncLastSynced(DateFormat('HH:mm').format(sync.lastSyncedAt!))
+        : (sync.phase == SyncPhase.disabled ? '' : l.syncNever);
+
+    return ListTile(
+      leading: Icon(icon),
+      title: Text('${l.settingsSync} — $status'),
+      subtitle: subtitle.isEmpty ? null : Text(subtitle),
+      trailing: sync.phase == SyncPhase.disabled
+          ? null
+          : (sync.phase == SyncPhase.syncing
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2))
+              : IconButton(
+                  icon: const Icon(Icons.sync),
+                  tooltip: l.syncNow,
+                  onPressed: () =>
+                      ref.read(syncControllerProvider.notifier).sync(),
+                )),
+    );
+  }
+}

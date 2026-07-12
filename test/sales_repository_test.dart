@@ -1,0 +1,144 @@
+import 'package:drift/native.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:mm_pos/data/local/database.dart';
+import 'package:mm_pos/data/repositories/inventory_repository.dart';
+import 'package:mm_pos/data/repositories/sales_repository.dart';
+import 'package:mm_pos/features/sell/cart.dart';
+
+void main() {
+  late AppDatabase db;
+  late InventoryRepository inventory;
+  late SalesRepository sales;
+
+  setUp(() {
+    db = AppDatabase.forTesting(NativeDatabase.memory());
+    inventory = InventoryRepository(db, 'shop-1');
+    sales = SalesRepository(db, 'shop-1');
+  });
+
+  tearDown(() async => db.close());
+
+  Future<Product> seedProduct(
+      {required String name, required int price, required int qty}) async {
+    final id = await inventory.upsertProduct(
+        name: name, salePrice: price, quantity: qty);
+    return (await inventory.watchProducts().first)
+        .firstWhere((p) => p.product.id == id)
+        .product;
+  }
+
+  test('finalizeSale writes sale, items, payment and decrements stock',
+      () async {
+    final coke = await seedProduct(name: 'Coke', price: 700, qty: 10);
+    final cart = CartState(lines: [CartLine(product: coke, qty: 3)]);
+
+    final result = await sales.finalizeSale(
+      cart: cart,
+      paymentMethod: 'cash',
+      paid: 5000,
+    );
+
+    // Sale row.
+    final sale = await (db.select(db.sales)
+          ..where((s) => s.id.equals(result.saleId)))
+        .getSingle();
+    expect(sale.total, 2100);
+    expect(sale.paid, 5000);
+    expect(sale.changeDue, 2900);
+    expect(sale.invoiceNo, startsWith('INV-'));
+
+    // One sale item, one payment.
+    expect(await db.select(db.saleItems).get(), hasLength(1));
+    expect(await db.select(db.payments).get(), hasLength(1));
+
+    // Stock decremented 10 -> 7.
+    final stock = await (db.select(db.stockLevels)
+          ..where((s) => s.productId.equals(coke.id)))
+        .getSingle();
+    expect(stock.quantity, 7);
+
+    // A 'sale' stock movement was recorded.
+    final moves = await db.select(db.stockMovements).get();
+    expect(moves.single.type, 'sale');
+    expect(moves.single.qtyDelta, -3);
+  });
+
+  test('trackStock:false skips stock movement + decrement (invoice only)',
+      () async {
+    final p = await seedProduct(name: 'Service', price: 5000, qty: 10);
+    await sales.finalizeSale(
+      cart: CartState(lines: [CartLine(product: p, qty: 2)]),
+      paymentMethod: 'cash',
+      paid: 10000,
+      trackStock: false,
+    );
+
+    // No stock movement recorded, stock level untouched.
+    expect(await db.select(db.stockMovements).get(), isEmpty);
+    final stock = await (db.select(db.stockLevels)
+          ..where((s) => s.productId.equals(p.id)))
+        .getSingle();
+    expect(stock.quantity, 10); // unchanged
+
+    // The sale + payment still happened.
+    expect(await db.select(db.sales).get(), hasLength(1));
+    expect(await db.select(db.payments).get(), hasLength(1));
+  });
+
+  test('discount is applied to the total', () async {
+    final p = await seedProduct(name: 'Water', price: 400, qty: 5);
+    final cart = CartState(
+      lines: [CartLine(product: p, qty: 2)],
+      discount: 100,
+    );
+    final r = await sales.finalizeSale(
+        cart: cart, paymentMethod: 'kbzpay', paid: 700);
+    final sale =
+        await (db.select(db.sales)..where((s) => s.id.equals(r.saleId)))
+            .getSingle();
+    expect(sale.subtotal, 800);
+    expect(sale.discount, 100);
+    expect(sale.total, 700);
+  });
+
+  test('invoice numbers increment within the same day', () async {
+    final p = await seedProduct(name: 'Soap', price: 800, qty: 20);
+    final a = await sales.finalizeSale(
+        cart: CartState(lines: [CartLine(product: p, qty: 1)]),
+        paymentMethod: 'cash',
+        paid: 800);
+    final b = await sales.finalizeSale(
+        cart: CartState(lines: [CartLine(product: p, qty: 1)]),
+        paymentMethod: 'cash',
+        paid: 800);
+    expect(a.invoiceNo, endsWith('-001'));
+    expect(b.invoiceNo, endsWith('-002'));
+  });
+
+  test('empty cart cannot be finalized', () async {
+    expect(
+      () => sales.finalizeSale(
+          cart: const CartState(), paymentMethod: 'cash', paid: 0),
+      throwsStateError,
+    );
+  });
+
+  test('outbox queues sale, items, payment and stock rows for sync', () async {
+    final p = await seedProduct(name: 'Match', price: 100, qty: 50);
+    await sales.finalizeSale(
+        cart: CartState(lines: [CartLine(product: p, qty: 2)]),
+        paymentMethod: 'cash',
+        paid: 200);
+    final tables =
+        (await db.select(db.outbox).get()).map((o) => o.entityTable).toSet();
+    expect(
+        tables,
+        containsAll(<String>{
+          'sales',
+          'sale_items',
+          'payments',
+          'stock_movements',
+          'stock_levels',
+        }));
+  });
+}

@@ -1,0 +1,148 @@
+// Pure analytics aggregation — no I/O, no Flutter — so it is fully
+// unit-testable. The repository fetches rows from Drift and feeds them here.
+
+typedef SaleRow = ({
+  int total,
+  int paid,
+  String paymentMethod,
+  int discount,
+  DateTime finalizedAt,
+});
+typedef ItemRow = ({String productId, String name, int qty, int lineTotal});
+
+class DailyRevenue {
+  final DateTime day;
+  final int revenue;
+  const DailyRevenue(this.day, this.revenue);
+}
+
+class TopProduct {
+  final String productId;
+  final String name;
+  final int qty;
+  final int revenue;
+  const TopProduct(
+      {required this.productId,
+      required this.name,
+      required this.qty,
+      required this.revenue});
+}
+
+class AnalyticsSummary {
+  final int revenue;
+  final int salesCount;
+  final int discount;
+  final int cost;
+  final int stockValue;
+
+  /// Number of credit sales in the range, and the still-unpaid portion of
+  /// them (total − paid). `revenue` counts the full billed amount (accrual);
+  /// [creditOutstanding] is the slice of that not yet collected.
+  final int creditSales;
+  final int creditOutstanding;
+
+  final List<DailyRevenue> daily;
+  final List<TopProduct> topProducts;
+
+  const AnalyticsSummary({
+    required this.revenue,
+    required this.salesCount,
+    required this.discount,
+    required this.cost,
+    required this.stockValue,
+    required this.creditSales,
+    required this.creditOutstanding,
+    required this.daily,
+    required this.topProducts,
+  });
+
+  /// Cash actually collected = billed revenue − outstanding credit.
+  int get collected => revenue - creditOutstanding;
+
+  /// Gross profit = net revenue − cost of goods sold. Cost uses the product's
+  /// current cost price (v1 does not snapshot cost at sale time).
+  int get profit => revenue - cost;
+
+  static const empty = AnalyticsSummary(
+    revenue: 0,
+    salesCount: 0,
+    discount: 0,
+    cost: 0,
+    stockValue: 0,
+    creditSales: 0,
+    creditOutstanding: 0,
+    daily: [],
+    topProducts: [],
+  );
+}
+
+DateTime _dayKey(DateTime d) => DateTime(d.year, d.month, d.day);
+
+AnalyticsSummary computeAnalytics({
+  required List<SaleRow> sales,
+  required List<ItemRow> items,
+  required Map<String, int> productCost,
+  required int stockValue,
+  required DateTime start,
+  required DateTime end,
+  int topN = 5,
+}) {
+  var revenue = 0;
+  var discount = 0;
+  var creditSales = 0;
+  var creditOutstanding = 0;
+  final byDay = <DateTime, int>{};
+  for (final s in sales) {
+    revenue += s.total;
+    discount += s.discount;
+    if (s.paymentMethod == 'credit') {
+      creditSales += 1;
+      final owed = s.total - s.paid;
+      if (owed > 0) creditOutstanding += owed;
+    }
+    final k = _dayKey(s.finalizedAt);
+    byDay[k] = (byDay[k] ?? 0) + s.total;
+  }
+
+  var cost = 0;
+  final qtyByProduct = <String, int>{};
+  final revByProduct = <String, int>{};
+  final nameByProduct = <String, String>{};
+  for (final it in items) {
+    cost += it.qty * (productCost[it.productId] ?? 0);
+    qtyByProduct[it.productId] = (qtyByProduct[it.productId] ?? 0) + it.qty;
+    revByProduct[it.productId] =
+        (revByProduct[it.productId] ?? 0) + it.lineTotal;
+    nameByProduct[it.productId] = it.name;
+  }
+
+  final top = qtyByProduct.keys
+      .map((id) => TopProduct(
+            productId: id,
+            name: nameByProduct[id] ?? id,
+            qty: qtyByProduct[id]!,
+            revenue: revByProduct[id] ?? 0,
+          ))
+      .toList()
+    ..sort((a, b) => b.revenue.compareTo(a.revenue));
+
+  // Continuous daily series across the whole range (zero-filled).
+  final daily = <DailyRevenue>[];
+  for (var d = _dayKey(start);
+      d.isBefore(end);
+      d = d.add(const Duration(days: 1))) {
+    daily.add(DailyRevenue(d, byDay[d] ?? 0));
+  }
+
+  return AnalyticsSummary(
+    revenue: revenue,
+    salesCount: sales.length,
+    discount: discount,
+    cost: cost,
+    stockValue: stockValue,
+    creditSales: creditSales,
+    creditOutstanding: creditOutstanding,
+    daily: daily,
+    topProducts: top.take(topN).toList(),
+  );
+}

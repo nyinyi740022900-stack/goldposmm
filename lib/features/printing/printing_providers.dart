@@ -1,0 +1,41 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../core/providers.dart';
+import '../../data/repositories/settings_repository.dart';
+import '../../l10n/app_localizations.dart';
+import '../invoices/receipt_formatter.dart';
+import 'printer_service.dart';
+
+final settingsRepositoryProvider = Provider<SettingsRepository>((ref) {
+  return SettingsRepository(ref.watch(databaseProvider));
+});
+
+final printerServiceProvider = Provider<PrinterService>((ref) {
+  return PrinterService();
+});
+
+final printerConfigProvider = StreamProvider<PrinterConfig>((ref) {
+  return ref.watch(settingsRepositoryProvider).watchPrinterConfig();
+});
+
+final shopProfileProvider = FutureProvider<ShopProfile>((ref) {
+  return ref.watch(settingsRepositoryProvider).shopProfile();
+});
+
+/// Whether the shop tracks inventory (true) or runs invoice-only (false).
+final trackStockProvider = StreamProvider<bool>((ref) {
+  return ref.watch(settingsRepositoryProvider).watchTrackStock();
+});
+
+/// Builds localized receipt labels from the current localization.
+ReceiptLabels receiptLabels(AppLocalizations l) => ReceiptLabels(
+      invoice: l.receiptInvoice,
+      date: l.receiptDate,
+      cashier: l.receiptCashier,
+      subtotal: l.sellSubtotal,
+      discount: l.sellDiscount,
+      total: l.commonTotal,
+      payment: l.sellPaymentMethod,
+      paid: l.sellAmountPaid,
+      change: l.sellChange,
+    );
