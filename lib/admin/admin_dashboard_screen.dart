@@ -78,6 +78,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               onPressed: _resetDevice,
             ),
             IconButton(
+              tooltip: 'Generate offline code',
+              icon: const Icon(Icons.offline_bolt),
+              onPressed: _generateOffline,
+            ),
+            IconButton(
               tooltip: 'Reload',
               icon: const Icon(Icons.refresh),
               onPressed: _loading ? null : _reload,
@@ -150,6 +155,46 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         ),
       );
       _reload();
+    } catch (e) {
+      _snack('$e');
+    }
+  }
+
+  Future<void> _generateOffline() async {
+    final req = await showDialog<_OfflineRequest>(
+      context: context,
+      builder: (_) => const _OfflineCodeDialog(),
+    );
+    if (req == null) return;
+    try {
+      final token = await widget.api.signOffline(
+        shopId: req.shopId,
+        shopName: req.shopName,
+        plan: req.plan,
+        months: req.months,
+        deviceId: req.deviceId,
+      );
+      if (!mounted) return;
+      await showDialog<void>(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text('Offline license code'),
+          content: SizedBox(
+            width: 400,
+            child: SelectableText(token,
+                style: const TextStyle(fontFamily: 'monospace', fontSize: 12)),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Clipboard.setData(ClipboardData(text: token));
+                Navigator.pop(context);
+              },
+              child: const Text('Copy & close'),
+            ),
+          ],
+        ),
+      );
     } catch (e) {
       _snack('$e');
     }

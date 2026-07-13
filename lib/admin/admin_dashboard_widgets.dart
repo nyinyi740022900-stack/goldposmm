@@ -180,6 +180,104 @@ class _GenerateKeyDialogState extends State<_GenerateKeyDialog> {
   }
 }
 
+class _OfflineRequest {
+  final String shopId;
+  final String shopName;
+  final String plan;
+  final int months;
+  final String deviceId;
+  const _OfflineRequest(
+      this.shopId, this.shopName, this.plan, this.months, this.deviceId);
+}
+
+class _OfflineCodeDialog extends StatefulWidget {
+  const _OfflineCodeDialog();
+  @override
+  State<_OfflineCodeDialog> createState() => _OfflineCodeDialogState();
+}
+
+class _OfflineCodeDialogState extends State<_OfflineCodeDialog> {
+  final _shopId = TextEditingController();
+  final _shopName = TextEditingController();
+  final _months = TextEditingController(text: '1');
+  final _device = TextEditingController();
+  String _plan = 'monthly';
+
+  @override
+  void dispose() {
+    for (final c in [_shopId, _shopName, _months, _device]) {
+      c.dispose();
+    }
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Generate offline code'),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+                controller: _shopId,
+                decoration: const InputDecoration(labelText: 'Shop ID')),
+            const SizedBox(height: 8),
+            TextField(
+                controller: _shopName,
+                decoration: const InputDecoration(labelText: 'Shop name')),
+            const SizedBox(height: 8),
+            DropdownButtonFormField<String>(
+              initialValue: _plan,
+              decoration: const InputDecoration(labelText: 'Plan'),
+              items: const [
+                DropdownMenuItem(value: 'monthly', child: Text('monthly')),
+                DropdownMenuItem(value: 'yearly', child: Text('yearly')),
+              ],
+              onChanged: (v) => setState(() => _plan = v ?? 'monthly'),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: _months,
+              keyboardType: TextInputType.number,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              decoration: const InputDecoration(labelText: 'Duration (months)'),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: _device,
+              decoration: const InputDecoration(
+                  labelText: 'Bind to App Reference ID (optional)'),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel')),
+        FilledButton(
+          onPressed: () {
+            final shop = _shopId.text.trim();
+            if (shop.isEmpty) return;
+            Navigator.pop(
+              context,
+              _OfflineRequest(
+                shop,
+                _shopName.text.trim(),
+                _plan,
+                int.tryParse(_months.text.trim()) ?? 1,
+                _device.text.trim(),
+              ),
+            );
+          },
+          child: const Text('Generate'),
+        ),
+      ],
+    );
+  }
+}
+
 class _CodePromptDialog extends StatefulWidget {
   const _CodePromptDialog(
       {required this.title, required this.label, required this.action});

@@ -6,6 +6,7 @@ import '../../core/env.dart';
 import '../../data/repositories/settings_repository.dart';
 import 'license_model.dart';
 import 'license_status.dart';
+import 'offline_license.dart';
 
 /// Owns license activation and local caching.
 ///
@@ -37,6 +38,21 @@ class LicenseRepository {
     final trimmed = key.trim();
     if (trimmed.isEmpty) return const ActivationResult.failure('empty_key');
     final deviceId = await _settings.deviceId();
+
+    // Offline signed token: verify locally with the embedded public key — works
+    // with no connectivity at all (activation + renewal for offline shops).
+    if (OfflineLicense.looksLikeToken(trimmed)) {
+      try {
+        final lic = await OfflineLicense.verify(trimmed, deviceId);
+        if (!lic.expiresAt.isAfter(DateTime.now())) {
+          return const ActivationResult.failure('invalid_key'); // expired
+        }
+        return ActivationResult.success(await _save(lic));
+      } on OfflineLicenseException catch (e) {
+        return ActivationResult.failure(
+            e.code == 'device_mismatch' ? 'device_mismatch' : 'invalid_key');
+      }
+    }
 
     if (!Env.hasBackend) {
       return ActivationResult.success(await _localTrial(trimmed, deviceId));

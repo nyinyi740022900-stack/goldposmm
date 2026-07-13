@@ -29,6 +29,25 @@ class AdminApi {
   Future<List<Map<String, dynamic>>> listRequests() => _rows('list_requests');
   Future<List<Map<String, dynamic>>> listEvents() => _rows('list_events');
 
+  Future<String> signOffline({
+    required String shopId,
+    String? shopName,
+    required String plan,
+    required int months,
+    String? deviceId,
+  }) async {
+    final res = await _c.functions.invoke('admin', body: {
+      'action': 'sign_offline',
+      'shop_id': shopId,
+      if (shopName != null && shopName.isNotEmpty) 'shop_name': shopName,
+      'plan': plan,
+      'months': months,
+      if (deviceId != null && deviceId.isNotEmpty) 'device_id': deviceId,
+    });
+    _throwIfError(res);
+    return (res.data as Map)['token'] as String;
+  }
+
   Future<int> resetDevice({required String deviceId}) async {
     final res = await _c.functions.invoke('admin',
         body: {'action': 'reset_device', 'device_id': deviceId});

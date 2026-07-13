@@ -99,8 +99,16 @@ class _LicenseScreenState extends ConsumerState<LicenseScreen> {
     try {
       final result =
           await ref.read(licenseControllerProvider.notifier).refreshOnline();
-      messenger.showSnackBar(SnackBar(
-          content: Text(result.ok ? l.licenseRefreshed : l.licenseActivateFailed)));
+      final String msg;
+      if (result.ok) {
+        msg = l.licenseRefreshed;
+      } else if (result.errorCode == 'invalid_key' ||
+          result.errorCode == 'device_mismatch') {
+        msg = l.licenseInvalidKey;
+      } else {
+        msg = l.licenseActivateFailed; // network / auth
+      }
+      messenger.showSnackBar(SnackBar(content: Text(msg)));
     } finally {
       if (mounted) setState(() => _busy = false);
     }

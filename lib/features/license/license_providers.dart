@@ -92,6 +92,11 @@ class LicenseController extends StateNotifier<LicenseState> {
     if (lic == null) {
       return const ActivationResult.failure('not_activated');
     }
+    // A local trial or an offline signed token has nothing to re-verify online
+    // — treat it as up to date instead of a misleading "activation failed".
+    if (lic.key == 'FREE-TRIAL' || lic.key.startsWith('MMPOS1.')) {
+      return ActivationResult.success(lic);
+    }
     final result = await _repo.activate(lic.key);
     if (result.ok) _apply(result.license);
     return result;

@@ -14,6 +14,7 @@
 // Deploy: supabase functions deploy admin
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import * as ed from "https://esm.sh/@noble/ed25519@2.1.0";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return cors(new Response(null, { status: 204 }));
@@ -121,6 +122,34 @@ Deno.serve(async (req) => {
         expires_at: data,
       });
       return json({ expires_at: data, key: lic.key });
+    }
+
+    case "sign_offline": {
+      // Mint an offline signed license token the admin can send to a shop with
+      // no connectivity. Signed with the Ed25519 private key held as a secret.
+      const keyHex = Deno.env.get("LICENSE_SIGNING_KEY_HEX");
+      if (!keyHex) return json({ error: "signing_key_missing" }, 500);
+      const shopId = (body.shop_id ?? "").trim();
+      if (!shopId) return json({ error: "bad_request" }, 400);
+      const months = body.months ?? 1;
+      const now = Math.floor(Date.now() / 1000);
+      const exp = now + months * 30 * 24 * 3600;
+      const payload: Record<string, unknown> = {
+        shop_id: shopId,
+        shop_name: body.shop_name ?? null,
+        plan: body.plan ?? "monthly",
+        exp,
+        iat: now,
+      };
+      const dev = (body.device_id ?? "").trim();
+      if (dev) payload.device_id = dev;
+
+      const payloadB64 = b64url(new TextEncoder().encode(JSON.stringify(payload)));
+      const message = new TextEncoder().encode("MMPOS1." + payloadB64);
+      const priv = hexToBytes(keyHex);
+      const sig = await ed.signAsync(message, priv);
+      const token = "MMPOS1." + payloadB64 + "." + b64url(sig);
+      return json({ token, expires_at: new Date(exp * 1000).toISOString() });
     }
 
     case "reset_device": {
@@ -280,6 +309,20 @@ Deno.serve(async (req) => {
       return json({ error: "unknown_action" }, 400);
   }
 });
+
+function b64url(bytes: Uint8Array): string {
+  let bin = "";
+  for (const b of bytes) bin += String.fromCharCode(b);
+  return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+function hexToBytes(hex: string): Uint8Array {
+  const out = new Uint8Array(hex.length / 2);
+  for (let i = 0; i < out.length; i++) {
+    out[i] = parseInt(hex.substr(i * 2, 2), 16);
+  }
+  return out;
+}
 
 // deno-lint-ignore no-explicit-any
 async function logEvent(admin: any, event: Record<string, unknown>) {
