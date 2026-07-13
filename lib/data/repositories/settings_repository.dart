@@ -83,6 +83,11 @@ class SettingsRepository {
   Future<String?> licenseJson() => _get(_kLicense);
   Future<void> setLicenseJson(String json) => _set(_kLicense, json);
 
+  // One free trial per install.
+  static const _kTrialUsed = 'license.trial_used';
+  Future<bool> trialUsed() async => (await _get(_kTrialUsed)) == 'true';
+  Future<void> markTrialUsed() => _set(_kTrialUsed, 'true');
+
   // Cached vendor config (payment accounts + support contact), refreshed from
   // the backend `app_config` table so it survives offline.
   static const _kVendorConfig = 'vendor.config.json';
@@ -121,11 +126,14 @@ class SettingsRepository {
   Future<void> setTrackStock(bool value) =>
       _set(_kTrackStock, value ? 'true' : 'false');
 
-  Stream<bool> watchTrackStock() {
+  Stream<bool> watchTrackStock() => _watchBool(_kTrackStock, true);
+
+  Stream<bool> _watchBool(String key, bool defaultValue) {
     return _db.select(_db.appSettings).watch().map((rows) {
       final row = rows.firstWhere(
-        (r) => r.key == _kTrackStock,
-        orElse: () => AppSetting(key: _kTrackStock, value: 'true'),
+        (r) => r.key == key,
+        orElse: () =>
+            AppSetting(key: key, value: defaultValue ? 'true' : 'false'),
       );
       return row.value != 'false';
     });

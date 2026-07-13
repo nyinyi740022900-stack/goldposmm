@@ -94,14 +94,24 @@ class SyncEngine {
         await _removeOutbox(item.seq);
         continue;
       }
-      if (item.op == 'delete') {
-        await remote.markDeleted(item.entityTable, item.rowId, DateTime.now());
-      } else {
-        final row = await def.toRemote(db, item.rowId);
-        if (row != null) await remote.upsert(item.entityTable, row);
+      try {
+        if (item.op == 'delete') {
+          await remote.markDeleted(
+              item.entityTable, item.rowId, DateTime.now());
+        } else {
+          final row = await def.toRemote(db, item.rowId);
+          if (row != null) await remote.upsert(item.entityTable, row);
+        }
+        await _removeOutbox(item.seq);
+        count++;
+      } catch (_) {
+        // One row failing (schema drift, a transient error, a bad payload)
+        // must NOT wedge the whole outbox — record the attempt and move on so
+        // later rows (e.g. a license payment) still reach the server. The
+        // failed row stays queued and is retried on the next sync.
+        await (db.update(db.outbox)..where((o) => o.seq.equals(item.seq)))
+            .write(OutboxCompanion(attempts: Value(item.attempts + 1)));
       }
-      await _removeOutbox(item.seq);
-      count++;
     }
     return count;
   }

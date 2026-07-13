@@ -70,5 +70,7 @@
 	<string>This app connects to your Bluetooth receipt printer to print invoices.</string>
 	<key>NSBluetoothPeripheralUsageDescription</key>
 	<string>This app connects to your Bluetooth receipt printer to print invoices.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>This app uses the camera to scan product barcodes.</string>
 </dict>
 </plist>

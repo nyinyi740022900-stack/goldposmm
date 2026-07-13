@@ -6,6 +6,7 @@ import '../../core/theme/app_theme.dart';
 import '../../domain/product_with_stock.dart';
 import '../../l10n/app_localizations.dart';
 import '../printing/printing_providers.dart';
+import '../sell/barcode_scanner_screen.dart';
 import 'inventory_providers.dart';
 
 /// Add or edit a product. Pass [existing] to edit; null to create.
@@ -114,7 +115,13 @@ class _ProductEditScreenState extends ConsumerState<ProductEditScreen> {
               _field(_reorder, l.productReorderLevel, number: true),
               _gap,
             ],
-            _field(_barcode, l.productBarcode),
+            _field(_barcode, l.productBarcode,
+                number: true,
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.qr_code_scanner),
+                  tooltip: l.scanBarcode,
+                  onPressed: _scanBarcode,
+                )),
             _gap,
             _field(_sku, l.productSku),
             _gap,
@@ -158,12 +165,15 @@ class _ProductEditScreenState extends ConsumerState<ProductEditScreen> {
   }
 
   Widget _field(TextEditingController c, String label,
-      {bool number = false, String? Function(String?)? validator}) {
+      {bool number = false,
+      Widget? suffixIcon,
+      String? Function(String?)? validator}) {
     return TextFormField(
       controller: c,
       // Extra vertical padding so tall Myanmar stacked glyphs aren't clipped.
       decoration: InputDecoration(
         labelText: label,
+        suffixIcon: suffixIcon,
         contentPadding: const EdgeInsets.symmetric(
             horizontal: AppTheme.space4, vertical: AppTheme.space4),
       ),
@@ -172,5 +182,13 @@ class _ProductEditScreenState extends ConsumerState<ProductEditScreen> {
           number ? [FilteringTextInputFormatter.digitsOnly] : null,
       validator: validator,
     );
+  }
+
+  Future<void> _scanBarcode() async {
+    final code = await Navigator.of(context).push<String>(
+      MaterialPageRoute(builder: (_) => const BarcodeScannerScreen()),
+    );
+    if (code == null || !mounted) return;
+    setState(() => _barcode.text = code);
   }
 }

@@ -92,6 +92,25 @@ class LicenseRepository {
     )).then((v) => v!);
   }
 
+  /// Grants a one-time free 2-month trial, scoped to a per-device shop id so
+  /// the trial user's data has a stable home.
+  Future<CachedLicense?> startFreeTrial() async {
+    if (await _settings.trialUsed()) return null;
+    final deviceId = await _settings.deviceId();
+    final now = DateTime.now();
+    final lic = await _save(CachedLicense(
+      key: 'FREE-TRIAL',
+      shopId: 'trial-${deviceId.replaceAll('-', '').substring(0, 10)}',
+      plan: LicensePlan.trial,
+      expiresAt: now.add(const Duration(days: 60)),
+      activatedAt: now,
+      lastVerifiedAt: now,
+      deviceId: deviceId,
+    ));
+    await _settings.markTrialUsed();
+    return lic;
+  }
+
   Future<void> deactivate() => _settings.clearLicense();
 
   /// Records a renewal payment locally and queues it for server reconciliation.
@@ -102,6 +121,7 @@ class LicenseRepository {
     required int amount,
     String? refNo,
     String? note,
+    String? shopName,
   }) async {
     final id = _uuid.v4();
     final now = DateTime.now();
@@ -114,6 +134,7 @@ class LicenseRepository {
             amount: amount,
             refNo: Value(refNo),
             note: Value(note),
+            shopName: Value(shopName),
             updatedAt: Value(now),
           ));
       final row = await (_db.select(_db.licensePayments)

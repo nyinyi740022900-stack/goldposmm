@@ -23,16 +23,27 @@ class _CheckoutSheetState extends ConsumerState<CheckoutSheet> {
   String _method = 'cash';
   final _paid = TextEditingController();
   final _customer = TextEditingController();
+  final _phone = TextEditingController();
   bool _submitting = false;
+  // Seller-controlled, per-sale: reveal the optional customer name/phone fields.
+  bool _addCustomer = false;
 
   @override
   void dispose() {
     _paid.dispose();
     _customer.dispose();
+    _phone.dispose();
     super.dispose();
   }
 
   int get _paidAmount => int.tryParse(_paid.text.trim()) ?? 0;
+
+  /// Amount tendered. Empty field means "paid in full" for a normal method, or
+  /// "nothing down" for the credit method.
+  int _resolvePaid(int total) {
+    if (_paid.text.trim().isEmpty) return _method == 'credit' ? 0 : total;
+    return _paidAmount;
+  }
 
   Future<void> _confirm(CartState cart, int total) async {
     final l = AppLocalizations.of(context);
@@ -45,17 +56,12 @@ class _CheckoutSheetState extends ConsumerState<CheckoutSheet> {
       return;
     }
 
-    final isCredit = _method == 'credit';
-    // Cash and credit take an explicit amount (credit may be a partial
-    // down-payment, or 0); other digital methods assume exact settlement.
-    final paid = (_method == 'cash' || isCredit) ? _paidAmount : total;
-    if (_method == 'cash' && paid < total) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l.sellInsufficientPaid)),
-      );
-      return;
-    }
-    if (isCredit && _customer.text.trim().isEmpty) {
+    final paid = _resolvePaid(total);
+    final owed = total - paid;
+    final name = _customer.text.trim();
+    // A shortfall is booked as credit, and the credit method is always credit —
+    // both need a customer name to bill. Phone stays optional.
+    if ((owed > 0 || _method == 'credit') && name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(l.creditCustomerRequired)),
       );
@@ -66,11 +72,13 @@ class _CheckoutSheetState extends ConsumerState<CheckoutSheet> {
     final messenger = ScaffoldMessenger.of(context);
     try {
       final salesRepo = ref.read(salesRepositoryProvider);
+      final phone = _phone.text.trim();
       final result = await salesRepo.finalizeSale(
         cart: cart,
         paymentMethod: _method,
         paid: paid,
-        customerName: isCredit ? _customer.text.trim() : null,
+        customerName: name.isEmpty ? null : name,
+        customerPhone: phone.isEmpty ? null : phone,
         trackStock: ref.read(trackStockProvider).valueOrNull ?? true,
       );
 
@@ -99,8 +107,12 @@ class _CheckoutSheetState extends ConsumerState<CheckoutSheet> {
     final cart = ref.watch(cartProvider);
     final currency = l.currencySymbol;
     final total = cart.total.kyat;
-    final change =
-        _method == 'cash' && _paidAmount > total ? _paidAmount - total : 0;
+    final paid = _resolvePaid(total);
+    final change = paid > total ? paid - total : 0;
+    final owed = total - paid > 0 ? total - paid : 0;
+    // Credit / any shortfall forces the customer fields (name is then required).
+    final forced = _method == 'credit' || owed > 0;
+    final showCustomer = _addCustomer || forced;
 
     return Padding(
       padding: EdgeInsets.only(
@@ -153,41 +165,53 @@ class _CheckoutSheetState extends ConsumerState<CheckoutSheet> {
               ],
             ),
 
-            if (_method == 'cash') ...[
-              const SizedBox(height: AppTheme.space3),
-              TextField(
-                controller: _paid,
-                keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                decoration: InputDecoration(labelText: l.sellAmountPaid),
-                onChanged: (_) => setState(() {}),
+            const SizedBox(height: AppTheme.space3),
+            // Amount paid — shown for every method. Leave blank to pay in full.
+            TextField(
+              controller: _paid,
+              keyboardType: TextInputType.number,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              decoration: InputDecoration(
+                labelText:
+                    _method == 'credit' ? l.creditPaidNow : l.sellAmountPaid,
+                hintText: Money(total).withSymbol(currency),
               ),
-              const SizedBox(height: AppTheme.space2),
+              onChanged: (_) => setState(() {}),
+            ),
+            const SizedBox(height: AppTheme.space2),
+            if (owed > 0)
+              _row(l.creditOwed, Money(owed).withSymbol(currency), bold: true)
+            else
               _row(l.sellChange, Money(change).withSymbol(currency)),
-            ],
 
-            if (_method == 'credit') ...[
-              const SizedBox(height: AppTheme.space3),
+            // Inline switch so the seller can add customer details on demand.
+            // Forced on (and locked) for credit / partial-payment sales.
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              dense: true,
+              title: Text(l.checkoutAddCustomer),
+              value: showCustomer,
+              onChanged:
+                  forced ? null : (v) => setState(() => _addCustomer = v),
+            ),
+
+            if (showCustomer) ...[
               TextField(
                 controller: _customer,
                 textCapitalization: TextCapitalization.words,
-                decoration: InputDecoration(labelText: l.creditCustomerName),
+                decoration: InputDecoration(
+                  labelText: forced
+                      ? '${l.creditCustomerName} *'
+                      : l.creditCustomerName,
+                  helperText: forced ? l.creditCustomerRequired : null,
+                ),
                 onChanged: (_) => setState(() {}),
               ),
               const SizedBox(height: AppTheme.space2),
               TextField(
-                controller: _paid,
-                keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                decoration: InputDecoration(labelText: l.creditPaidNow),
-                onChanged: (_) => setState(() {}),
-              ),
-              const SizedBox(height: AppTheme.space2),
-              _row(
-                l.creditOwed,
-                Money(total - _paidAmount < 0 ? 0 : total - _paidAmount)
-                    .withSymbol(currency),
-                bold: true,
+                controller: _phone,
+                keyboardType: TextInputType.phone,
+                decoration: InputDecoration(labelText: l.customerPhone),
               ),
             ],
 

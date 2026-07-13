@@ -4,15 +4,42 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/money.dart';
 import '../../core/theme/app_theme.dart';
 import '../../l10n/app_localizations.dart';
+import 'package:collection/collection.dart';
+
 import '../inventory/inventory_providers.dart';
 import '../license/license_providers.dart';
+import '../license/license_screen.dart';
 import '../printing/printing_providers.dart';
+import 'barcode_scanner_screen.dart';
 import 'cart.dart';
 import 'checkout_sheet.dart';
 import 'sales_providers.dart';
 
 class SellScreen extends ConsumerWidget {
   const SellScreen({super.key});
+
+  /// Opens the camera scanner, then adds the matching product to the cart. If
+  /// no product carries that barcode, drops it into the search box instead.
+  Future<void> _scanAndAdd(
+      BuildContext context, WidgetRef ref, AppLocalizations l) async {
+    final code = await Navigator.of(context).push<String>(
+      MaterialPageRoute(builder: (_) => const BarcodeScannerScreen()),
+    );
+    if (code == null || !context.mounted) return;
+    final products = ref.read(productsStreamProvider).valueOrNull ?? const [];
+    final match =
+        products.firstWhereOrNull((p) => (p.product.barcode ?? '') == code);
+    final messenger = ScaffoldMessenger.of(context);
+    if (match != null) {
+      ref.read(cartProvider.notifier).addProduct(match.product);
+      messenger.showSnackBar(
+          SnackBar(content: Text(l.scanAdded(match.product.name))));
+    } else {
+      ref.read(sellSearchProvider.notifier).state = code;
+      messenger
+          .showSnackBar(SnackBar(content: Text(l.scanNotFound(code))));
+    }
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -22,13 +49,26 @@ class SellScreen extends ConsumerWidget {
     final cart = ref.watch(cartProvider);
     final currency = l.currencySymbol;
     final trackStock = ref.watch(trackStockProvider).valueOrNull ?? true;
-    final readOnly = ref.watch(licenseControllerProvider).status.isReadOnly &&
-        !ref.watch(licenseControllerProvider).loading;
+    final licState = ref.watch(licenseControllerProvider);
+    final readOnly = licState.status.isReadOnly && !licState.loading;
+    // Remind daily when the license expires within 5 days (still sellable).
+    final expiresAt = licState.status.expiresAt;
+    final daysLeft = expiresAt?.difference(DateTime.now()).inDays;
+    final expiringSoon = !licState.loading &&
+        licState.status.canSell &&
+        daysLeft != null &&
+        daysLeft <= 5;
+    final daysLeftShown = daysLeft == null ? 0 : (daysLeft < 0 ? 0 : daysLeft);
 
     return Scaffold(
       appBar: AppBar(
         title: Text(l.sellTitle),
         actions: [
+          IconButton(
+            tooltip: l.scanBarcode,
+            icon: const Icon(Icons.qr_code_scanner),
+            onPressed: () => _scanAndAdd(context, ref, l),
+          ),
           if (!cart.isEmpty)
             IconButton(
               tooltip: l.sellClear,
@@ -55,6 +95,30 @@ class SellScreen extends ConsumerWidget {
       ),
       body: Column(
         children: [
+          if (expiringSoon && !readOnly)
+            Material(
+              color: const Color(0xFFFFF3CD),
+              child: InkWell(
+                onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                    builder: (_) => const LicenseScreen())),
+                child: Padding(
+                  padding: const EdgeInsets.all(AppTheme.space3),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.warning_amber, color: Color(0xFF8A6D00)),
+                      const SizedBox(width: AppTheme.space2),
+                      Expanded(
+                        child: Text(
+                          l.licenseExpiringSoon(daysLeftShown),
+                          style: const TextStyle(color: Color(0xFF8A6D00)),
+                        ),
+                      ),
+                      const Icon(Icons.chevron_right, color: Color(0xFF8A6D00)),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           if (readOnly)
             Material(
               color: Theme.of(context).colorScheme.errorContainer,

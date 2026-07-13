@@ -49,6 +49,7 @@ class SalesRepository {
     required String paymentMethod,
     required int paid,
     String? customerName,
+    String? customerPhone,
     String? staffId,
     bool trackStock = true,
   }) async {
@@ -77,6 +78,7 @@ class SalesRepository {
         changeDue: Value(change),
         paymentMethod: Value(paymentMethod),
         customerName: Value(customerName),
+        customerPhone: Value(customerPhone),
         finalizedAt: Value(now),
         updatedAt: Value(now),
       );

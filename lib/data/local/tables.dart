@@ -81,6 +81,7 @@ class Sales extends Table with SyncColumns {
   /// cash | kbzpay | wavepay | ayapay | cbpay
   TextColumn get paymentMethod => text().withDefault(const Constant('cash'))();
   TextColumn get customerName => text().nullable()();
+  TextColumn get customerPhone => text().nullable()();
   TextColumn get note => text().nullable()();
   DateTimeColumn get finalizedAt =>
       dateTime().withDefault(currentDateAndTime)();
@@ -126,6 +127,10 @@ class LicensePayments extends Table with SyncColumns {
   IntColumn get amount => integer()();
   TextColumn get refNo => text().nullable()();
   TextColumn get note => text().nullable()();
+
+  /// The shop's own display name (from Shop profile), so the admin console
+  /// shows who paid rather than the internal shop id.
+  TextColumn get shopName => text().nullable()();
   BoolColumn get reconciled => boolean().withDefault(const Constant(false))();
 
   @override

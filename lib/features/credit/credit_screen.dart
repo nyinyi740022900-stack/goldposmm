@@ -96,6 +96,7 @@ class CreditCustomerScreen extends ConsumerWidget {
           orElse: () => CreditCustomer(
               name: customerName, billed: 0, paid: 0, openInvoices: 0),
         );
+    final owedBySale = ref.watch(creditOwedBySaleProvider);
     final sales = (ref.watch(creditSalesProvider).valueOrNull ?? const <Sale>[])
         .where((s) => (s.customerName ?? '').trim() == customerName)
         .toList();
@@ -142,7 +143,7 @@ class CreditCustomerScreen extends ConsumerWidget {
           Text(l.creditInvoices,
               style: Theme.of(context).textTheme.titleSmall),
           ...sales.map((s) {
-            final owed = s.total - s.paid;
+            final owed = owedBySale[s.id] ?? (s.total - s.paid);
             return ListTile(
               dense: true,
               contentPadding: EdgeInsets.zero,

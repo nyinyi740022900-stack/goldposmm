@@ -2770,6 +2770,17 @@ class $SalesTable extends Sales with TableInfo<$SalesTable, Sale> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _customerPhoneMeta = const VerificationMeta(
+    'customerPhone',
+  );
+  @override
+  late final GeneratedColumn<String> customerPhone = GeneratedColumn<String>(
+    'customer_phone',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _noteMeta = const VerificationMeta('note');
   @override
   late final GeneratedColumn<String> note = GeneratedColumn<String>(
@@ -2809,6 +2820,7 @@ class $SalesTable extends Sales with TableInfo<$SalesTable, Sale> {
     changeDue,
     paymentMethod,
     customerName,
+    customerPhone,
     note,
     finalizedAt,
   ];
@@ -2929,6 +2941,15 @@ class $SalesTable extends Sales with TableInfo<$SalesTable, Sale> {
         ),
       );
     }
+    if (data.containsKey('customer_phone')) {
+      context.handle(
+        _customerPhoneMeta,
+        customerPhone.isAcceptableOrUnknown(
+          data['customer_phone']!,
+          _customerPhoneMeta,
+        ),
+      );
+    }
     if (data.containsKey('note')) {
       context.handle(
         _noteMeta,
@@ -3017,6 +3038,10 @@ class $SalesTable extends Sales with TableInfo<$SalesTable, Sale> {
         DriftSqlType.string,
         data['${effectivePrefix}customer_name'],
       ),
+      customerPhone: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}customer_phone'],
+      ),
       note: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}note'],
@@ -3053,6 +3078,7 @@ class Sale extends DataClass implements Insertable<Sale> {
   /// cash | kbzpay | wavepay | ayapay | cbpay
   final String paymentMethod;
   final String? customerName;
+  final String? customerPhone;
   final String? note;
   final DateTime finalizedAt;
   const Sale({
@@ -3072,6 +3098,7 @@ class Sale extends DataClass implements Insertable<Sale> {
     required this.changeDue,
     required this.paymentMethod,
     this.customerName,
+    this.customerPhone,
     this.note,
     required this.finalizedAt,
   });
@@ -3097,6 +3124,9 @@ class Sale extends DataClass implements Insertable<Sale> {
     map['payment_method'] = Variable<String>(paymentMethod);
     if (!nullToAbsent || customerName != null) {
       map['customer_name'] = Variable<String>(customerName);
+    }
+    if (!nullToAbsent || customerPhone != null) {
+      map['customer_phone'] = Variable<String>(customerPhone);
     }
     if (!nullToAbsent || note != null) {
       map['note'] = Variable<String>(note);
@@ -3127,6 +3157,9 @@ class Sale extends DataClass implements Insertable<Sale> {
       customerName: customerName == null && nullToAbsent
           ? const Value.absent()
           : Value(customerName),
+      customerPhone: customerPhone == null && nullToAbsent
+          ? const Value.absent()
+          : Value(customerPhone),
       note: note == null && nullToAbsent ? const Value.absent() : Value(note),
       finalizedAt: Value(finalizedAt),
     );
@@ -3154,6 +3187,7 @@ class Sale extends DataClass implements Insertable<Sale> {
       changeDue: serializer.fromJson<int>(json['changeDue']),
       paymentMethod: serializer.fromJson<String>(json['paymentMethod']),
       customerName: serializer.fromJson<String?>(json['customerName']),
+      customerPhone: serializer.fromJson<String?>(json['customerPhone']),
       note: serializer.fromJson<String?>(json['note']),
       finalizedAt: serializer.fromJson<DateTime>(json['finalizedAt']),
     );
@@ -3178,6 +3212,7 @@ class Sale extends DataClass implements Insertable<Sale> {
       'changeDue': serializer.toJson<int>(changeDue),
       'paymentMethod': serializer.toJson<String>(paymentMethod),
       'customerName': serializer.toJson<String?>(customerName),
+      'customerPhone': serializer.toJson<String?>(customerPhone),
       'note': serializer.toJson<String?>(note),
       'finalizedAt': serializer.toJson<DateTime>(finalizedAt),
     };
@@ -3200,6 +3235,7 @@ class Sale extends DataClass implements Insertable<Sale> {
     int? changeDue,
     String? paymentMethod,
     Value<String?> customerName = const Value.absent(),
+    Value<String?> customerPhone = const Value.absent(),
     Value<String?> note = const Value.absent(),
     DateTime? finalizedAt,
   }) => Sale(
@@ -3219,6 +3255,9 @@ class Sale extends DataClass implements Insertable<Sale> {
     changeDue: changeDue ?? this.changeDue,
     paymentMethod: paymentMethod ?? this.paymentMethod,
     customerName: customerName.present ? customerName.value : this.customerName,
+    customerPhone: customerPhone.present
+        ? customerPhone.value
+        : this.customerPhone,
     note: note.present ? note.value : this.note,
     finalizedAt: finalizedAt ?? this.finalizedAt,
   );
@@ -3244,6 +3283,9 @@ class Sale extends DataClass implements Insertable<Sale> {
       customerName: data.customerName.present
           ? data.customerName.value
           : this.customerName,
+      customerPhone: data.customerPhone.present
+          ? data.customerPhone.value
+          : this.customerPhone,
       note: data.note.present ? data.note.value : this.note,
       finalizedAt: data.finalizedAt.present
           ? data.finalizedAt.value
@@ -3270,6 +3312,7 @@ class Sale extends DataClass implements Insertable<Sale> {
           ..write('changeDue: $changeDue, ')
           ..write('paymentMethod: $paymentMethod, ')
           ..write('customerName: $customerName, ')
+          ..write('customerPhone: $customerPhone, ')
           ..write('note: $note, ')
           ..write('finalizedAt: $finalizedAt')
           ..write(')'))
@@ -3294,6 +3337,7 @@ class Sale extends DataClass implements Insertable<Sale> {
     changeDue,
     paymentMethod,
     customerName,
+    customerPhone,
     note,
     finalizedAt,
   );
@@ -3317,6 +3361,7 @@ class Sale extends DataClass implements Insertable<Sale> {
           other.changeDue == this.changeDue &&
           other.paymentMethod == this.paymentMethod &&
           other.customerName == this.customerName &&
+          other.customerPhone == this.customerPhone &&
           other.note == this.note &&
           other.finalizedAt == this.finalizedAt);
 }
@@ -3338,6 +3383,7 @@ class SalesCompanion extends UpdateCompanion<Sale> {
   final Value<int> changeDue;
   final Value<String> paymentMethod;
   final Value<String?> customerName;
+  final Value<String?> customerPhone;
   final Value<String?> note;
   final Value<DateTime> finalizedAt;
   final Value<int> rowid;
@@ -3358,6 +3404,7 @@ class SalesCompanion extends UpdateCompanion<Sale> {
     this.changeDue = const Value.absent(),
     this.paymentMethod = const Value.absent(),
     this.customerName = const Value.absent(),
+    this.customerPhone = const Value.absent(),
     this.note = const Value.absent(),
     this.finalizedAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -3379,6 +3426,7 @@ class SalesCompanion extends UpdateCompanion<Sale> {
     this.changeDue = const Value.absent(),
     this.paymentMethod = const Value.absent(),
     this.customerName = const Value.absent(),
+    this.customerPhone = const Value.absent(),
     this.note = const Value.absent(),
     this.finalizedAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -3402,6 +3450,7 @@ class SalesCompanion extends UpdateCompanion<Sale> {
     Expression<int>? changeDue,
     Expression<String>? paymentMethod,
     Expression<String>? customerName,
+    Expression<String>? customerPhone,
     Expression<String>? note,
     Expression<DateTime>? finalizedAt,
     Expression<int>? rowid,
@@ -3423,6 +3472,7 @@ class SalesCompanion extends UpdateCompanion<Sale> {
       if (changeDue != null) 'change_due': changeDue,
       if (paymentMethod != null) 'payment_method': paymentMethod,
       if (customerName != null) 'customer_name': customerName,
+      if (customerPhone != null) 'customer_phone': customerPhone,
       if (note != null) 'note': note,
       if (finalizedAt != null) 'finalized_at': finalizedAt,
       if (rowid != null) 'rowid': rowid,
@@ -3446,6 +3496,7 @@ class SalesCompanion extends UpdateCompanion<Sale> {
     Value<int>? changeDue,
     Value<String>? paymentMethod,
     Value<String?>? customerName,
+    Value<String?>? customerPhone,
     Value<String?>? note,
     Value<DateTime>? finalizedAt,
     Value<int>? rowid,
@@ -3467,6 +3518,7 @@ class SalesCompanion extends UpdateCompanion<Sale> {
       changeDue: changeDue ?? this.changeDue,
       paymentMethod: paymentMethod ?? this.paymentMethod,
       customerName: customerName ?? this.customerName,
+      customerPhone: customerPhone ?? this.customerPhone,
       note: note ?? this.note,
       finalizedAt: finalizedAt ?? this.finalizedAt,
       rowid: rowid ?? this.rowid,
@@ -3524,6 +3576,9 @@ class SalesCompanion extends UpdateCompanion<Sale> {
     if (customerName.present) {
       map['customer_name'] = Variable<String>(customerName.value);
     }
+    if (customerPhone.present) {
+      map['customer_phone'] = Variable<String>(customerPhone.value);
+    }
     if (note.present) {
       map['note'] = Variable<String>(note.value);
     }
@@ -3555,6 +3610,7 @@ class SalesCompanion extends UpdateCompanion<Sale> {
           ..write('changeDue: $changeDue, ')
           ..write('paymentMethod: $paymentMethod, ')
           ..write('customerName: $customerName, ')
+          ..write('customerPhone: $customerPhone, ')
           ..write('note: $note, ')
           ..write('finalizedAt: $finalizedAt, ')
           ..write('rowid: $rowid')
@@ -4989,6 +5045,17 @@ class $LicensePaymentsTable extends LicensePayments
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _shopNameMeta = const VerificationMeta(
+    'shopName',
+  );
+  @override
+  late final GeneratedColumn<String> shopName = GeneratedColumn<String>(
+    'shop_name',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _reconciledMeta = const VerificationMeta(
     'reconciled',
   );
@@ -5017,6 +5084,7 @@ class $LicensePaymentsTable extends LicensePayments
     amount,
     refNo,
     note,
+    shopName,
     reconciled,
   ];
   @override
@@ -5104,6 +5172,12 @@ class $LicensePaymentsTable extends LicensePayments
         note.isAcceptableOrUnknown(data['note']!, _noteMeta),
       );
     }
+    if (data.containsKey('shop_name')) {
+      context.handle(
+        _shopNameMeta,
+        shopName.isAcceptableOrUnknown(data['shop_name']!, _shopNameMeta),
+      );
+    }
     if (data.containsKey('reconciled')) {
       context.handle(
         _reconciledMeta,
@@ -5163,6 +5237,10 @@ class $LicensePaymentsTable extends LicensePayments
         DriftSqlType.string,
         data['${effectivePrefix}note'],
       ),
+      shopName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}shop_name'],
+      ),
       reconciled: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
         data['${effectivePrefix}reconciled'],
@@ -5190,6 +5268,10 @@ class LicensePayment extends DataClass implements Insertable<LicensePayment> {
   final int amount;
   final String? refNo;
   final String? note;
+
+  /// The shop's own display name (from Shop profile), so the admin console
+  /// shows who paid rather than the internal shop id.
+  final String? shopName;
   final bool reconciled;
   const LicensePayment({
     required this.id,
@@ -5203,6 +5285,7 @@ class LicensePayment extends DataClass implements Insertable<LicensePayment> {
     required this.amount,
     this.refNo,
     this.note,
+    this.shopName,
     required this.reconciled,
   });
   @override
@@ -5223,6 +5306,9 @@ class LicensePayment extends DataClass implements Insertable<LicensePayment> {
     if (!nullToAbsent || note != null) {
       map['note'] = Variable<String>(note);
     }
+    if (!nullToAbsent || shopName != null) {
+      map['shop_name'] = Variable<String>(shopName);
+    }
     map['reconciled'] = Variable<bool>(reconciled);
     return map;
   }
@@ -5242,6 +5328,9 @@ class LicensePayment extends DataClass implements Insertable<LicensePayment> {
           ? const Value.absent()
           : Value(refNo),
       note: note == null && nullToAbsent ? const Value.absent() : Value(note),
+      shopName: shopName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(shopName),
       reconciled: Value(reconciled),
     );
   }
@@ -5263,6 +5352,7 @@ class LicensePayment extends DataClass implements Insertable<LicensePayment> {
       amount: serializer.fromJson<int>(json['amount']),
       refNo: serializer.fromJson<String?>(json['refNo']),
       note: serializer.fromJson<String?>(json['note']),
+      shopName: serializer.fromJson<String?>(json['shopName']),
       reconciled: serializer.fromJson<bool>(json['reconciled']),
     );
   }
@@ -5281,6 +5371,7 @@ class LicensePayment extends DataClass implements Insertable<LicensePayment> {
       'amount': serializer.toJson<int>(amount),
       'refNo': serializer.toJson<String?>(refNo),
       'note': serializer.toJson<String?>(note),
+      'shopName': serializer.toJson<String?>(shopName),
       'reconciled': serializer.toJson<bool>(reconciled),
     };
   }
@@ -5297,6 +5388,7 @@ class LicensePayment extends DataClass implements Insertable<LicensePayment> {
     int? amount,
     Value<String?> refNo = const Value.absent(),
     Value<String?> note = const Value.absent(),
+    Value<String?> shopName = const Value.absent(),
     bool? reconciled,
   }) => LicensePayment(
     id: id ?? this.id,
@@ -5310,6 +5402,7 @@ class LicensePayment extends DataClass implements Insertable<LicensePayment> {
     amount: amount ?? this.amount,
     refNo: refNo.present ? refNo.value : this.refNo,
     note: note.present ? note.value : this.note,
+    shopName: shopName.present ? shopName.value : this.shopName,
     reconciled: reconciled ?? this.reconciled,
   );
   LicensePayment copyWithCompanion(LicensePaymentsCompanion data) {
@@ -5327,6 +5420,7 @@ class LicensePayment extends DataClass implements Insertable<LicensePayment> {
       amount: data.amount.present ? data.amount.value : this.amount,
       refNo: data.refNo.present ? data.refNo.value : this.refNo,
       note: data.note.present ? data.note.value : this.note,
+      shopName: data.shopName.present ? data.shopName.value : this.shopName,
       reconciled: data.reconciled.present
           ? data.reconciled.value
           : this.reconciled,
@@ -5347,6 +5441,7 @@ class LicensePayment extends DataClass implements Insertable<LicensePayment> {
           ..write('amount: $amount, ')
           ..write('refNo: $refNo, ')
           ..write('note: $note, ')
+          ..write('shopName: $shopName, ')
           ..write('reconciled: $reconciled')
           ..write(')'))
         .toString();
@@ -5365,6 +5460,7 @@ class LicensePayment extends DataClass implements Insertable<LicensePayment> {
     amount,
     refNo,
     note,
+    shopName,
     reconciled,
   );
   @override
@@ -5382,6 +5478,7 @@ class LicensePayment extends DataClass implements Insertable<LicensePayment> {
           other.amount == this.amount &&
           other.refNo == this.refNo &&
           other.note == this.note &&
+          other.shopName == this.shopName &&
           other.reconciled == this.reconciled);
 }
 
@@ -5397,6 +5494,7 @@ class LicensePaymentsCompanion extends UpdateCompanion<LicensePayment> {
   final Value<int> amount;
   final Value<String?> refNo;
   final Value<String?> note;
+  final Value<String?> shopName;
   final Value<bool> reconciled;
   final Value<int> rowid;
   const LicensePaymentsCompanion({
@@ -5411,6 +5509,7 @@ class LicensePaymentsCompanion extends UpdateCompanion<LicensePayment> {
     this.amount = const Value.absent(),
     this.refNo = const Value.absent(),
     this.note = const Value.absent(),
+    this.shopName = const Value.absent(),
     this.reconciled = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -5426,6 +5525,7 @@ class LicensePaymentsCompanion extends UpdateCompanion<LicensePayment> {
     required int amount,
     this.refNo = const Value.absent(),
     this.note = const Value.absent(),
+    this.shopName = const Value.absent(),
     this.reconciled = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
@@ -5445,6 +5545,7 @@ class LicensePaymentsCompanion extends UpdateCompanion<LicensePayment> {
     Expression<int>? amount,
     Expression<String>? refNo,
     Expression<String>? note,
+    Expression<String>? shopName,
     Expression<bool>? reconciled,
     Expression<int>? rowid,
   }) {
@@ -5460,6 +5561,7 @@ class LicensePaymentsCompanion extends UpdateCompanion<LicensePayment> {
       if (amount != null) 'amount': amount,
       if (refNo != null) 'ref_no': refNo,
       if (note != null) 'note': note,
+      if (shopName != null) 'shop_name': shopName,
       if (reconciled != null) 'reconciled': reconciled,
       if (rowid != null) 'rowid': rowid,
     });
@@ -5477,6 +5579,7 @@ class LicensePaymentsCompanion extends UpdateCompanion<LicensePayment> {
     Value<int>? amount,
     Value<String?>? refNo,
     Value<String?>? note,
+    Value<String?>? shopName,
     Value<bool>? reconciled,
     Value<int>? rowid,
   }) {
@@ -5492,6 +5595,7 @@ class LicensePaymentsCompanion extends UpdateCompanion<LicensePayment> {
       amount: amount ?? this.amount,
       refNo: refNo ?? this.refNo,
       note: note ?? this.note,
+      shopName: shopName ?? this.shopName,
       reconciled: reconciled ?? this.reconciled,
       rowid: rowid ?? this.rowid,
     );
@@ -5533,6 +5637,9 @@ class LicensePaymentsCompanion extends UpdateCompanion<LicensePayment> {
     if (note.present) {
       map['note'] = Variable<String>(note.value);
     }
+    if (shopName.present) {
+      map['shop_name'] = Variable<String>(shopName.value);
+    }
     if (reconciled.present) {
       map['reconciled'] = Variable<bool>(reconciled.value);
     }
@@ -5556,6 +5663,7 @@ class LicensePaymentsCompanion extends UpdateCompanion<LicensePayment> {
           ..write('amount: $amount, ')
           ..write('refNo: $refNo, ')
           ..write('note: $note, ')
+          ..write('shopName: $shopName, ')
           ..write('reconciled: $reconciled, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -8123,6 +8231,7 @@ typedef $$SalesTableCreateCompanionBuilder =
       Value<int> changeDue,
       Value<String> paymentMethod,
       Value<String?> customerName,
+      Value<String?> customerPhone,
       Value<String?> note,
       Value<DateTime> finalizedAt,
       Value<int> rowid,
@@ -8145,6 +8254,7 @@ typedef $$SalesTableUpdateCompanionBuilder =
       Value<int> changeDue,
       Value<String> paymentMethod,
       Value<String?> customerName,
+      Value<String?> customerPhone,
       Value<String?> note,
       Value<DateTime> finalizedAt,
       Value<int> rowid,
@@ -8235,6 +8345,11 @@ class $$SalesTableFilterComposer extends Composer<_$AppDatabase, $SalesTable> {
 
   ColumnFilters<String> get customerName => $composableBuilder(
     column: $table.customerName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get customerPhone => $composableBuilder(
+    column: $table.customerPhone,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -8338,6 +8453,11 @@ class $$SalesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get customerPhone => $composableBuilder(
+    column: $table.customerPhone,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get note => $composableBuilder(
     column: $table.note,
     builder: (column) => ColumnOrderings(column),
@@ -8410,6 +8530,11 @@ class $$SalesTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<String> get customerPhone => $composableBuilder(
+    column: $table.customerPhone,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<String> get note =>
       $composableBuilder(column: $table.note, builder: (column) => column);
 
@@ -8463,6 +8588,7 @@ class $$SalesTableTableManager
                 Value<int> changeDue = const Value.absent(),
                 Value<String> paymentMethod = const Value.absent(),
                 Value<String?> customerName = const Value.absent(),
+                Value<String?> customerPhone = const Value.absent(),
                 Value<String?> note = const Value.absent(),
                 Value<DateTime> finalizedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -8483,6 +8609,7 @@ class $$SalesTableTableManager
                 changeDue: changeDue,
                 paymentMethod: paymentMethod,
                 customerName: customerName,
+                customerPhone: customerPhone,
                 note: note,
                 finalizedAt: finalizedAt,
                 rowid: rowid,
@@ -8505,6 +8632,7 @@ class $$SalesTableTableManager
                 Value<int> changeDue = const Value.absent(),
                 Value<String> paymentMethod = const Value.absent(),
                 Value<String?> customerName = const Value.absent(),
+                Value<String?> customerPhone = const Value.absent(),
                 Value<String?> note = const Value.absent(),
                 Value<DateTime> finalizedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -8525,6 +8653,7 @@ class $$SalesTableTableManager
                 changeDue: changeDue,
                 paymentMethod: paymentMethod,
                 customerName: customerName,
+                customerPhone: customerPhone,
                 note: note,
                 finalizedAt: finalizedAt,
                 rowid: rowid,
@@ -9184,6 +9313,7 @@ typedef $$LicensePaymentsTableCreateCompanionBuilder =
       required int amount,
       Value<String?> refNo,
       Value<String?> note,
+      Value<String?> shopName,
       Value<bool> reconciled,
       Value<int> rowid,
     });
@@ -9200,6 +9330,7 @@ typedef $$LicensePaymentsTableUpdateCompanionBuilder =
       Value<int> amount,
       Value<String?> refNo,
       Value<String?> note,
+      Value<String?> shopName,
       Value<bool> reconciled,
       Value<int> rowid,
     });
@@ -9265,6 +9396,11 @@ class $$LicensePaymentsTableFilterComposer
 
   ColumnFilters<String> get note => $composableBuilder(
     column: $table.note,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get shopName => $composableBuilder(
+    column: $table.shopName,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -9338,6 +9474,11 @@ class $$LicensePaymentsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get shopName => $composableBuilder(
+    column: $table.shopName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<bool> get reconciled => $composableBuilder(
     column: $table.reconciled,
     builder: (column) => ColumnOrderings(column),
@@ -9387,6 +9528,9 @@ class $$LicensePaymentsTableAnnotationComposer
 
   GeneratedColumn<String> get note =>
       $composableBuilder(column: $table.note, builder: (column) => column);
+
+  GeneratedColumn<String> get shopName =>
+      $composableBuilder(column: $table.shopName, builder: (column) => column);
 
   GeneratedColumn<bool> get reconciled => $composableBuilder(
     column: $table.reconciled,
@@ -9442,6 +9586,7 @@ class $$LicensePaymentsTableTableManager
                 Value<int> amount = const Value.absent(),
                 Value<String?> refNo = const Value.absent(),
                 Value<String?> note = const Value.absent(),
+                Value<String?> shopName = const Value.absent(),
                 Value<bool> reconciled = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => LicensePaymentsCompanion(
@@ -9456,6 +9601,7 @@ class $$LicensePaymentsTableTableManager
                 amount: amount,
                 refNo: refNo,
                 note: note,
+                shopName: shopName,
                 reconciled: reconciled,
                 rowid: rowid,
               ),
@@ -9472,6 +9618,7 @@ class $$LicensePaymentsTableTableManager
                 required int amount,
                 Value<String?> refNo = const Value.absent(),
                 Value<String?> note = const Value.absent(),
+                Value<String?> shopName = const Value.absent(),
                 Value<bool> reconciled = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => LicensePaymentsCompanion.insert(
@@ -9486,6 +9633,7 @@ class $$LicensePaymentsTableTableManager
                 amount: amount,
                 refNo: refNo,
                 note: note,
+                shopName: shopName,
                 reconciled: reconciled,
                 rowid: rowid,
               ),

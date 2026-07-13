@@ -14,6 +14,8 @@ class VendorConfig {
   final String waveName;
   final String waveNumber;
   final String supportViber;
+  final int priceMonthly;
+  final int priceYearly;
 
   const VendorConfig({
     this.kbzName = '',
@@ -21,11 +23,15 @@ class VendorConfig {
     this.waveName = '',
     this.waveNumber = '',
     this.supportViber = '',
+    this.priceMonthly = 0,
+    this.priceYearly = 0,
   });
 
   bool get hasKbz => kbzNumber.isNotEmpty;
   bool get hasWave => waveNumber.isNotEmpty;
   bool get hasSupport => supportViber.isNotEmpty;
+
+  int priceFor(String plan) => plan == 'yearly' ? priceYearly : priceMonthly;
 
   factory VendorConfig.fromMap(Map<String, String> m) => VendorConfig(
         kbzName: m['pay.kbzpay.name'] ?? '',
@@ -33,6 +39,8 @@ class VendorConfig {
         waveName: m['pay.wavepay.name'] ?? '',
         waveNumber: m['pay.wavepay.number'] ?? '',
         supportViber: m['support.viber'] ?? '',
+        priceMonthly: int.tryParse(m['price.monthly'] ?? '') ?? 0,
+        priceYearly: int.tryParse(m['price.yearly'] ?? '') ?? 0,
       );
 
   Map<String, String> toMap() => {
@@ -41,6 +49,8 @@ class VendorConfig {
         'pay.wavepay.name': waveName,
         'pay.wavepay.number': waveNumber,
         'support.viber': supportViber,
+        'price.monthly': '$priceMonthly',
+        'price.yearly': '$priceYearly',
       };
 
   static const empty = VendorConfig();

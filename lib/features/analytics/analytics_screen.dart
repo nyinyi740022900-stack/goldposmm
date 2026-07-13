@@ -1,10 +1,12 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../core/money.dart';
 import '../../core/theme/app_theme.dart';
 import '../../l10n/app_localizations.dart';
+import '../credit/credit_screen.dart';
 import '../printing/printing_providers.dart';
 import 'analytics_calculator.dart';
 import 'analytics_providers.dart';
@@ -81,7 +83,8 @@ class _Dashboard extends StatelessWidget {
                 label: l.analyticsRevenue,
                 value: Money(summary.revenue).withSymbol(cur),
                 icon: Icons.payments,
-                color: Colors.teal),
+                color: Colors.teal,
+                onTap: () => context.go('/invoices')),
             _KpiCard(
                 label: l.analyticsProfit,
                 value: Money(summary.profit).withSymbol(cur),
@@ -91,25 +94,30 @@ class _Dashboard extends StatelessWidget {
                 label: l.analyticsSalesCount,
                 value: '${summary.salesCount}',
                 icon: Icons.receipt_long,
-                color: Colors.indigo),
+                color: Colors.indigo,
+                onTap: () => context.go('/invoices')),
             if (trackStock)
               _KpiCard(
                   label: l.analyticsStockValue,
                   value: Money(summary.stockValue).withSymbol(cur),
                   icon: Icons.inventory_2,
-                  color: Colors.orange),
+                  color: Colors.orange,
+                  onTap: () => context.go('/inventory')),
             _KpiCard(
                 label: l.analyticsCollected,
                 value: Money(summary.collected).withSymbol(cur),
                 icon: Icons.account_balance,
-                color: Colors.blueGrey),
+                color: Colors.blueGrey,
+                onTap: () => context.go('/invoices')),
             _KpiCard(
                 label: l.analyticsCreditOutstanding,
                 value: Money(summary.creditOutstanding).withSymbol(cur),
                 icon: Icons.account_balance_wallet,
                 color: summary.creditOutstanding > 0
                     ? Colors.red
-                    : Colors.green),
+                    : Colors.green,
+                onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                    builder: (_) => const CreditScreen()))),
           ],
         ),
         const SizedBox(height: AppTheme.space3),
@@ -126,17 +134,22 @@ class _KpiCard extends StatelessWidget {
       {required this.label,
       required this.value,
       required this.icon,
-      required this.color});
+      required this.color,
+      this.onTap});
 
   final String label;
   final String value;
   final IconData icon;
   final Color color;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     return Card(
-      child: Padding(
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
         padding: const EdgeInsets.all(AppTheme.space3),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -159,6 +172,7 @@ class _KpiCard extends StatelessWidget {
                     .titleLarge
                     ?.copyWith(fontWeight: FontWeight.bold)),
           ],
+        ),
         ),
       ),
     );

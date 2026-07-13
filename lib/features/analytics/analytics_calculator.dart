@@ -95,10 +95,10 @@ AnalyticsSummary computeAnalytics({
   for (final s in sales) {
     revenue += s.total;
     discount += s.discount;
-    if (s.paymentMethod == 'credit') {
+    final owed = s.total - s.paid;
+    if (owed > 0) {
       creditSales += 1;
-      final owed = s.total - s.paid;
-      if (owed > 0) creditOutstanding += owed;
+      creditOutstanding += owed;
     }
     final k = _dayKey(s.finalizedAt);
     byDay[k] = (byDay[k] ?? 0) + s.total;

@@ -27,6 +27,12 @@ final trackStockProvider = StreamProvider<bool>((ref) {
   return ref.watch(settingsRepositoryProvider).watchTrackStock();
 });
 
+/// Stable per-install id, doubling as the user-facing App Reference ID / Shop
+/// Code (globally unique — a v4 UUID). The admin extends a license by it.
+final deviceIdProvider = FutureProvider<String>((ref) {
+  return ref.watch(settingsRepositoryProvider).deviceId();
+});
+
 /// Builds localized receipt labels from the current localization.
 ReceiptLabels receiptLabels(AppLocalizations l) => ReceiptLabels(
       invoice: l.receiptInvoice,

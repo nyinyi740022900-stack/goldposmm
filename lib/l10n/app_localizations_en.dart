@@ -93,6 +93,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sellClear => 'Clear';
 
   @override
+  String get scanBarcode => 'Scan barcode';
+
+  @override
+  String get scanTorch => 'Flash';
+
+  @override
+  String get scanFlip => 'Flip camera';
+
+  @override
+  String get scanHint => 'Point the camera at a barcode';
+
+  @override
+  String scanAdded(String name) {
+    return 'Added $name';
+  }
+
+  @override
+  String scanNotFound(String code) {
+    return 'No product for barcode $code';
+  }
+
+  @override
   String get sellCompleted => 'Sale completed';
 
   @override
@@ -121,6 +143,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get creditCustomerName => 'Customer name';
+
+  @override
+  String get customerPhone => 'Phone (optional)';
+
+  @override
+  String get checkoutAddCustomer => 'Add customer';
 
   @override
   String get creditCustomerRequired =>
@@ -256,6 +284,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settingsTrackStockHint =>
       'Off = invoice only (no stock counts or alerts).';
+
+  @override
+  String get settingsAskCustomer => 'Ask for customer';
+
+  @override
+  String get settingsAskCustomerHint =>
+      'Show optional customer name + phone at checkout.';
 
   @override
   String get shopProfileHint => 'Shown on printed receipts.';
@@ -486,10 +521,75 @@ class AppLocalizationsEn extends AppLocalizations {
   String get licenseDeactivate => 'Remove license';
 
   @override
+  String get licenseDeactivateConfirm =>
+      'Remove the license from this device? Your expiry date is kept — re-activating the same key later won\'t lose any days or restart it.';
+
+  @override
   String get licensePlanLabel => 'Plan';
 
   @override
+  String get licensePlanMonthly => 'Monthly';
+
+  @override
+  String get licensePlanYearly => 'Yearly';
+
+  @override
+  String get licenseDuration => 'Duration';
+
+  @override
+  String get unitMonths => 'months';
+
+  @override
+  String get unitYears => 'years';
+
+  @override
   String get licenseGetKey => 'Enter the key you received when you subscribed.';
+
+  @override
+  String get licenseNoKeyTitle => 'Don\'t have a key?';
+
+  @override
+  String get licenseNoKeyHint =>
+      'Subscribe online: pay via KBZPay/WavePay and we\'ll send your key.';
+
+  @override
+  String get licenseSubscribe => 'Subscribe / Get license';
+
+  @override
+  String get licenseRenew => 'Renew / Extend';
+
+  @override
+  String licenseExpiringSoon(int days) {
+    return 'License expires in $days days — tap to renew.';
+  }
+
+  @override
+  String get licenseThankYouTitle => 'Thank you!';
+
+  @override
+  String get licenseThankYou24h =>
+      'We\'ll verify your payment and your access will begin within 24 hours.';
+
+  @override
+  String get licenseFreeTrial => 'Start free 2-month trial';
+
+  @override
+  String get licenseTrialStarted => 'Free 2-month trial started';
+
+  @override
+  String get licenseTrialUsed => 'Free trial already used on this device.';
+
+  @override
+  String get licenseRefId => 'App Reference ID';
+
+  @override
+  String get licenseRequestSent =>
+      'Request sent. We\'ll review your payment and send your key.';
+
+  @override
+  String licenseRequestSentViber(String viber) {
+    return 'Request sent. We\'ll send your key via Viber $viber.';
+  }
 
   @override
   String get licenseCheckRenewal => 'Check for renewal';

@@ -3,10 +3,13 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../core/env.dart';
+import '../../core/money.dart';
 import '../../core/theme/app_theme.dart';
 import '../../l10n/app_localizations.dart';
+import '../printing/printing_providers.dart';
+import 'license_request.dart';
 import '../sell/payment_labels.dart';
-import '../sell/sales_providers.dart';
 import '../support/support_providers.dart';
 import '../support/vendor_config.dart';
 import 'license_providers.dart';
@@ -51,6 +54,42 @@ class _LicenseScreenState extends ConsumerState<LicenseScreen> {
     }
   }
 
+  Future<void> _confirmDeactivate() async {
+    final l = AppLocalizations.of(context);
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l.licenseDeactivate),
+        content: Text(l.licenseDeactivateConfirm),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(l.commonCancel)),
+          FilledButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(l.licenseDeactivate)),
+        ],
+      ),
+    );
+    if (ok == true) {
+      await ref.read(licenseControllerProvider.notifier).deactivate();
+    }
+  }
+
+  Future<void> _startTrial() async {
+    final l = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    setState(() => _busy = true);
+    try {
+      final ok =
+          await ref.read(licenseControllerProvider.notifier).startFreeTrial();
+      messenger.showSnackBar(SnackBar(
+          content: Text(ok ? l.licenseTrialStarted : l.licenseTrialUsed)));
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
   Future<void> _refresh() async {
     final l = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
@@ -77,12 +116,14 @@ class _LicenseScreenState extends ConsumerState<LicenseScreen> {
         padding: const EdgeInsets.all(AppTheme.space4),
         children: [
           _StatusCard(status: status),
+          const SizedBox(height: AppTheme.space2),
+          _RefIdTile(),
           const SizedBox(height: AppTheme.space4),
           if (status.canSell) ...[
-            FilledButton.tonalIcon(
-              onPressed: () => _showRenewalDialog(),
-              icon: const Icon(Icons.payments),
-              label: Text(l.licenseRecordPayment),
+            FilledButton.icon(
+              onPressed: () => _showRequestDialog(),
+              icon: const Icon(Icons.autorenew),
+              label: Text(l.licenseRenew),
             ),
             const SizedBox(height: AppTheme.space2),
             OutlinedButton.icon(
@@ -100,8 +141,7 @@ class _LicenseScreenState extends ConsumerState<LicenseScreen> {
                 style: Theme.of(context).textTheme.bodySmall),
             const SizedBox(height: AppTheme.space2),
             TextButton.icon(
-              onPressed: () =>
-                  ref.read(licenseControllerProvider.notifier).deactivate(),
+              onPressed: _confirmDeactivate,
               icon: const Icon(Icons.link_off),
               label: Text(l.licenseDeactivate),
             ),
@@ -128,35 +168,160 @@ class _LicenseScreenState extends ConsumerState<LicenseScreen> {
                   : const Icon(Icons.check),
               label: Text(l.licenseActivateBtn),
             ),
+            const SizedBox(height: AppTheme.space2),
+            OutlinedButton.icon(
+              onPressed: _busy ? null : _startTrial,
+              icon: const Icon(Icons.card_giftcard),
+              label: Text(l.licenseFreeTrial),
+            ),
+            if (Env.hasBackend) ...[
+              const SizedBox(height: AppTheme.space5),
+              const Divider(),
+              const SizedBox(height: AppTheme.space2),
+              Text(l.licenseNoKeyTitle,
+                  style: Theme.of(context).textTheme.titleMedium),
+              const SizedBox(height: AppTheme.space1),
+              Text(l.licenseNoKeyHint,
+                  style: Theme.of(context).textTheme.bodySmall),
+              const SizedBox(height: AppTheme.space3),
+              OutlinedButton.icon(
+                onPressed: _showRequestDialog,
+                icon: const Icon(Icons.shopping_cart_checkout),
+                label: Text(l.licenseSubscribe),
+              ),
+            ],
           ],
         ],
       ),
     );
   }
 
-  Future<void> _showRenewalDialog() async {
+  void _showThankYou(String viber) {
     final l = AppLocalizations.of(context);
-    // Load where-to-pay info (cached; refreshed online) before opening.
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        icon: const Icon(Icons.check_circle, color: Colors.green, size: 40),
+        title: Text(l.licenseThankYouTitle),
+        content: Text(
+          viber.isEmpty
+              ? l.licenseThankYou24h
+              : '${l.licenseThankYou24h}\n\nViber: $viber',
+          textAlign: TextAlign.center,
+        ),
+        actions: [
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(l.commonYes),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Self-service subscription request for a user who has no key yet.
+  Future<void> _showRequestDialog() async {
+    final l = AppLocalizations.of(context);
     final cfg = await ref.read(vendorConfigProvider.future);
+    final settings = ref.read(settingsRepositoryProvider);
+    final deviceId = await settings.deviceId();
+    final profile = await settings.shopProfile();
     if (!mounted) return;
-    final amount = TextEditingController();
+    final cur = l.currencySymbol;
+    // Prefill from the shop profile (blank for the default placeholder).
+    final shopName = TextEditingController(
+        text: profile.name == 'My Shop' ? '' : profile.name);
+    final phone = TextEditingController();
+    final amount = TextEditingController(text: '${cfg.priceFor('monthly')}');
     final txn = TextEditingController();
     String method = 'kbzpay';
+    String plan = 'monthly';
+    int qty = 1;
+    const methods = ['kbzpay', 'wavepay'];
+    var busy = false;
 
     await showDialog<void>(
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setLocal) => AlertDialog(
-          title: Text(l.licenseRenewTitle),
+          title: Text(l.licenseSubscribe),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                TextField(
+                  controller: shopName,
+                  textCapitalization: TextCapitalization.words,
+                  decoration: InputDecoration(labelText: l.shopName),
+                ),
+                const SizedBox(height: AppTheme.space2),
+                TextField(
+                  controller: phone,
+                  keyboardType: TextInputType.phone,
+                  decoration: InputDecoration(labelText: l.customerPhone),
+                ),
+                const SizedBox(height: AppTheme.space3),
+                SegmentedButton<String>(
+                  segments: [
+                    ButtonSegment(
+                        value: 'monthly',
+                        label: Text(l.licensePlanMonthly)),
+                    ButtonSegment(
+                        value: 'yearly', label: Text(l.licensePlanYearly)),
+                  ],
+                  selected: {plan},
+                  onSelectionChanged: (s) => setLocal(() {
+                    plan = s.first;
+                    qty = 1;
+                    amount.text = '${cfg.priceFor(plan) * qty}';
+                  }),
+                ),
+                const SizedBox(height: AppTheme.space3),
+                Row(
+                  children: [
+                    Text(l.licenseDuration,
+                        style: Theme.of(ctx).textTheme.labelLarge),
+                    const Spacer(),
+                    IconButton.filledTonal(
+                      onPressed: qty > 1
+                          ? () => setLocal(() {
+                                qty--;
+                                amount.text = '${cfg.priceFor(plan) * qty}';
+                              })
+                          : null,
+                      icon: const Icon(Icons.remove),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: AppTheme.space3),
+                      child: Text(
+                          '$qty ${plan == 'yearly' ? l.unitYears : l.unitMonths}',
+                          style: Theme.of(ctx).textTheme.titleMedium),
+                    ),
+                    IconButton.filledTonal(
+                      onPressed: () => setLocal(() {
+                        qty++;
+                        amount.text = '${cfg.priceFor(plan) * qty}';
+                      }),
+                      icon: const Icon(Icons.add),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppTheme.space2),
+                Text(
+                  '${Money(cfg.priceFor(plan)).withSymbol(cur)} × $qty = ${Money(cfg.priceFor(plan) * qty).withSymbol(cur)}',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(ctx)
+                      .textTheme
+                      .titleMedium
+                      ?.copyWith(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: AppTheme.space3),
                 Wrap(
                   spacing: AppTheme.space2,
                   children: [
-                    for (final m in paymentMethods)
+                    for (final m in methods)
                       ChoiceChip(
                         label: Text(paymentLabel(l, m)),
                         selected: method == m,
@@ -172,6 +337,7 @@ class _LicenseScreenState extends ConsumerState<LicenseScreen> {
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   decoration: InputDecoration(labelText: l.licenseAmount),
                 ),
+                const SizedBox(height: AppTheme.space3),
                 TextField(
                   controller: txn,
                   keyboardType: TextInputType.number,
@@ -186,23 +352,40 @@ class _LicenseScreenState extends ConsumerState<LicenseScreen> {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(ctx),
+              onPressed: busy ? null : () => Navigator.pop(ctx),
               child: Text(l.commonCancel),
             ),
             FilledButton(
-              onPressed: () async {
-                final messenger = ScaffoldMessenger.of(context);
-                await ref.read(licenseControllerProvider.notifier)
-                    .recordRenewalPayment(
-                      method: method,
-                      amount: int.tryParse(amount.text.trim()) ?? 0,
-                      refNo: txn.text.trim().isEmpty ? null : txn.text.trim(),
-                    );
-                if (ctx.mounted) Navigator.pop(ctx);
-                messenger.showSnackBar(
-                    SnackBar(content: Text(l.licensePaymentSaved)));
-              },
-              child: Text(l.commonSave),
+              onPressed: busy
+                  ? null
+                  : () async {
+                      if (shopName.text.trim().isEmpty) return;
+                      setLocal(() => busy = true);
+                      final messenger = ScaffoldMessenger.of(context);
+                      try {
+                        await LicenseRequestService.submit(
+                          shopName: shopName.text.trim(),
+                          phone: phone.text.trim().isEmpty
+                              ? null
+                              : phone.text.trim(),
+                          plan: plan,
+                          months: plan == 'yearly' ? qty * 12 : qty,
+                          method: method,
+                          amount: int.tryParse(amount.text.trim()) ?? 0,
+                          refNo: txn.text.trim().isEmpty
+                              ? null
+                              : txn.text.trim(),
+                          deviceId: deviceId,
+                        );
+                        if (ctx.mounted) Navigator.pop(ctx);
+                        if (mounted) _showThankYou(cfg.supportViber);
+                      } catch (_) {
+                        setLocal(() => busy = false);
+                        messenger.showSnackBar(
+                            SnackBar(content: Text(l.licenseActivateFailed)));
+                      }
+                    },
+              child: Text(l.licenseSubscribe),
             ),
           ],
         ),
@@ -211,8 +394,41 @@ class _LicenseScreenState extends ConsumerState<LicenseScreen> {
   }
 }
 
-/// "Send the money here" card — shows the company account for the selected
-/// digital method, with a copy-number button.
+String _planName(AppLocalizations l, LicensePlan plan) => switch (plan) {
+      LicensePlan.yearly => l.licensePlanYearly,
+      LicensePlan.monthly => l.licensePlanMonthly,
+      LicensePlan.trial => l.licenseFreeTrial,
+    };
+
+/// Shows the unique App Reference ID / Shop Code (the admin extends by this).
+class _RefIdTile extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
+    final id = ref.watch(deviceIdProvider).valueOrNull;
+    if (id == null) return const SizedBox.shrink();
+    return Card(
+      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+      child: ListTile(
+        leading: const Icon(Icons.qr_code_2),
+        title: Text(l.licenseRefId),
+        subtitle: Text(id, style: const TextStyle(fontFamily: 'monospace')),
+        trailing: IconButton(
+          icon: const Icon(Icons.copy),
+          tooltip: l.commonCopy,
+          onPressed: () async {
+            await Clipboard.setData(ClipboardData(text: id));
+            if (context.mounted) {
+              ScaffoldMessenger.of(context)
+                  .showSnackBar(SnackBar(content: Text(l.copied)));
+            }
+          },
+        ),
+      ),
+    );
+  }
+}
+
 class _PayToCard extends StatelessWidget {
   const _PayToCard({required this.config, required this.method});
 
@@ -306,6 +522,9 @@ class _StatusCard extends StatelessWidget {
                           .textTheme
                           .titleMedium
                           ?.copyWith(color: color)),
+                  if (status.plan != null)
+                    Text('${l.licensePlanLabel}: ${_planName(l, status.plan!)}',
+                        style: Theme.of(context).textTheme.bodySmall),
                   if (status.expiresAt != null)
                     Text(l.licenseExpires(
                         DateFormat('yyyy-MM-dd').format(status.expiresAt!))),

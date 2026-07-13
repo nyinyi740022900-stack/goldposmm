@@ -266,6 +266,42 @@ abstract class AppLocalizations {
   /// **'Clear'**
   String get sellClear;
 
+  /// No description provided for @scanBarcode.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan barcode'**
+  String get scanBarcode;
+
+  /// No description provided for @scanTorch.
+  ///
+  /// In en, this message translates to:
+  /// **'Flash'**
+  String get scanTorch;
+
+  /// No description provided for @scanFlip.
+  ///
+  /// In en, this message translates to:
+  /// **'Flip camera'**
+  String get scanFlip;
+
+  /// No description provided for @scanHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Point the camera at a barcode'**
+  String get scanHint;
+
+  /// No description provided for @scanAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Added {name}'**
+  String scanAdded(String name);
+
+  /// No description provided for @scanNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No product for barcode {code}'**
+  String scanNotFound(String code);
+
   /// No description provided for @sellCompleted.
   ///
   /// In en, this message translates to:
@@ -325,6 +361,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Customer name'**
   String get creditCustomerName;
+
+  /// No description provided for @customerPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone (optional)'**
+  String get customerPhone;
+
+  /// No description provided for @checkoutAddCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Add customer'**
+  String get checkoutAddCustomer;
 
   /// No description provided for @creditCustomerRequired.
   ///
@@ -571,6 +619,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Off = invoice only (no stock counts or alerts).'**
   String get settingsTrackStockHint;
+
+  /// No description provided for @settingsAskCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask for customer'**
+  String get settingsAskCustomer;
+
+  /// No description provided for @settingsAskCustomerHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Show optional customer name + phone at checkout.'**
+  String get settingsAskCustomerHint;
 
   /// No description provided for @shopProfileHint.
   ///
@@ -1010,17 +1070,131 @@ abstract class AppLocalizations {
   /// **'Remove license'**
   String get licenseDeactivate;
 
+  /// No description provided for @licenseDeactivateConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove the license from this device? Your expiry date is kept — re-activating the same key later won\'t lose any days or restart it.'**
+  String get licenseDeactivateConfirm;
+
   /// No description provided for @licensePlanLabel.
   ///
   /// In en, this message translates to:
   /// **'Plan'**
   String get licensePlanLabel;
 
+  /// No description provided for @licensePlanMonthly.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly'**
+  String get licensePlanMonthly;
+
+  /// No description provided for @licensePlanYearly.
+  ///
+  /// In en, this message translates to:
+  /// **'Yearly'**
+  String get licensePlanYearly;
+
+  /// No description provided for @licenseDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Duration'**
+  String get licenseDuration;
+
+  /// No description provided for @unitMonths.
+  ///
+  /// In en, this message translates to:
+  /// **'months'**
+  String get unitMonths;
+
+  /// No description provided for @unitYears.
+  ///
+  /// In en, this message translates to:
+  /// **'years'**
+  String get unitYears;
+
   /// No description provided for @licenseGetKey.
   ///
   /// In en, this message translates to:
   /// **'Enter the key you received when you subscribed.'**
   String get licenseGetKey;
+
+  /// No description provided for @licenseNoKeyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t have a key?'**
+  String get licenseNoKeyTitle;
+
+  /// No description provided for @licenseNoKeyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscribe online: pay via KBZPay/WavePay and we\'ll send your key.'**
+  String get licenseNoKeyHint;
+
+  /// No description provided for @licenseSubscribe.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscribe / Get license'**
+  String get licenseSubscribe;
+
+  /// No description provided for @licenseRenew.
+  ///
+  /// In en, this message translates to:
+  /// **'Renew / Extend'**
+  String get licenseRenew;
+
+  /// No description provided for @licenseExpiringSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'License expires in {days} days — tap to renew.'**
+  String licenseExpiringSoon(int days);
+
+  /// No description provided for @licenseThankYouTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Thank you!'**
+  String get licenseThankYouTitle;
+
+  /// No description provided for @licenseThankYou24h.
+  ///
+  /// In en, this message translates to:
+  /// **'We\'ll verify your payment and your access will begin within 24 hours.'**
+  String get licenseThankYou24h;
+
+  /// No description provided for @licenseFreeTrial.
+  ///
+  /// In en, this message translates to:
+  /// **'Start free 2-month trial'**
+  String get licenseFreeTrial;
+
+  /// No description provided for @licenseTrialStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Free 2-month trial started'**
+  String get licenseTrialStarted;
+
+  /// No description provided for @licenseTrialUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'Free trial already used on this device.'**
+  String get licenseTrialUsed;
+
+  /// No description provided for @licenseRefId.
+  ///
+  /// In en, this message translates to:
+  /// **'App Reference ID'**
+  String get licenseRefId;
+
+  /// No description provided for @licenseRequestSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Request sent. We\'ll review your payment and send your key.'**
+  String get licenseRequestSent;
+
+  /// No description provided for @licenseRequestSentViber.
+  ///
+  /// In en, this message translates to:
+  /// **'Request sent. We\'ll send your key via Viber {viber}.'**
+  String licenseRequestSentViber(String viber);
 
   /// No description provided for @licenseCheckRenewal.
   ///

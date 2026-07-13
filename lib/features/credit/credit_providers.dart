@@ -32,3 +32,11 @@ final creditOutstandingTotalProvider = Provider<int>((ref) {
       .watch(creditCustomersProvider)
       .fold(0, (sum, c) => sum + c.outstanding);
 });
+
+/// Remaining owed per sale id after allocating repayments (FIFO per customer).
+/// Used to hide credit invoices once they've been paid off in the credit book.
+final creditOwedBySaleProvider = Provider<Map<String, int>>((ref) {
+  final sales = ref.watch(creditSalesProvider).valueOrNull ?? const [];
+  final repayments = ref.watch(repaymentsProvider).valueOrNull ?? const [];
+  return CreditRepository.owedBySale(sales, repayments);
+});

@@ -33,7 +33,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -42,6 +42,14 @@ class AppDatabase extends _$AppDatabase {
           // v2: credit book — repayments against customer credit.
           if (from < 2) {
             await m.createTable(creditPayments);
+          }
+          // v3: optional customer phone on sales.
+          if (from < 3) {
+            await m.addColumn(sales, sales.customerPhone);
+          }
+          // v4: shop display name on license payments.
+          if (from < 4) {
+            await m.addColumn(licensePayments, licensePayments.shopName);
           }
         },
       );

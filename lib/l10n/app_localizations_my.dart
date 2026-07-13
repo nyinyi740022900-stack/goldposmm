@@ -93,6 +93,28 @@ class AppLocalizationsMy extends AppLocalizations {
   String get sellClear => 'ရှင်းမည်';
 
   @override
+  String get scanBarcode => 'Barcode ဖတ်';
+
+  @override
+  String get scanTorch => 'မီး';
+
+  @override
+  String get scanFlip => 'ကင်မရာ ပြောင်း';
+
+  @override
+  String get scanHint => 'Barcode ကို ကင်မရာနဲ့ ချိန်ပါ';
+
+  @override
+  String scanAdded(String name) {
+    return '$name ထည့်ပြီး';
+  }
+
+  @override
+  String scanNotFound(String code) {
+    return 'barcode $code နဲ့ ပစ္စည်း မတွေ့ပါ';
+  }
+
+  @override
   String get sellCompleted => 'ရောင်းချမှု ပြီးဆုံးပါပြီ';
 
   @override
@@ -121,6 +143,12 @@ class AppLocalizationsMy extends AppLocalizations {
 
   @override
   String get creditCustomerName => 'ဝယ်သူအမည်';
+
+  @override
+  String get customerPhone => 'ဖုန်း (မဖြည့်လည်းရ)';
+
+  @override
+  String get checkoutAddCustomer => 'ဝယ်သူ ထည့်';
 
   @override
   String get creditCustomerRequired => 'အကြွေးရောင်းရန် ဝယ်သူအမည် ထည့်ပါ။';
@@ -249,6 +277,13 @@ class AppLocalizationsMy extends AppLocalizations {
   @override
   String get settingsTrackStockHint =>
       'ပိတ်ထားရင် = invoice သီးသန့် (stock ရေတွက်/သတိပေးမှု မရှိ)။';
+
+  @override
+  String get settingsAskCustomer => 'ဝယ်သူ မေးမြန်း';
+
+  @override
+  String get settingsAskCustomerHint =>
+      'Checkout မှာ ဝယ်သူအမည် + ဖုန်း (optional) ပြ။';
 
   @override
   String get shopProfileHint => 'ပြေစာပေါ်တွင် ဖော်ပြပါမည်။';
@@ -478,10 +513,76 @@ class AppLocalizationsMy extends AppLocalizations {
   String get licenseDeactivate => 'လိုင်စင် ဖယ်ရှား';
 
   @override
+  String get licenseDeactivateConfirm =>
+      'ဒီ device ကနေ လိုင်စင် ဖယ်မှာလား? ကုန်ဆုံးရက် အတူတူ ဆက်ရှိနေမယ် — key အတူတူ ပြန် activate ရင် ရက်မပျောက်၊ အစက ပြန်မစပါဘူး။';
+
+  @override
   String get licensePlanLabel => 'အစီအစဉ်';
 
   @override
+  String get licensePlanMonthly => 'လစဉ်';
+
+  @override
+  String get licensePlanYearly => 'နှစ်စဉ်';
+
+  @override
+  String get licenseDuration => 'ကြာချိန်';
+
+  @override
+  String get unitMonths => 'လ';
+
+  @override
+  String get unitYears => 'နှစ်';
+
+  @override
   String get licenseGetKey => 'စာရင်းသွင်းစဉ်က ရရှိသော key ကို ထည့်ပါ။';
+
+  @override
+  String get licenseNoKeyTitle => 'Key မရှိသေးဘူးလား?';
+
+  @override
+  String get licenseNoKeyHint =>
+      'Online စာရင်းသွင်း — KBZPay/WavePay နဲ့ ပေးချေပြီး key ကို ပို့ပေးပါမယ်။';
+
+  @override
+  String get licenseSubscribe => 'စာရင်းသွင်း / License ယူ';
+
+  @override
+  String get licenseRenew => 'သက်တမ်းတိုး';
+
+  @override
+  String licenseExpiringSoon(int days) {
+    return 'License သက်တမ်း $days ရက် ကျန် — တိုးရန် နှိပ်ပါ။';
+  }
+
+  @override
+  String get licenseThankYouTitle => 'ကျေးဇူးတင်ပါတယ်!';
+
+  @override
+  String get licenseThankYou24h =>
+      'ငွေစစ်ဆေးပြီး ၂၄ နာရီအတွင်း စတင်အသုံးပြုလို့ရပါမယ်။';
+
+  @override
+  String get licenseFreeTrial => 'အခမဲ့ ၂ လ စမ်းသုံး';
+
+  @override
+  String get licenseTrialStarted => 'အခမဲ့ ၂ လ စမ်းသုံးမှု စတင်ပြီး';
+
+  @override
+  String get licenseTrialUsed =>
+      'ဒီ device မှာ အခမဲ့ စမ်းသုံးမှု သုံးပြီးသားပါ။';
+
+  @override
+  String get licenseRefId => 'App Reference ID';
+
+  @override
+  String get licenseRequestSent =>
+      'တောင်းဆိုမှု ပို့ပြီးပါပြီ။ ငွေစစ်ဆေးပြီး key ပို့ပေးပါမယ်။';
+
+  @override
+  String licenseRequestSentViber(String viber) {
+    return 'တောင်းဆိုမှု ပို့ပြီးပါပြီ။ Viber $viber ကနေ key ပို့ပေးပါမယ်။';
+  }
 
   @override
   String get licenseCheckRenewal => 'သက်တမ်းတိုး စစ်ဆေး';

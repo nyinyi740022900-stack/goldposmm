@@ -27,15 +27,54 @@ class AdminApi {
 
   Future<List<Map<String, dynamic>>> listLicenses() => _rows('list_licenses');
   Future<List<Map<String, dynamic>>> listPayments() => _rows('list_payments');
+  Future<List<Map<String, dynamic>>> listRequests() => _rows('list_requests');
+  Future<List<Map<String, dynamic>>> listEvents() => _rows('list_events');
+
+  Future<String> extendByDevice(
+      {required String deviceId, required int months}) async {
+    final res = await _c.functions.invoke('admin', body: {
+      'action': 'extend_by_device',
+      'device_id': deviceId,
+      'months': months,
+    });
+    _throwIfError(res);
+    return '${(res.data as Map)['expires_at']}';
+  }
+
+  Future<String> fulfillRequest({required String requestId, int? months}) async {
+    final body = <String, dynamic>{
+      'action': 'fulfill_request',
+      'request_id': requestId,
+    };
+    if (months != null) body['months'] = months;
+    final res = await _c.functions.invoke('admin', body: body);
+    _throwIfError(res);
+    return (res.data as Map)['key'] as String;
+  }
+
+  Future<Map<String, String>> getConfig() async {
+    final rows = await _rows('get_config');
+    return {
+      for (final r in rows) '${r['key']}': '${r['value'] ?? ''}',
+    };
+  }
+
+  Future<void> setConfig(Map<String, String> config) async {
+    final res = await _c.functions
+        .invoke('admin', body: {'action': 'set_config', 'config': config});
+    _throwIfError(res);
+  }
 
   Future<String> createLicense({
     required String shopId,
+    String? shopName,
     required String plan,
     required int months,
   }) async {
     final res = await _c.functions.invoke('admin', body: {
       'action': 'create_license',
       'shop_id': shopId,
+      if (shopName != null && shopName.isNotEmpty) 'shop_name': shopName,
       'plan': plan,
       'months': months,
     });

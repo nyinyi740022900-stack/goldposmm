@@ -40,6 +40,18 @@ class FakeSyncRemote implements SyncRemote {
   }
 }
 
+/// Fails to upsert one specific table, to prove the outbox isolates failures.
+class PartialFailRemote extends FakeSyncRemote {
+  PartialFailRemote(this.failTable);
+  final String failTable;
+
+  @override
+  Future<void> upsert(String table, Map<String, dynamic> row) async {
+    if (table == failTable) throw Exception('boom');
+    return super.upsert(table, row);
+  }
+}
+
 Map<String, dynamic> remoteProduct(
   String id, {
   String shop = 'shop-1',
@@ -138,6 +150,37 @@ void main() {
     // Nothing changed remotely -> second sync pulls zero.
     final second = await engine.syncNow();
     expect(second.pulled, 0);
+  });
+
+  test('a failing row does not block later outbox items', () async {
+    // A product (whose push we will force to fail) …
+    await inventory.upsertProduct(name: 'Coke', salePrice: 700, quantity: 10);
+    // … and a license payment queued behind it that must still reach the server.
+    await db.into(db.licensePayments).insert(LicensePaymentsCompanion.insert(
+          id: 'lp1',
+          shopId: 'shop-1',
+          licenseKey: 'DEMO',
+          method: 'kbzpay',
+          amount: 10000,
+        ));
+    await db.into(db.outbox).insert(OutboxCompanion.insert(
+          entityTable: 'license_payments',
+          rowId: 'lp1',
+          op: 'upsert',
+          payload: '{}',
+        ));
+
+    final failing = PartialFailRemote('products');
+    final engine2 = SyncEngine(
+        db: db, remote: failing, settings: settings, shopId: 'shop-1');
+    await engine2.syncNow();
+
+    // The payment got through despite the product push failing.
+    expect(failing.store['license_payments']?['lp1'], isNotNull);
+    // The failed product row stays queued; the payment row was removed.
+    final remaining = await db.select(db.outbox).get();
+    expect(remaining.any((o) => o.entityTable == 'products'), isTrue);
+    expect(remaining.any((o) => o.entityTable == 'license_payments'), isFalse);
   });
 
   test('delete is pushed as a tombstone', () async {

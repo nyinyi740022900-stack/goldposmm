@@ -55,6 +55,14 @@ class LicenseController extends StateNotifier<LicenseState> {
     _apply(null);
   }
 
+  /// Starts the one-time free 2-month trial. Returns false if already used.
+  Future<bool> startFreeTrial() async {
+    final lic = await _repo.startFreeTrial();
+    if (lic == null) return false;
+    _apply(lic);
+    return true;
+  }
+
   /// Re-checks the license online (same key + device) to pick up an extension
   /// an admin approved after a renewal payment. Reuses `activate`, which
   /// returns the current server-side expiry. No-op offline / with no license.
@@ -76,6 +84,8 @@ class LicenseController extends StateNotifier<LicenseState> {
   }) async {
     final lic = state.license;
     if (lic == null) return;
+    // Carry the shop's own profile name so the admin console shows who paid.
+    final shop = await _ref.read(settingsRepositoryProvider).shopProfile();
     await _repo.recordRenewalPayment(
       shopId: lic.shopId,
       licenseKey: lic.key,
@@ -83,6 +93,7 @@ class LicenseController extends StateNotifier<LicenseState> {
       amount: amount,
       refNo: refNo,
       note: note,
+      shopName: shop.name,
     );
   }
 

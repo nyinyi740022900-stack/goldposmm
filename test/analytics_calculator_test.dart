@@ -103,12 +103,12 @@ void main() {
     expect(s.stockValue, 42000);
   });
 
-  test('credit metrics: outstanding = billed − paid on credit sales only', () {
+  test('credit metrics: any sale with total > paid counts as outstanding', () {
     final s = computeAnalytics(
       sales: [
-        sale(1000, at: d1), // cash, fully paid
-        sale(5000, paid: 2000, method: 'credit', at: d1), // 3000 owed
-        sale(3000, paid: 3000, method: 'credit', at: d2), // settled
+        sale(1000, at: d1), // fully paid → not credit
+        sale(5000, paid: 2000, method: 'cash', at: d1), // 3000 owed (partial cash)
+        sale(3000, paid: 3000, method: 'credit', at: d2), // fully paid → settled
       ],
       items: const [],
       productCost: const {},
@@ -117,8 +117,8 @@ void main() {
       end: end,
     );
     expect(s.revenue, 9000); // full billed amount (accrual)
-    expect(s.creditSales, 2);
-    expect(s.creditOutstanding, 3000); // only the unpaid credit slice
+    expect(s.creditSales, 1); // only the one still owing
+    expect(s.creditOutstanding, 3000); // 5000 − 2000
     expect(s.collected, 6000); // 9000 − 3000
   });
 }

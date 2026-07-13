@@ -82,6 +82,45 @@ void main() {
       );
       expect(result, isEmpty);
     });
+
+    Sale dated(String id, String name, int total, DateTime at) => Sale(
+          id: id,
+          shopId: 'shop-1',
+          invoiceNo: id,
+          subtotal: total,
+          discount: 0,
+          tax: 0,
+          total: total,
+          paid: 0,
+          changeDue: 0,
+          paymentMethod: 'credit',
+          customerName: name,
+          finalizedAt: at,
+          createdAt: at,
+          updatedAt: at,
+          isDeleted: false,
+          dirty: false,
+        );
+
+    test('owedBySale allocates repayments oldest-invoice first', () {
+      final s1 = dated('s1', 'Aung', 3000, DateTime(2026, 7, 1));
+      final s2 = dated('s2', 'Aung', 2000, DateTime(2026, 7, 2));
+      final owed = CreditRepository.owedBySale(
+        [s2, s1], // deliberately out of order
+        [repay('Aung', 4000)],
+      );
+      expect(owed['s1'], 0); // oldest fully covered (3000)
+      expect(owed['s2'], 1000); // remaining 1000 applied → 2000-1000
+    });
+
+    test('owedBySale: full repayment clears every invoice', () {
+      final s1 = dated('s1', 'Bo', 3000, DateTime(2026, 7, 1));
+      final s2 = dated('s2', 'Bo', 2000, DateTime(2026, 7, 2));
+      final owed =
+          CreditRepository.owedBySale([s1, s2], [repay('Bo', 5000)]);
+      expect(owed['s1'], 0);
+      expect(owed['s2'], 0);
+    });
   });
 
   group('CreditRepository with DB', () {
@@ -127,6 +166,31 @@ void main() {
       );
       expect(customers.single.name, 'Daw Mya');
       expect(customers.single.outstanding, 6000);
+    });
+
+    test('a partial CASH sale (not the credit method) counts as credit',
+        () async {
+      final id = await inventory.upsertProduct(
+          name: 'Big bag', salePrice: 10000, quantity: 5);
+      final product = (await inventory.watchProducts().first)
+          .firstWhere((p) => p.product.id == id)
+          .product;
+
+      await sales.finalizeSale(
+        cart: CartState(lines: [CartLine(product: product, qty: 1)]),
+        paymentMethod: 'cash', // NOT 'credit'
+        paid: 4000, // partial
+        customerName: 'U Ba',
+        customerPhone: '09123',
+      );
+
+      final customers = CreditRepository.aggregate(
+        await credit.watchCreditSales().first,
+        await credit.watchRepayments().first,
+      );
+      expect(customers.single.name, 'U Ba');
+      expect(customers.single.outstanding, 6000);
+      expect(customers.single.phone, '09123');
     });
 
     test('recordRepayment writes row + enqueues outbox', () async {

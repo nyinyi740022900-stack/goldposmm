@@ -4,7 +4,9 @@ import 'package:intl/intl.dart';
 
 import '../../core/money.dart';
 import '../../core/theme/app_theme.dart';
+import '../../data/local/database.dart';
 import '../../l10n/app_localizations.dart';
+import '../credit/credit_providers.dart';
 import '../sell/sales_providers.dart';
 import 'invoice_detail_screen.dart';
 
@@ -21,7 +23,10 @@ class InvoicesScreen extends ConsumerWidget {
     final l = AppLocalizations.of(context);
     final sales = ref.watch(salesStreamProvider);
     final filter = ref.watch(invoiceFilterProvider);
+    final owedBySale = ref.watch(creditOwedBySaleProvider);
     final currency = l.currencySymbol;
+    // Owed after repayments have been allocated to this invoice.
+    int owedOf(Sale s) => owedBySale[s.id] ?? (s.total - s.paid);
 
     return Scaffold(
       appBar: AppBar(title: Text(l.navInvoices)),
@@ -30,7 +35,7 @@ class InvoicesScreen extends ConsumerWidget {
         error: (e, _) => Center(child: Text('$e')),
         data: (all) {
           final list = filter == InvoiceFilter.credit
-              ? all.where((s) => s.paymentMethod == 'credit').toList()
+              ? all.where((s) => owedOf(s) > 0).toList()
               : all;
           return Column(
             children: [
@@ -64,8 +69,8 @@ class InvoicesScreen extends ConsumerWidget {
                         separatorBuilder: (_, _) => const Divider(height: 1),
                         itemBuilder: (context, i) {
                           final s = list[i];
-                          final isCredit = s.paymentMethod == 'credit';
-                          final owed = s.total - s.paid;
+                          final owed = owedOf(s);
+                          final isCredit = owed > 0;
                           return ListTile(
                             title: Row(
                               children: [
