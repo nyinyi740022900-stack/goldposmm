@@ -64,9 +64,5 @@ drop policy if exists dev_open on license_payments;
 create policy dev_open on license_payments
   for all to authenticated using (true) with check (true);
 
--- ⚠️ DEV SEED — a demo license key so you can test online activation.
--- Remove before production.
-insert into licenses (shop_id, key, plan, status, expires_at, activated_at)
-values ('demo-shop', 'DEMO-KEY-2026', 'monthly', 'active',
-        now() + interval '30 days', now())
-on conflict (key) do nothing;
+-- (The DEV SEED key that used to live here has been removed for production —
+--  mint real keys via the admin console instead.)
