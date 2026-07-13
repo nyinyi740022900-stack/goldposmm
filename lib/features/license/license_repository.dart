@@ -1,27 +1,22 @@
 import 'dart:convert';
 
-import 'package:drift/drift.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:uuid/uuid.dart';
 
 import '../../core/env.dart';
-import '../../data/local/database.dart';
 import '../../data/repositories/settings_repository.dart';
 import 'license_model.dart';
 import 'license_status.dart';
 
-/// Owns license activation, local caching, and renewal-payment recording.
+/// Owns license activation and local caching.
 ///
 /// Online activation calls the `activate` Edge Function (which validates the
 /// key, binds the device, and sets the JWT `shop_id` claim). When no backend
-/// is configured it falls back to a local 14-day trial so development and
-/// offline demos keep working.
+/// is configured it falls back to a local trial so development and offline
+/// demos keep working.
 class LicenseRepository {
-  LicenseRepository(this._db, this._settings);
+  LicenseRepository(this._settings);
 
-  final AppDatabase _db;
   final SettingsRepository _settings;
-  static const _uuid = Uuid();
 
   Future<CachedLicense?> current() async {
     final raw = await _settings.licenseJson();
@@ -92,12 +87,43 @@ class LicenseRepository {
     )).then((v) => v!);
   }
 
-  /// Grants a one-time free 2-month trial, scoped to a per-device shop id so
-  /// the trial user's data has a stable home.
+  /// Grants a one-time free 2-month trial. When online it goes through the
+  /// `start_trial` Edge Function (server-tracked per device, so it can't be
+  /// farmed by reinstalling, and stamps the shop_id claim for sync); offline it
+  /// falls back to a local trial.
   Future<CachedLicense?> startFreeTrial() async {
     if (await _settings.trialUsed()) return null;
     final deviceId = await _settings.deviceId();
     final now = DateTime.now();
+
+    if (Env.hasBackend) {
+      try {
+        final profile = await _settings.shopProfile();
+        final res = await Supabase.instance.client.functions.invoke(
+          'start_trial',
+          body: {'device_id': deviceId, 'shop_name': profile.name},
+        );
+        final data = res.data as Map<String, dynamic>;
+        if (data['ok'] == true) {
+          final lic = CachedLicense(
+            key: data['key'] as String,
+            shopId: data['shop_id'] as String,
+            plan: LicensePlan.trial,
+            expiresAt: DateTime.parse(data['expires_at'] as String),
+            activatedAt: DateTime.parse(
+                (data['activated_at'] ?? now.toIso8601String()) as String),
+            lastVerifiedAt: now,
+            deviceId: deviceId,
+          );
+          try {
+            await Supabase.instance.client.auth.refreshSession();
+          } catch (_) {}
+          await _settings.markTrialUsed();
+          return _save(lic);
+        }
+      } catch (_) {/* fall back to a local trial */}
+    }
+
     final lic = await _save(CachedLicense(
       key: 'FREE-TRIAL',
       shopId: 'trial-${deviceId.replaceAll('-', '').substring(0, 10)}',
@@ -112,42 +138,6 @@ class LicenseRepository {
   }
 
   Future<void> deactivate() => _settings.clearLicense();
-
-  /// Records a renewal payment locally and queues it for server reconciliation.
-  Future<void> recordRenewalPayment({
-    required String shopId,
-    required String licenseKey,
-    required String method,
-    required int amount,
-    String? refNo,
-    String? note,
-    String? shopName,
-  }) async {
-    final id = _uuid.v4();
-    final now = DateTime.now();
-    await _db.transaction(() async {
-      await _db.into(_db.licensePayments).insert(LicensePaymentsCompanion.insert(
-            id: id,
-            shopId: shopId,
-            licenseKey: licenseKey,
-            method: method,
-            amount: amount,
-            refNo: Value(refNo),
-            note: Value(note),
-            shopName: Value(shopName),
-            updatedAt: Value(now),
-          ));
-      final row = await (_db.select(_db.licensePayments)
-            ..where((t) => t.id.equals(id)))
-          .getSingle();
-      await _db.into(_db.outbox).insert(OutboxCompanion.insert(
-            entityTable: 'license_payments',
-            rowId: id,
-            op: 'upsert',
-            payload: jsonEncode(row.toJson()),
-          ));
-    });
-  }
 }
 
 LicensePlan _planFrom(String s) => switch (s) {

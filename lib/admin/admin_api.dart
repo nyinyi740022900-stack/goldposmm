@@ -26,9 +26,15 @@ class AdminApi {
   }
 
   Future<List<Map<String, dynamic>>> listLicenses() => _rows('list_licenses');
-  Future<List<Map<String, dynamic>>> listPayments() => _rows('list_payments');
   Future<List<Map<String, dynamic>>> listRequests() => _rows('list_requests');
   Future<List<Map<String, dynamic>>> listEvents() => _rows('list_events');
+
+  Future<int> resetDevice({required String deviceId}) async {
+    final res = await _c.functions.invoke('admin',
+        body: {'action': 'reset_device', 'device_id': deviceId});
+    _throwIfError(res);
+    return ((res.data as Map)['cleared'] as num?)?.toInt() ?? 0;
+  }
 
   Future<String> extendByDevice(
       {required String deviceId, required int months}) async {
@@ -80,22 +86,6 @@ class AdminApi {
     });
     _throwIfError(res);
     return (res.data as Map)['key'] as String;
-  }
-
-  Future<String> renewLicense({
-    required String key,
-    required int months,
-    String? paymentId,
-  }) async {
-    final body = <String, dynamic>{
-      'action': 'renew_license',
-      'key': key,
-      'months': months,
-    };
-    if (paymentId != null) body['payment_id'] = paymentId;
-    final res = await _c.functions.invoke('admin', body: body);
-    _throwIfError(res);
-    return '${(res.data as Map)['expires_at']}';
   }
 
   void _throwIfError(FunctionResponse res) {

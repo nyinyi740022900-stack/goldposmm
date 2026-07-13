@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/env.dart';
 import '../../core/providers.dart';
 import '../printing/printing_providers.dart';
 import 'license_model.dart';
@@ -7,10 +10,7 @@ import 'license_repository.dart';
 import 'license_status.dart';
 
 final licenseRepositoryProvider = Provider<LicenseRepository>((ref) {
-  return LicenseRepository(
-    ref.watch(databaseProvider),
-    ref.watch(settingsRepositoryProvider),
-  );
+  return LicenseRepository(ref.watch(settingsRepositoryProvider));
 });
 
 class LicenseState {
@@ -36,12 +36,33 @@ class LicenseController extends StateNotifier<LicenseState> {
   LicenseController(this._ref) : super(const LicenseState());
 
   final Ref _ref;
+  Timer? _reverifyTimer;
 
   LicenseRepository get _repo => _ref.read(licenseRepositoryProvider);
 
   Future<void> load() async {
     final lic = await _repo.current();
     _apply(lic);
+    // Pick up admin extensions/revocations without user action: re-verify once
+    // at launch and then periodically (best-effort; offline is a no-op).
+    if (Env.hasBackend) {
+      _silentReverify();
+      _reverifyTimer ??= Timer.periodic(
+          const Duration(hours: 6), (_) => _silentReverify());
+    }
+  }
+
+  Future<void> _silentReverify() async {
+    if (state.license == null) return;
+    try {
+      await refreshOnline();
+    } catch (_) {/* offline / transient — keep cached */}
+  }
+
+  @override
+  void dispose() {
+    _reverifyTimer?.cancel();
+    super.dispose();
   }
 
   Future<ActivationResult> activate(String key) async {
@@ -74,27 +95,6 @@ class LicenseController extends StateNotifier<LicenseState> {
     final result = await _repo.activate(lic.key);
     if (result.ok) _apply(result.license);
     return result;
-  }
-
-  Future<void> recordRenewalPayment({
-    required String method,
-    required int amount,
-    String? refNo,
-    String? note,
-  }) async {
-    final lic = state.license;
-    if (lic == null) return;
-    // Carry the shop's own profile name so the admin console shows who paid.
-    final shop = await _ref.read(settingsRepositoryProvider).shopProfile();
-    await _repo.recordRenewalPayment(
-      shopId: lic.shopId,
-      licenseKey: lic.key,
-      method: method,
-      amount: amount,
-      refNo: refNo,
-      note: note,
-      shopName: shop.name,
-    );
   }
 
   void _apply(CachedLicense? lic) {

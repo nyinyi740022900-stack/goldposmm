@@ -63,7 +63,7 @@ void main() {
     setUp(() {
       db = AppDatabase.forTesting(NativeDatabase.memory());
       settings = SettingsRepository(db);
-      repo = LicenseRepository(db, settings);
+      repo = LicenseRepository(settings);
     });
 
     tearDown(() async => db.close());
@@ -92,20 +92,12 @@ void main() {
       expect(await repo.current(), isNull);
     });
 
-    test('recordRenewalPayment writes row + enqueues outbox', () async {
-      await repo.recordRenewalPayment(
-        shopId: 'demo-shop',
-        licenseKey: 'K',
-        method: 'kbzpay',
-        amount: 15000,
-        refNo: 'TXN123',
-      );
-      final rows = await db.select(db.licensePayments).get();
-      expect(rows.single.amount, 15000);
-      expect(rows.single.method, 'kbzpay');
-
-      final outbox = await db.select(db.outbox).get();
-      expect(outbox.any((o) => o.entityTable == 'license_payments'), isTrue);
+    test('free trial is one-time (guarded by the used flag)', () async {
+      final first = await repo.startFreeTrial();
+      expect(first, isNotNull);
+      expect(first!.plan, LicensePlan.trial);
+      // A second attempt is refused.
+      expect(await repo.startFreeTrial(), isNull);
     });
 
     test('device id is stable across calls', () async {

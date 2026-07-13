@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../features/invoices/receipt_data.dart';
@@ -7,9 +8,11 @@ import '../local/database.dart';
 /// Device-scoped key/value settings (not synced). Backs printer config,
 /// shop receipt header/footer, etc.
 class SettingsRepository {
-  SettingsRepository(this._db);
+  SettingsRepository(this._db, {FlutterSecureStorage? secureStorage})
+      : _secure = secureStorage ?? const FlutterSecureStorage();
 
   final AppDatabase _db;
+  final FlutterSecureStorage _secure;
 
   static const _kPaperSize = 'printer.paper_size';
   static const _kPrinterMac = 'printer.mac';
@@ -71,12 +74,26 @@ class SettingsRepository {
   Future<String?> savedLocale() => _get(_kLocale);
   Future<void> saveLocale(String code) => _set(_kLocale, code);
 
-  /// Stable per-install device id (generated once, used for license binding).
+  /// Stable per-install device id (used for license binding + App Reference
+  /// ID). Kept in the OS secure store (iOS Keychain / Android Keystore) so it
+  /// **survives an app reinstall** — otherwise reinstalling would orphan the
+  /// user's license behind the device binding. Falls back to the local DB when
+  /// secure storage is unavailable (e.g. unit tests).
   Future<String> deviceId() async {
-    final existing = await _get(_kDeviceId);
-    if (existing != null && existing.isNotEmpty) return existing;
-    final id = const Uuid().v4();
-    await _set(_kDeviceId, id);
+    // 1) Prefer the secure store.
+    try {
+      final secure = await _secure.read(key: _kDeviceId);
+      if (secure != null && secure.isNotEmpty) return secure;
+    } catch (_) {/* not available (tests) */}
+
+    // 2) Migrate a legacy id from the local DB, or mint a new one.
+    var id = await _get(_kDeviceId);
+    id ??= const Uuid().v4();
+
+    await _set(_kDeviceId, id); // keep a local copy for offline reads
+    try {
+      await _secure.write(key: _kDeviceId, value: id);
+    } catch (_) {/* not available (tests) */}
     return id;
   }
 

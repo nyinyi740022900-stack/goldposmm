@@ -123,6 +123,19 @@ Deno.serve(async (req) => {
       return json({ expires_at: data, key: lic.key });
     }
 
+    case "reset_device": {
+      // Clear the device binding so a reinstalled user can re-activate.
+      const dev = (body.device_id ?? "").trim();
+      if (!dev) return json({ error: "bad_request" }, 400);
+      const { data, error } = await admin
+        .from("licenses")
+        .update({ device_id: null, updated_at: new Date().toISOString() })
+        .eq("device_id", dev)
+        .select("key");
+      if (error) return json({ error: "server_error" }, 500);
+      return json({ ok: true, cleared: (data ?? []).length });
+    }
+
     case "list_requests": {
       const { data, error } = await admin
         .from("license_requests")
