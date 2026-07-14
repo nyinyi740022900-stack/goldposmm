@@ -98,6 +98,87 @@ class _RequestsTab extends StatelessWidget {
   }
 }
 
+class _ReferralsTab extends StatelessWidget {
+  const _ReferralsTab({
+    required this.commissions,
+    required this.referrals,
+    required this.onApplyCredit,
+  });
+
+  final List<Map<String, dynamic>> commissions;
+  final List<Map<String, dynamic>> referrals;
+  final Future<void> Function(String shopId) onApplyCredit;
+
+  @override
+  Widget build(BuildContext context) {
+    if (commissions.isEmpty && referrals.isEmpty) {
+      return const Center(child: Text('No referrals or commissions yet.'));
+    }
+
+    // Aggregate lifetime earned + payment count per referrer.
+    final earned = <String, int>{};
+    final counts = <String, int>{};
+    for (final c in commissions) {
+      final sid = '${c['referrer_shop_id']}';
+      earned[sid] = (earned[sid] ?? 0) + ((c['amount'] as num?)?.toInt() ?? 0);
+      counts[sid] = (counts[sid] ?? 0) + 1;
+    }
+    final referrers = earned.keys.toList()
+      ..sort((a, b) => (earned[b] ?? 0).compareTo(earned[a] ?? 0));
+
+    return ListView(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      children: [
+        const Padding(
+          padding: EdgeInsets.fromLTRB(16, 8, 16, 4),
+          child: Text('Commissions by referrer',
+              style: TextStyle(fontWeight: FontWeight.bold)),
+        ),
+        if (referrers.isEmpty)
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Text('No commissions earned yet.'),
+          )
+        else
+          for (final sid in referrers)
+            ListTile(
+              leading: const Icon(Icons.card_giftcard, color: Colors.green),
+              title: SelectableText(sid),
+              subtitle: Text(
+                  '${counts[sid]} payment(s)  ·  earned ${earned[sid]} Ks'),
+              trailing: FilledButton(
+                onPressed: () => onApplyCredit(sid),
+                child: const Text('Apply credit'),
+              ),
+            ),
+        const Divider(height: 24),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
+          child: Text('Referral links (${referrals.length})',
+              style: const TextStyle(fontWeight: FontWeight.bold)),
+        ),
+        if (referrals.isEmpty)
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Text('No referral links yet.'),
+          )
+        else
+          for (final r in referrals)
+            ListTile(
+              dense: true,
+              leading: Icon(
+                (r['is_active'] == true) ? Icons.link : Icons.link_off,
+                color: (r['is_active'] == true) ? Colors.blue : Colors.grey,
+              ),
+              title: Text('${r['referral_code']}  ·  ${r['referrer_shop_id']}'),
+              subtitle: Text(
+                  'referred: ${r['referred_shop_id']}  ·  ${_date(r['created_at'])}'),
+            ),
+      ],
+    );
+  }
+}
+
 class _GenerateKeyDialog extends StatefulWidget {
   const _GenerateKeyDialog();
   @override
@@ -429,6 +510,8 @@ class _ConfigTabState extends State<_ConfigTab> {
     'support.viber': 'Support Viber number',
     'price.monthly': 'Monthly price (Ks)',
     'price.yearly': 'Yearly price (Ks)',
+    'referral.enabled': 'Referral program on (true/false)',
+    'referral.rate': 'Referral commission rate (e.g. 0.15 = 15%)',
   };
   late final Map<String, TextEditingController> _controllers = {
     for (final k in _fields.keys)

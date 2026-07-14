@@ -193,12 +193,13 @@ Deno.serve(async (req) => {
       const { data: existing } = dev
         ? await admin
             .from("licenses")
-            .select("key")
+            .select("key, shop_id")
             .eq("device_id", dev)
             .maybeSingle()
         : { data: null };
 
       let key: string;
+      let referredShopId: string;
       let expiresAt: string | null = null;
       let action: string;
       if (existing?.key) {
@@ -208,6 +209,7 @@ Deno.serve(async (req) => {
         });
         if (error) return json({ error: "server_error", detail: error.message }, 500);
         key = existing.key;
+        referredShopId = existing.shop_id as string;
         expiresAt = data as string;
         action = "extend";
       } else {
@@ -220,6 +222,7 @@ Deno.serve(async (req) => {
         });
         if (mkErr) return json({ error: "server_error", detail: mkErr.message }, 500);
         key = newKey as string;
+        referredShopId = shopId;
         action = "issue";
       }
 
@@ -239,7 +242,99 @@ Deno.serve(async (req) => {
         months,
         expires_at: expiresAt,
       });
+
+      // Referral: link on first attribution, then accrue a commission for the
+      // referrer on THIS real payment (never on recruitment alone).
+      await ensureReferralLink(admin, {
+        referredShopId,
+        code: (reqRow.referred_by_code ?? "").trim(),
+      });
+      await accrueReferralCommission(admin, {
+        referredShopId,
+        licenseKey: key,
+        baseAmount: reqRow.amount ?? 0,
+        sourceRequestId: reqId,
+      });
       return json({ key, action });
+    }
+
+    case "list_referrals": {
+      const { data, error } = await admin
+        .from("referrals")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(500);
+      if (error) return json({ error: "server_error" }, 500);
+      return json({ rows: data });
+    }
+
+    case "list_commissions": {
+      const { data, error } = await admin
+        .from("referral_commissions")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(500);
+      if (error) return json({ error: "server_error" }, 500);
+      return json({ rows: data });
+    }
+
+    case "apply_referral_credit": {
+      // Admin redeems a referrer's accumulated balance into whole months on
+      // their own license. Remainder stays as balance.
+      const sid = (body.shop_id ?? "").trim();
+      if (!sid) return json({ error: "bad_request" }, 400);
+
+      const [{ data: earned }, { data: redeemed }] = await Promise.all([
+        admin.from("referral_commissions").select("amount").eq(
+          "referrer_shop_id",
+          sid,
+        ),
+        admin.from("referral_redemptions").select("amount").eq(
+          "referrer_shop_id",
+          sid,
+        ),
+      ]);
+      const sum = (rows: Array<{ amount: number }> | null) =>
+        (rows ?? []).reduce((a, r) => a + (r.amount ?? 0), 0);
+      const balance = sum(earned) - sum(redeemed);
+
+      const cfg = await getConfig(admin, ["price.monthly"]);
+      const price = parseInt(cfg["price.monthly"] ?? "10000", 10) || 10000;
+      const monthsCredit = Math.floor(balance / price);
+      if (monthsCredit < 1) {
+        return json({ months: 0, balance, price });
+      }
+      const amount = monthsCredit * price;
+
+      const { data: lic } = await admin
+        .from("licenses")
+        .select("key")
+        .eq("shop_id", sid)
+        .eq("is_deleted", false)
+        .order("expires_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (!lic?.key) return json({ error: "not_found" }, 404);
+
+      const { data: exp, error: renewErr } = await admin.rpc("renew_license", {
+        p_key: lic.key,
+        p_months: monthsCredit,
+      });
+      if (renewErr) {
+        return json({ error: "server_error", detail: renewErr.message }, 500);
+      }
+      await admin.from("referral_redemptions").insert({
+        referrer_shop_id: sid,
+        license_key: lic.key,
+        amount,
+        months: monthsCredit,
+      });
+      return json({
+        months: monthsCredit,
+        amount,
+        expires_at: exp,
+        balance: balance - amount,
+      });
     }
 
     case "list_events": {
@@ -330,6 +425,102 @@ async function logEvent(admin: any, event: Record<string, unknown>) {
     await admin.from("license_events").insert(event);
   } catch (_) {
     // audit log is best-effort; never fail the main action over it
+  }
+}
+
+// Read a handful of app_config keys into a { key: value } map.
+// deno-lint-ignore no-explicit-any
+async function getConfig(admin: any, keys: string[]): Promise<Record<string, string>> {
+  const { data } = await admin.from("app_config").select("key, value").in(
+    "key",
+    keys,
+  );
+  const out: Record<string, string> = {};
+  for (const row of (data ?? []) as Array<{ key: string; value: string }>) {
+    out[row.key] = row.value;
+  }
+  return out;
+}
+
+// Attribute a referred shop to its referrer, exactly once. No-op if the code is
+// blank, the shop is already linked, the code is unknown, or it's a self-refer.
+// deno-lint-ignore no-explicit-any
+async function ensureReferralLink(
+  admin: any,
+  { referredShopId, code }: { referredShopId: string; code: string },
+) {
+  try {
+    if (!referredShopId || !code) return;
+    const { data: already } = await admin
+      .from("referrals")
+      .select("id")
+      .eq("referred_shop_id", referredShopId)
+      .maybeSingle();
+    if (already) return; // never re-attribute on a later renewal
+    const { data: referrer } = await admin
+      .from("licenses")
+      .select("shop_id")
+      .eq("referral_code", code)
+      .maybeSingle();
+    if (!referrer?.shop_id) return; // unknown code
+    if (referrer.shop_id === referredShopId) return; // no self-refer
+    await admin.from("referrals").insert({
+      referrer_shop_id: referrer.shop_id,
+      referred_shop_id: referredShopId,
+      referral_code: code,
+    });
+  } catch (_) {
+    // referral wiring is best-effort; never fail the main payment action
+  }
+}
+
+// Accrue one commission for a referred shop's real payment. Idempotent per
+// source_request_id (unique), so re-fulfilling can't double-pay.
+// deno-lint-ignore no-explicit-any
+async function accrueReferralCommission(
+  admin: any,
+  {
+    referredShopId,
+    licenseKey,
+    baseAmount,
+    sourceRequestId,
+  }: {
+    referredShopId: string;
+    licenseKey: string;
+    baseAmount: number;
+    sourceRequestId: string;
+  },
+) {
+  try {
+    if (!referredShopId || !(baseAmount > 0)) return;
+    const cfg = await getConfig(admin, ["referral.enabled", "referral.rate"]);
+    if ((cfg["referral.enabled"] ?? "true") !== "true") return;
+    const rate = parseFloat(cfg["referral.rate"] ?? "0");
+    if (!(rate > 0)) return;
+
+    const { data: link } = await admin
+      .from("referrals")
+      .select("referrer_shop_id")
+      .eq("referred_shop_id", referredShopId)
+      .eq("is_active", true)
+      .maybeSingle();
+    if (!link?.referrer_shop_id) return; // not a referred shop
+
+    const amount = Math.round(baseAmount * rate);
+    if (amount <= 0) return;
+    await admin
+      .from("referral_commissions")
+      .upsert({
+        referrer_shop_id: link.referrer_shop_id,
+        referred_shop_id: referredShopId,
+        license_key: licenseKey,
+        base_amount: baseAmount,
+        rate,
+        amount,
+        source_request_id: sourceRequestId,
+      }, { onConflict: "source_request_id", ignoreDuplicates: true });
+  } catch (_) {
+    // best-effort; never fail the main payment action
   }
 }
 

@@ -28,6 +28,20 @@ class AdminApi {
   Future<List<Map<String, dynamic>>> listLicenses() => _rows('list_licenses');
   Future<List<Map<String, dynamic>>> listRequests() => _rows('list_requests');
   Future<List<Map<String, dynamic>>> listEvents() => _rows('list_events');
+  Future<List<Map<String, dynamic>>> listReferrals() => _rows('list_referrals');
+  Future<List<Map<String, dynamic>>> listCommissions() =>
+      _rows('list_commissions');
+
+  /// Redeems a referrer's outstanding balance into whole license months on
+  /// their own license. Returns { months, amount, expires_at, balance }
+  /// (months == 0 when the balance isn't yet one month's price).
+  Future<Map<String, dynamic>> applyReferralCredit(
+      {required String shopId}) async {
+    final res = await _c.functions.invoke('admin',
+        body: {'action': 'apply_referral_credit', 'shop_id': shopId});
+    _throwIfError(res);
+    return (res.data as Map).cast<String, dynamic>();
+  }
 
   Future<String> signOffline({
     required String shopId,

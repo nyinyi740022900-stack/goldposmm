@@ -11,6 +11,10 @@ work goes through the `admin` Edge Function (service role stays server-side).
 - **Payments** — renewal payments shops recorded; **Approve** extends the
   license (calls `renew_license`) and marks the payment reconciled.
 - **Generate key** — mint a key for a shop (`create_license`).
+- **Referrals** — commissions grouped by referrer (lifetime earned + payment
+  count) with **Apply credit** (redeems the referrer's balance into license
+  months via `apply_referral_credit`), plus the raw referral links. Commission
+  rate is editable under **Config** (`referral.rate`, `referral.enabled`).
 
 ## One-time setup
 

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:intl/intl.dart';
 
+import '../../core/env.dart';
 import '../../core/locale_controller.dart';
 import '../../data/sync/sync_providers.dart';
 import '../../l10n/app_localizations.dart';
@@ -12,6 +13,7 @@ import '../license/license_screen.dart';
 import '../license/license_status.dart';
 import '../printing/printer_settings_screen.dart';
 import '../printing/printing_providers.dart';
+import '../referral/referral_screen.dart';
 import '../../core/money.dart';
 import '../backup/backup_screen.dart';
 import '../credit/credit_providers.dart';
@@ -74,6 +76,7 @@ class SettingsScreen extends ConsumerWidget {
             )),
           ),
           _LicenseTile(),
+          _ReferralTile(),
           _SupportTile(),
           const Divider(),
           _SyncTile(),
@@ -160,6 +163,30 @@ class _LicenseTile extends ConsumerWidget {
       trailing: const Icon(Icons.chevron_right),
       onTap: () => Navigator.of(context).push(MaterialPageRoute(
         builder: (_) => const LicenseScreen(),
+      )),
+    );
+  }
+}
+
+class _ReferralTile extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
+    final status = ref.watch(licenseControllerProvider).status;
+    // Referral earnings live on the server and key off an activated shop, so
+    // only surface this once there's a backend and a license that has been
+    // activated. Still shown when expired/grace so a lapsed shop can redeem its
+    // balance toward renewal — only hidden when never activated.
+    if (!Env.hasBackend || status.kind == LicenseStatusKind.none) {
+      return const SizedBox.shrink();
+    }
+    return ListTile(
+      leading: const Icon(Icons.card_giftcard),
+      title: Text(l.referralTitle),
+      subtitle: Text(l.referralSubtitle, maxLines: 2, overflow: TextOverflow.ellipsis),
+      trailing: const Icon(Icons.chevron_right),
+      onTap: () => Navigator.of(context).push(MaterialPageRoute(
+        builder: (_) => const ReferralScreen(),
       )),
     );
   }

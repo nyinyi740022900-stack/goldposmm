@@ -1214,6 +1214,174 @@ abstract class AppLocalizations {
   /// **'After paying (KPay/WavePay) and recording it, ask the admin to approve, then tap Check for renewal.'**
   String get licenseRenewHint;
 
+  /// No description provided for @referralTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Refer & earn'**
+  String get referralTitle;
+
+  /// No description provided for @referralSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Share your code. Every month a shop you referred pays, you earn — added straight to your license.'**
+  String get referralSubtitle;
+
+  /// No description provided for @referralMyCode.
+  ///
+  /// In en, this message translates to:
+  /// **'My referral code'**
+  String get referralMyCode;
+
+  /// No description provided for @referralShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Share code'**
+  String get referralShare;
+
+  /// No description provided for @referralCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Code copied'**
+  String get referralCopied;
+
+  /// No description provided for @referralShareText.
+  ///
+  /// In en, this message translates to:
+  /// **'Use MM POS for your shop! Enter my referral code {code} when you subscribe. — {shop}'**
+  String referralShareText(String code, String shop);
+
+  /// No description provided for @referralBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Your earnings'**
+  String get referralBalance;
+
+  /// No description provided for @referralEarnedTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total earned'**
+  String get referralEarnedTotal;
+
+  /// No description provided for @referralActiveShops.
+  ///
+  /// In en, this message translates to:
+  /// **'Shops you referred'**
+  String get referralActiveShops;
+
+  /// No description provided for @referralRedeem.
+  ///
+  /// In en, this message translates to:
+  /// **'Redeem for license days'**
+  String get referralRedeem;
+
+  /// No description provided for @referralRedeemDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Added {months} month(s) to your license!'**
+  String referralRedeemDone(int months);
+
+  /// No description provided for @referralRedeemNotEnough.
+  ///
+  /// In en, this message translates to:
+  /// **'Not enough balance yet — refer one more shop!'**
+  String get referralRedeemNotEnough;
+
+  /// No description provided for @referralNextGoal.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} more until your next free month'**
+  String referralNextGoal(String amount);
+
+  /// No description provided for @referralCodeOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Referral code (optional)'**
+  String get referralCodeOptional;
+
+  /// No description provided for @referralCodeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Got a friend\'s code? Enter it — they earn when your payment is approved.'**
+  String get referralCodeHint;
+
+  /// No description provided for @referralEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No referrals yet. Share your code to start earning every month.'**
+  String get referralEmpty;
+
+  /// No description provided for @referralNotifTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'🎉 Commission earned!'**
+  String get referralNotifTitle;
+
+  /// No description provided for @referralNotifBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} was added to your referral wallet. Open the app to redeem it for free license days.'**
+  String referralNotifBody(String amount);
+
+  /// No description provided for @referralHowTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How Refer & earn works'**
+  String get referralHowTitle;
+
+  /// No description provided for @referralStep1.
+  ///
+  /// In en, this message translates to:
+  /// **'Share your code with other shop owners.'**
+  String get referralStep1;
+
+  /// No description provided for @referralStep2.
+  ///
+  /// In en, this message translates to:
+  /// **'They type your code when they subscribe and pay.'**
+  String get referralStep2;
+
+  /// No description provided for @referralStep3.
+  ///
+  /// In en, this message translates to:
+  /// **'You earn a commission every month they keep paying.'**
+  String get referralStep3;
+
+  /// No description provided for @referralStep4.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn your balance into free license days anytime.'**
+  String get referralStep4;
+
+  /// No description provided for @referralHaveCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Have a referral code?'**
+  String get referralHaveCode;
+
+  /// No description provided for @referralHaveCodeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'A friend gave you one? Enter it below — they earn when your payment is approved. Leave blank if you don\'t have one.'**
+  String get referralHaveCodeHint;
+
+  /// No description provided for @referralRedeemConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Redeem now?'**
+  String get referralRedeemConfirmTitle;
+
+  /// No description provided for @referralRedeemConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Add {months} month(s) to your license and use {amount} from your balance?'**
+  String referralRedeemConfirmBody(int months, String amount);
+
+  /// No description provided for @referralRedeemAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Redeem'**
+  String get referralRedeemAction;
+
   /// No description provided for @backupTitle.
   ///
   /// In en, this message translates to:

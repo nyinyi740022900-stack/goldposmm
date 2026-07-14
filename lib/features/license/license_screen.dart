@@ -244,6 +244,7 @@ class _LicenseScreenState extends ConsumerState<LicenseScreen> {
     final phone = TextEditingController();
     final amount = TextEditingController(text: '${cfg.priceFor('monthly')}');
     final txn = TextEditingController();
+    final referral = TextEditingController();
     String method = 'kbzpay';
     String plan = 'monthly';
     int qty = 1;
@@ -357,6 +358,47 @@ class _LicenseScreenState extends ConsumerState<LicenseScreen> {
                   ],
                   decoration: InputDecoration(labelText: l.licenseTxnId),
                 ),
+                const SizedBox(height: AppTheme.space4),
+                Container(
+                  padding: const EdgeInsets.all(AppTheme.space3),
+                  decoration: BoxDecoration(
+                    color: Theme.of(ctx).colorScheme.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.card_giftcard,
+                              size: 18,
+                              color: Theme.of(ctx).colorScheme.primary),
+                          const SizedBox(width: AppTheme.space2),
+                          Text(l.referralHaveCode,
+                              style: Theme.of(ctx)
+                                  .textTheme
+                                  .titleSmall
+                                  ?.copyWith(fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                      const SizedBox(height: AppTheme.space1),
+                      Text(l.referralHaveCodeHint,
+                          style: Theme.of(ctx).textTheme.bodySmall),
+                      const SizedBox(height: AppTheme.space2),
+                      TextField(
+                        controller: referral,
+                        textCapitalization: TextCapitalization.characters,
+                        decoration: InputDecoration(
+                          labelText: l.referralCodeOptional,
+                          hintText: 'REF-XXXX',
+                          filled: true,
+                          fillColor: Theme.of(ctx).colorScheme.surface,
+                          border: const OutlineInputBorder(),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
@@ -386,6 +428,9 @@ class _LicenseScreenState extends ConsumerState<LicenseScreen> {
                               ? null
                               : txn.text.trim(),
                           deviceId: deviceId,
+                          referredByCode: referral.text.trim().isEmpty
+                              ? null
+                              : referral.text.trim().toUpperCase(),
                         );
                         if (ctx.mounted) Navigator.pop(ctx);
                         if (mounted) _showThankYou(cfg.supportViber);
