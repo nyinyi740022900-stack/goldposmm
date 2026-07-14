@@ -279,62 +279,20 @@ Deno.serve(async (req) => {
     }
 
     case "apply_referral_credit": {
-      // Admin redeems a referrer's accumulated balance into whole months on
-      // their own license. Remainder stays as balance.
+      // Admin redeems a referrer's balance into whole months on their own
+      // license. Delegates to the locked SQL function so it can't race with a
+      // self-service redeem (double-spend). Remainder stays as balance.
       const sid = (body.shop_id ?? "").trim();
       if (!sid) return json({ error: "bad_request" }, 400);
-
-      const [{ data: earned }, { data: redeemed }] = await Promise.all([
-        admin.from("referral_commissions").select("amount").eq(
-          "referrer_shop_id",
-          sid,
-        ),
-        admin.from("referral_redemptions").select("amount").eq(
-          "referrer_shop_id",
-          sid,
-        ),
-      ]);
-      const sum = (rows: Array<{ amount: number }> | null) =>
-        (rows ?? []).reduce((a, r) => a + (r.amount ?? 0), 0);
-      const balance = sum(earned) - sum(redeemed);
-
-      const cfg = await getConfig(admin, ["price.monthly"]);
-      const price = parseInt(cfg["price.monthly"] ?? "10000", 10) || 10000;
-      const monthsCredit = Math.floor(balance / price);
-      if (monthsCredit < 1) {
-        return json({ months: 0, balance, price });
+      const { data, error } = await admin.rpc("apply_referral_credit_for", {
+        p_shop_id: sid,
+      });
+      if (error) {
+        const detail = error.message ?? "";
+        if (detail.includes("no license")) return json({ error: "not_found" }, 404);
+        return json({ error: "server_error", detail }, 500);
       }
-      const amount = monthsCredit * price;
-
-      const { data: lic } = await admin
-        .from("licenses")
-        .select("key")
-        .eq("shop_id", sid)
-        .eq("is_deleted", false)
-        .order("expires_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      if (!lic?.key) return json({ error: "not_found" }, 404);
-
-      const { data: exp, error: renewErr } = await admin.rpc("renew_license", {
-        p_key: lic.key,
-        p_months: monthsCredit,
-      });
-      if (renewErr) {
-        return json({ error: "server_error", detail: renewErr.message }, 500);
-      }
-      await admin.from("referral_redemptions").insert({
-        referrer_shop_id: sid,
-        license_key: lic.key,
-        amount,
-        months: monthsCredit,
-      });
-      return json({
-        months: monthsCredit,
-        amount,
-        expires_at: exp,
-        balance: balance - amount,
-      });
+      return json(data);
     }
 
     case "list_events": {
@@ -494,7 +452,9 @@ async function accrueReferralCommission(
   try {
     if (!referredShopId || !(baseAmount > 0)) return;
     const cfg = await getConfig(admin, ["referral.enabled", "referral.rate"]);
-    if ((cfg["referral.enabled"] ?? "true") !== "true") return;
+    // Enabled unless explicitly turned off (tolerate casing / common values).
+    const enabled = (cfg["referral.enabled"] ?? "true").trim().toLowerCase();
+    if (["false", "0", "off", "no"].includes(enabled)) return;
     const rate = parseFloat(cfg["referral.rate"] ?? "0");
     if (!(rate > 0)) return;
 
