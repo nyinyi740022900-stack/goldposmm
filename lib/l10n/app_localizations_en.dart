@@ -997,5 +997,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String get staffCashierBadge => 'Cashier mode';
 
   @override
+  String get storefrontTitle => 'My web storefront';
+
+  @override
+  String get storefrontDesc =>
+      'Publish a public catalog your customers can order from — no app needed.';
+
+  @override
+  String get storefrontPublish => 'Publish storefront';
+
+  @override
+  String get storefrontDisplayName => 'Storefront name';
+
+  @override
+  String get storefrontYourLink => 'Your shop link';
+
+  @override
+  String get storefrontEnabled => 'Storefront enabled';
+
+  @override
+  String get storefrontCopied => 'Link copied';
+
+  @override
+  String get storefrontNeedsName => 'Enter a storefront name';
+
+  @override
+  String get storefrontShare =>
+      'Share this link with customers on Facebook, Viber, etc.';
+
+  @override
   String get currencySymbol => 'Ks';
 }
