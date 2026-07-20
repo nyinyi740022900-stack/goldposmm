@@ -99,10 +99,10 @@ class _StorefrontPageState extends State<StorefrontPage> {
                 sliver: SliverGrid(
                   gridDelegate:
                       const SliverGridDelegateWithMaxCrossAxisExtent(
-                    maxCrossAxisExtent: 260,
+                    maxCrossAxisExtent: 220,
                     mainAxisSpacing: 12,
                     crossAxisSpacing: 12,
-                    childAspectRatio: 1.5,
+                    childAspectRatio: 0.72,
                   ),
                   delegate: SliverChildBuilderDelegate(
                     (context, i) {
@@ -155,49 +155,71 @@ class _ProductCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(product.name,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontWeight: FontWeight.w600)),
-            const Spacer(),
-            Row(
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            child: Container(
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              child: (product.imageUrl ?? '').isEmpty
+                  ? Icon(Icons.image_outlined,
+                      color: Theme.of(context).colorScheme.outlineVariant)
+                  : Image.network(
+                      product.imageUrl!,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, _, _) =>
+                          const Icon(Icons.broken_image_outlined),
+                    ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Text(_ks(product.price),
-                    style: TextStyle(
-                        color: Theme.of(context).colorScheme.primary,
-                        fontWeight: FontWeight.bold)),
-                const Spacer(),
-                if (qty == 0)
-                  FilledButton.tonal(
-                    onPressed: onAdd,
-                    child: const Text('Add'),
-                  )
-                else
-                  Row(
-                    children: [
-                      IconButton.filledTonal(
-                          onPressed: onSub,
-                          icon: const Icon(Icons.remove, size: 18)),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                        child: Text('$qty',
-                            style: const TextStyle(
-                                fontWeight: FontWeight.bold)),
+                Text(product.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontWeight: FontWeight.w600)),
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    Text(_ks(product.price),
+                        style: TextStyle(
+                            color: Theme.of(context).colorScheme.primary,
+                            fontWeight: FontWeight.bold)),
+                    const Spacer(),
+                    if (qty == 0)
+                      FilledButton.tonal(
+                        onPressed: onAdd,
+                        child: const Text('Add'),
+                      )
+                    else
+                      Row(
+                        children: [
+                          IconButton.filledTonal(
+                              onPressed: onSub,
+                              icon: const Icon(Icons.remove, size: 18)),
+                          Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 6),
+                            child: Text('$qty',
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold)),
+                          ),
+                          IconButton.filledTonal(
+                              onPressed: onAdd,
+                              icon: const Icon(Icons.add, size: 18)),
+                        ],
                       ),
-                      IconButton.filledTonal(
-                          onPressed: onAdd,
-                          icon: const Icon(Icons.add, size: 18)),
-                    ],
-                  ),
+                  ],
+                ),
               ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

@@ -226,6 +226,9 @@ class AppLocalizationsMy extends AppLocalizations {
   String get productName => 'ပစ္စည်းအမည်';
 
   @override
+  String get productPhoto => 'ပစ္စည်းဓာတ်ပုံ';
+
+  @override
   String get productPrice => 'ရောင်းဈေး';
 
   @override

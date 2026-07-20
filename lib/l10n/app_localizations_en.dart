@@ -233,6 +233,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get productName => 'Product name';
 
   @override
+  String get productPhoto => 'Product photo';
+
+  @override
   String get productPrice => 'Sale price';
 
   @override

@@ -80,6 +80,7 @@
   "inventoryEditProduct": "Edit product",
   "inventoryNoResults": "No products match your search.",
   "productName": "Product name",
+  "productPhoto": "Product photo",
   "productPrice": "Sale price",
   "productCost": "Cost price",
   "productBarcode": "Barcode",

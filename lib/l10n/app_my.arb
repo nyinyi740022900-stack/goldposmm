@@ -79,6 +79,7 @@
   "inventoryEditProduct": "ပစ္စည်းပြင်ဆင်",
   "inventoryNoResults": "ရှာဖွေမှုနှင့် ကိုက်ညီသော ပစ္စည်းမရှိပါ။",
   "productName": "ပစ္စည်းအမည်",
+  "productPhoto": "ပစ္စည်းဓာတ်ပုံ",
   "productPrice": "ရောင်းဈေး",
   "productCost": "အရင်းဈေး",
   "productBarcode": "ဘားကုဒ်",

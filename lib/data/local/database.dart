@@ -35,7 +35,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -61,6 +61,10 @@ class AppDatabase extends _$AppDatabase {
           // v6: customer payment screenshot on storefront orders.
           if (from < 6) {
             await m.addColumn(orders, orders.paymentProofPath);
+          }
+          // v7: public product photo URL for the web storefront.
+          if (from < 7) {
+            await m.addColumn(products, products.imageUrl);
           }
         },
       );

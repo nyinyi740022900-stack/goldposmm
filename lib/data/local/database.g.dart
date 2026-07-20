@@ -663,6 +663,17 @@ class $ProductsTable extends Products with TableInfo<$ProductsTable, Product> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _imageUrlMeta = const VerificationMeta(
+    'imageUrl',
+  );
+  @override
+  late final GeneratedColumn<String> imageUrl = GeneratedColumn<String>(
+    'image_url',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _isActiveMeta = const VerificationMeta(
     'isActive',
   );
@@ -694,6 +705,7 @@ class $ProductsTable extends Products with TableInfo<$ProductsTable, Product> {
     salePrice,
     unit,
     imagePath,
+    imageUrl,
     isActive,
   ];
   @override
@@ -795,6 +807,12 @@ class $ProductsTable extends Products with TableInfo<$ProductsTable, Product> {
         imagePath.isAcceptableOrUnknown(data['image_path']!, _imagePathMeta),
       );
     }
+    if (data.containsKey('image_url')) {
+      context.handle(
+        _imageUrlMeta,
+        imageUrl.isAcceptableOrUnknown(data['image_url']!, _imageUrlMeta),
+      );
+    }
     if (data.containsKey('is_active')) {
       context.handle(
         _isActiveMeta,
@@ -866,6 +884,10 @@ class $ProductsTable extends Products with TableInfo<$ProductsTable, Product> {
         DriftSqlType.string,
         data['${effectivePrefix}image_path'],
       ),
+      imageUrl: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}image_url'],
+      ),
       isActive: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
         data['${effectivePrefix}is_active'],
@@ -894,6 +916,9 @@ class Product extends DataClass implements Insertable<Product> {
   final int salePrice;
   final String unit;
   final String? imagePath;
+
+  /// Public storage URL of the product photo (shown on the web storefront).
+  final String? imageUrl;
   final bool isActive;
   const Product({
     required this.id,
@@ -910,6 +935,7 @@ class Product extends DataClass implements Insertable<Product> {
     required this.salePrice,
     required this.unit,
     this.imagePath,
+    this.imageUrl,
     required this.isActive,
   });
   @override
@@ -937,6 +963,9 @@ class Product extends DataClass implements Insertable<Product> {
     if (!nullToAbsent || imagePath != null) {
       map['image_path'] = Variable<String>(imagePath);
     }
+    if (!nullToAbsent || imageUrl != null) {
+      map['image_url'] = Variable<String>(imageUrl);
+    }
     map['is_active'] = Variable<bool>(isActive);
     return map;
   }
@@ -963,6 +992,9 @@ class Product extends DataClass implements Insertable<Product> {
       imagePath: imagePath == null && nullToAbsent
           ? const Value.absent()
           : Value(imagePath),
+      imageUrl: imageUrl == null && nullToAbsent
+          ? const Value.absent()
+          : Value(imageUrl),
       isActive: Value(isActive),
     );
   }
@@ -987,6 +1019,7 @@ class Product extends DataClass implements Insertable<Product> {
       salePrice: serializer.fromJson<int>(json['salePrice']),
       unit: serializer.fromJson<String>(json['unit']),
       imagePath: serializer.fromJson<String?>(json['imagePath']),
+      imageUrl: serializer.fromJson<String?>(json['imageUrl']),
       isActive: serializer.fromJson<bool>(json['isActive']),
     );
   }
@@ -1008,6 +1041,7 @@ class Product extends DataClass implements Insertable<Product> {
       'salePrice': serializer.toJson<int>(salePrice),
       'unit': serializer.toJson<String>(unit),
       'imagePath': serializer.toJson<String?>(imagePath),
+      'imageUrl': serializer.toJson<String?>(imageUrl),
       'isActive': serializer.toJson<bool>(isActive),
     };
   }
@@ -1027,6 +1061,7 @@ class Product extends DataClass implements Insertable<Product> {
     int? salePrice,
     String? unit,
     Value<String?> imagePath = const Value.absent(),
+    Value<String?> imageUrl = const Value.absent(),
     bool? isActive,
   }) => Product(
     id: id ?? this.id,
@@ -1043,6 +1078,7 @@ class Product extends DataClass implements Insertable<Product> {
     salePrice: salePrice ?? this.salePrice,
     unit: unit ?? this.unit,
     imagePath: imagePath.present ? imagePath.value : this.imagePath,
+    imageUrl: imageUrl.present ? imageUrl.value : this.imageUrl,
     isActive: isActive ?? this.isActive,
   );
   Product copyWithCompanion(ProductsCompanion data) {
@@ -1063,6 +1099,7 @@ class Product extends DataClass implements Insertable<Product> {
       salePrice: data.salePrice.present ? data.salePrice.value : this.salePrice,
       unit: data.unit.present ? data.unit.value : this.unit,
       imagePath: data.imagePath.present ? data.imagePath.value : this.imagePath,
+      imageUrl: data.imageUrl.present ? data.imageUrl.value : this.imageUrl,
       isActive: data.isActive.present ? data.isActive.value : this.isActive,
     );
   }
@@ -1084,6 +1121,7 @@ class Product extends DataClass implements Insertable<Product> {
           ..write('salePrice: $salePrice, ')
           ..write('unit: $unit, ')
           ..write('imagePath: $imagePath, ')
+          ..write('imageUrl: $imageUrl, ')
           ..write('isActive: $isActive')
           ..write(')'))
         .toString();
@@ -1105,6 +1143,7 @@ class Product extends DataClass implements Insertable<Product> {
     salePrice,
     unit,
     imagePath,
+    imageUrl,
     isActive,
   );
   @override
@@ -1125,6 +1164,7 @@ class Product extends DataClass implements Insertable<Product> {
           other.salePrice == this.salePrice &&
           other.unit == this.unit &&
           other.imagePath == this.imagePath &&
+          other.imageUrl == this.imageUrl &&
           other.isActive == this.isActive);
 }
 
@@ -1143,6 +1183,7 @@ class ProductsCompanion extends UpdateCompanion<Product> {
   final Value<int> salePrice;
   final Value<String> unit;
   final Value<String?> imagePath;
+  final Value<String?> imageUrl;
   final Value<bool> isActive;
   final Value<int> rowid;
   const ProductsCompanion({
@@ -1160,6 +1201,7 @@ class ProductsCompanion extends UpdateCompanion<Product> {
     this.salePrice = const Value.absent(),
     this.unit = const Value.absent(),
     this.imagePath = const Value.absent(),
+    this.imageUrl = const Value.absent(),
     this.isActive = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -1178,6 +1220,7 @@ class ProductsCompanion extends UpdateCompanion<Product> {
     this.salePrice = const Value.absent(),
     this.unit = const Value.absent(),
     this.imagePath = const Value.absent(),
+    this.imageUrl = const Value.absent(),
     this.isActive = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
@@ -1198,6 +1241,7 @@ class ProductsCompanion extends UpdateCompanion<Product> {
     Expression<int>? salePrice,
     Expression<String>? unit,
     Expression<String>? imagePath,
+    Expression<String>? imageUrl,
     Expression<bool>? isActive,
     Expression<int>? rowid,
   }) {
@@ -1216,6 +1260,7 @@ class ProductsCompanion extends UpdateCompanion<Product> {
       if (salePrice != null) 'sale_price': salePrice,
       if (unit != null) 'unit': unit,
       if (imagePath != null) 'image_path': imagePath,
+      if (imageUrl != null) 'image_url': imageUrl,
       if (isActive != null) 'is_active': isActive,
       if (rowid != null) 'rowid': rowid,
     });
@@ -1236,6 +1281,7 @@ class ProductsCompanion extends UpdateCompanion<Product> {
     Value<int>? salePrice,
     Value<String>? unit,
     Value<String?>? imagePath,
+    Value<String?>? imageUrl,
     Value<bool>? isActive,
     Value<int>? rowid,
   }) {
@@ -1254,6 +1300,7 @@ class ProductsCompanion extends UpdateCompanion<Product> {
       salePrice: salePrice ?? this.salePrice,
       unit: unit ?? this.unit,
       imagePath: imagePath ?? this.imagePath,
+      imageUrl: imageUrl ?? this.imageUrl,
       isActive: isActive ?? this.isActive,
       rowid: rowid ?? this.rowid,
     );
@@ -1304,6 +1351,9 @@ class ProductsCompanion extends UpdateCompanion<Product> {
     if (imagePath.present) {
       map['image_path'] = Variable<String>(imagePath.value);
     }
+    if (imageUrl.present) {
+      map['image_url'] = Variable<String>(imageUrl.value);
+    }
     if (isActive.present) {
       map['is_active'] = Variable<bool>(isActive.value);
     }
@@ -1330,6 +1380,7 @@ class ProductsCompanion extends UpdateCompanion<Product> {
           ..write('salePrice: $salePrice, ')
           ..write('unit: $unit, ')
           ..write('imagePath: $imagePath, ')
+          ..write('imageUrl: $imageUrl, ')
           ..write('isActive: $isActive, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -8970,6 +9021,7 @@ typedef $$ProductsTableCreateCompanionBuilder =
       Value<int> salePrice,
       Value<String> unit,
       Value<String?> imagePath,
+      Value<String?> imageUrl,
       Value<bool> isActive,
       Value<int> rowid,
     });
@@ -8989,6 +9041,7 @@ typedef $$ProductsTableUpdateCompanionBuilder =
       Value<int> salePrice,
       Value<String> unit,
       Value<String?> imagePath,
+      Value<String?> imageUrl,
       Value<bool> isActive,
       Value<int> rowid,
     });
@@ -9069,6 +9122,11 @@ class $$ProductsTableFilterComposer
 
   ColumnFilters<String> get imagePath => $composableBuilder(
     column: $table.imagePath,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get imageUrl => $composableBuilder(
+    column: $table.imageUrl,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -9157,6 +9215,11 @@ class $$ProductsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get imageUrl => $composableBuilder(
+    column: $table.imageUrl,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<bool> get isActive => $composableBuilder(
     column: $table.isActive,
     builder: (column) => ColumnOrderings(column),
@@ -9216,6 +9279,9 @@ class $$ProductsTableAnnotationComposer
   GeneratedColumn<String> get imagePath =>
       $composableBuilder(column: $table.imagePath, builder: (column) => column);
 
+  GeneratedColumn<String> get imageUrl =>
+      $composableBuilder(column: $table.imageUrl, builder: (column) => column);
+
   GeneratedColumn<bool> get isActive =>
       $composableBuilder(column: $table.isActive, builder: (column) => column);
 }
@@ -9262,6 +9328,7 @@ class $$ProductsTableTableManager
                 Value<int> salePrice = const Value.absent(),
                 Value<String> unit = const Value.absent(),
                 Value<String?> imagePath = const Value.absent(),
+                Value<String?> imageUrl = const Value.absent(),
                 Value<bool> isActive = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ProductsCompanion(
@@ -9279,6 +9346,7 @@ class $$ProductsTableTableManager
                 salePrice: salePrice,
                 unit: unit,
                 imagePath: imagePath,
+                imageUrl: imageUrl,
                 isActive: isActive,
                 rowid: rowid,
               ),
@@ -9298,6 +9366,7 @@ class $$ProductsTableTableManager
                 Value<int> salePrice = const Value.absent(),
                 Value<String> unit = const Value.absent(),
                 Value<String?> imagePath = const Value.absent(),
+                Value<String?> imageUrl = const Value.absent(),
                 Value<bool> isActive = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ProductsCompanion.insert(
@@ -9315,6 +9384,7 @@ class $$ProductsTableTableManager
                 salePrice: salePrice,
                 unit: unit,
                 imagePath: imagePath,
+                imageUrl: imageUrl,
                 isActive: isActive,
                 rowid: rowid,
               ),

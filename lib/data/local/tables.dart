@@ -35,6 +35,8 @@ class Products extends Table with SyncColumns {
   IntColumn get salePrice => integer().withDefault(const Constant(0))();
   TextColumn get unit => text().withDefault(const Constant('pcs'))();
   TextColumn get imagePath => text().nullable()();
+  /// Public storage URL of the product photo (shown on the web storefront).
+  TextColumn get imageUrl => text().nullable()();
   BoolColumn get isActive => boolean().withDefault(const Constant(true))();
 
   @override
