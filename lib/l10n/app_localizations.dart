@@ -1820,6 +1820,12 @@ abstract class AppLocalizations {
   /// **'Payment method'**
   String get orderPickPaymentMethod;
 
+  /// No description provided for @orderPaymentProof.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment screenshot'**
+  String get orderPaymentProof;
+
   /// No description provided for @ordersSearchHint.
   ///
   /// In en, this message translates to:

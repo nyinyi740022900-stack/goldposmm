@@ -939,6 +939,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get orderPickPaymentMethod => 'Payment method';
 
   @override
+  String get orderPaymentProof => 'Payment screenshot';
+
+  @override
   String get ordersSearchHint => 'Search name, phone, order #';
 
   @override

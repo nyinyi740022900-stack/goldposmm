@@ -328,6 +328,7 @@
   "orderItemsCount": "{count} items",
   "@orderItemsCount": { "placeholders": { "count": { "type": "int" } } },
   "orderPickPaymentMethod": "Payment method",
+  "orderPaymentProof": "Payment screenshot",
   "ordersSearchHint": "Search name, phone, order #",
   "ordersNoMatch": "No orders match your filters.",
   "ordersClearFilters": "Clear filters",

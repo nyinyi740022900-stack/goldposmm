@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// A product shown on the public storefront.
@@ -69,6 +71,20 @@ class StorefrontApi {
     );
   }
 
+  /// Uploads a payment screenshot to the private `payment-proofs` bucket and
+  /// returns its storage path (to attach to the order). Anon uploads are
+  /// allowed by policy; reads happen later via signed URLs on the shop side.
+  Future<String> uploadPaymentProof(List<int> bytes, String ext) async {
+    final path =
+        'proof-${DateTime.now().millisecondsSinceEpoch}-${bytes.length}.$ext';
+    await _c.storage.from('payment-proofs').uploadBinary(
+          path,
+          Uint8List.fromList(bytes),
+          fileOptions: const FileOptions(upsert: false),
+        );
+    return path;
+  }
+
   /// Submits a guest order. Returns the order number.
   Future<String> submitOrder({
     required String slug,
@@ -76,6 +92,7 @@ class StorefrontApi {
     String? phone,
     String? address,
     String? note,
+    String? paymentProofPath,
     required List<OrderLine> lines,
   }) async {
     final res = await _c.functions.invoke('storefront', body: {
@@ -85,6 +102,7 @@ class StorefrontApi {
       'phone': phone,
       'address': address,
       'note': note,
+      'payment_proof_path': paymentProofPath,
       'lines': [
         for (final l in lines)
           {

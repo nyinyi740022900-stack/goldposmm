@@ -102,6 +102,7 @@ Deno.serve(async (req) => {
       items_total: itemsTotal,
       payment_status: "unpaid",
       note: (body.note ?? "").trim() || null,
+      payment_proof_path: (body.payment_proof_path ?? "").trim() || null,
       created_at: now,
       updated_at: now,
     });
