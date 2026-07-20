@@ -114,7 +114,9 @@ void main() {
           ..where((s) => s.productId.equals(pid)))
         .getSingle();
     expect(stock.quantity, 3);
-    expect((await db.select(db.stockMovements).get()).single.qtyDelta, -2);
+    final saleMove = (await db.select(db.stockMovements).get())
+        .firstWhere((m) => m.type == 'sale');
+    expect(saleMove.qtyDelta, -2);
   });
 
   test('convertToSale is idempotent (returns the same sale id)', () async {

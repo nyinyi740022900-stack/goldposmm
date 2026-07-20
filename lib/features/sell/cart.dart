@@ -42,15 +42,21 @@ class CartState {
 class CartNotifier extends StateNotifier<CartState> {
   CartNotifier() : super(const CartState());
 
-  void addProduct(Product product) {
+  /// Adds one of [product] to the cart. When [maxQty] is given (the available
+  /// stock), the line is capped at it — prevents overselling. Returns `false`
+  /// if the line is already at the cap (nothing added), so the UI can warn.
+  bool addProduct(Product product, {int? maxQty}) {
     final lines = [...state.lines];
     final idx = lines.indexWhere((l) => l.product.id == product.id);
+    final current = idx >= 0 ? lines[idx].qty : 0;
+    if (maxQty != null && current >= maxQty) return false;
     if (idx >= 0) {
-      lines[idx] = lines[idx].copyWith(qty: lines[idx].qty + 1);
+      lines[idx] = lines[idx].copyWith(qty: current + 1);
     } else {
       lines.add(CartLine(product: product, qty: 1));
     }
     state = state.copyWith(lines: lines);
+    return true;
   }
 
   void setQty(String productId, int qty) {
@@ -64,9 +70,14 @@ class CartNotifier extends StateNotifier<CartState> {
     state = state.copyWith(lines: lines);
   }
 
-  void increment(String productId) {
+  /// Increments a line, capped at [maxQty] (available stock) when given.
+  /// Returns `false` if already at the cap.
+  bool increment(String productId, {int? maxQty}) {
     final line = state.lines.firstWhereOrNull((l) => l.product.id == productId);
-    if (line != null) setQty(productId, line.qty + 1);
+    if (line == null) return false;
+    if (maxQty != null && line.qty >= maxQty) return false;
+    setQty(productId, line.qty + 1);
+    return true;
   }
 
   void decrement(String productId) {

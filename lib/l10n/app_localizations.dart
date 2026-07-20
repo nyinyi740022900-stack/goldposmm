@@ -206,6 +206,12 @@ abstract class AppLocalizations {
   /// **'Sell'**
   String get sellTitle;
 
+  /// No description provided for @sellStockCap.
+  ///
+  /// In en, this message translates to:
+  /// **'Only {count} in stock'**
+  String sellStockCap(int count);
+
   /// No description provided for @sellCart.
   ///
   /// In en, this message translates to:
@@ -1843,6 +1849,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Payment'**
   String get orderFilterPayment;
+
+  /// No description provided for @staffMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Staff mode'**
+  String get staffMode;
+
+  /// No description provided for @staffRoleOwner.
+  ///
+  /// In en, this message translates to:
+  /// **'Owner'**
+  String get staffRoleOwner;
+
+  /// No description provided for @staffRoleCashier.
+  ///
+  /// In en, this message translates to:
+  /// **'Cashier'**
+  String get staffRoleCashier;
+
+  /// No description provided for @staffSwitchToCashier.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch to Cashier mode'**
+  String get staffSwitchToCashier;
+
+  /// No description provided for @staffUnlockOwner.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock Owner'**
+  String get staffUnlockOwner;
+
+  /// No description provided for @staffSetPin.
+  ///
+  /// In en, this message translates to:
+  /// **'Set owner PIN'**
+  String get staffSetPin;
+
+  /// No description provided for @staffChangePin.
+  ///
+  /// In en, this message translates to:
+  /// **'Change owner PIN'**
+  String get staffChangePin;
+
+  /// No description provided for @staffEnterPin.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter owner PIN'**
+  String get staffEnterPin;
+
+  /// No description provided for @staffWrongPin.
+  ///
+  /// In en, this message translates to:
+  /// **'Wrong PIN'**
+  String get staffWrongPin;
+
+  /// No description provided for @staffPinHint.
+  ///
+  /// In en, this message translates to:
+  /// **'4–6 digits'**
+  String get staffPinHint;
+
+  /// No description provided for @staffPinSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'PIN saved'**
+  String get staffPinSaved;
+
+  /// No description provided for @staffOwnerOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Owner only'**
+  String get staffOwnerOnly;
+
+  /// No description provided for @staffOwnerOnlyDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch to Owner mode (Settings) to view this.'**
+  String get staffOwnerOnlyDesc;
+
+  /// No description provided for @staffCashierBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Cashier mode'**
+  String get staffCashierBadge;
 
   /// No description provided for @currencySymbol.
   ///

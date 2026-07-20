@@ -8,6 +8,8 @@ import '../../core/theme/app_theme.dart';
 import '../../l10n/app_localizations.dart';
 import '../credit/credit_screen.dart';
 import '../printing/printing_providers.dart';
+import '../staff/staff_providers.dart';
+import '../staff/staff_ui.dart';
 import 'analytics_calculator.dart';
 import 'analytics_providers.dart';
 
@@ -17,6 +19,15 @@ class AnalyticsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context);
+
+    // Business analytics are owner-only.
+    if (!ref.watch(isOwnerProvider)) {
+      return Scaffold(
+        appBar: AppBar(title: Text(l.navAnalytics)),
+        body: const OwnerOnlyGate(child: SizedBox.shrink()),
+      );
+    }
+
     final range = ref.watch(analyticsRangeProvider);
     final summary = ref.watch(analyticsSummaryProvider);
     final trackStock = ref.watch(trackStockProvider).valueOrNull ?? true;

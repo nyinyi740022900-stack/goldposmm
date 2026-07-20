@@ -37,6 +37,37 @@ void main() {
     expect(outbox.every((o) => o.op == 'upsert'), isTrue);
   });
 
+  test('stock changes are recorded as ledger movements (opening/adjustment)',
+      () async {
+    final id = await repo.upsertProduct(
+        name: 'Coke', salePrice: 700, quantity: 24, reorderLevel: 6);
+    // Create writes an 'opening' movement for the full quantity.
+    var moves = await (db.select(db.stockMovements)
+          ..where((m) => m.productId.equals(id)))
+        .get();
+    expect(moves, hasLength(1));
+    expect(moves.single.type, 'opening');
+    expect(moves.single.qtyDelta, 24);
+
+    // Editing the quantity records an 'adjustment' for the delta.
+    await repo.upsertProduct(
+        id: id, name: 'Coke', salePrice: 700, quantity: 20, reorderLevel: 6);
+    moves = await (db.select(db.stockMovements)
+          ..where((m) => m.productId.equals(id)))
+        .get();
+    expect(moves, hasLength(2));
+    final adj = moves.firstWhere((m) => m.type == 'adjustment');
+    expect(adj.qtyDelta, -4); // 24 -> 20
+
+    // No movement when the quantity is unchanged.
+    await repo.upsertProduct(
+        id: id, name: 'Coke', salePrice: 700, quantity: 20, reorderLevel: 6);
+    moves = await (db.select(db.stockMovements)
+          ..where((m) => m.productId.equals(id)))
+        .get();
+    expect(moves, hasLength(2)); // unchanged
+  });
+
   test('low stock is flagged when quantity <= reorder level', () async {
     await repo.upsertProduct(
         name: 'Match box', quantity: 5, reorderLevel: 10);

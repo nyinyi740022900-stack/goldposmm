@@ -21,6 +21,8 @@
   "copied": "ကူးယူပြီး",
 
   "sellTitle": "ရောင်းချ",
+  "sellStockCap": "လက်ကျန် {count} ခုသာ ရှိပါသည်",
+  "@sellStockCap": { "placeholders": { "count": { "type": "int" } } },
   "sellCart": "ခြင်းတောင်း",
   "sellEmptyCart": "ပစ္စည်းမရှိသေးပါ။ ထည့်ရန် ပစ္စည်းကို နှိပ်ပါ။",
   "sellCheckout": "ငွေရှင်း",
@@ -330,6 +332,21 @@
   "ordersClearFilters": "filter ရှင်း",
   "orderFilterChannel": "ချန်နယ်",
   "orderFilterPayment": "ငွေပေးချေမှု",
+
+  "staffMode": "ဝန်ထမ်း mode",
+  "staffRoleOwner": "ပိုင်ရှင်",
+  "staffRoleCashier": "ကက်ရှီယာ",
+  "staffSwitchToCashier": "Cashier mode သို့ ပြောင်း",
+  "staffUnlockOwner": "ပိုင်ရှင် ဖွင့်",
+  "staffSetPin": "ပိုင်ရှင် PIN သတ်မှတ်",
+  "staffChangePin": "ပိုင်ရှင် PIN ပြောင်း",
+  "staffEnterPin": "ပိုင်ရှင် PIN ရိုက်ထည့်",
+  "staffWrongPin": "PIN မှားနေပါသည်",
+  "staffPinHint": "ဂဏန်း ၄–၆ လုံး",
+  "staffPinSaved": "PIN သိမ်းပြီး",
+  "staffOwnerOnly": "ပိုင်ရှင်သာ ကြည့်နိုင်",
+  "staffOwnerOnlyDesc": "ဒါကို ကြည့်ရန် Owner mode (Settings) သို့ ပြောင်းပါ။",
+  "staffCashierBadge": "Cashier mode",
 
   "currencySymbol": "ကျပ်"
 }

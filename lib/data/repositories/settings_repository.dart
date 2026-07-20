@@ -23,6 +23,8 @@ class SettingsRepository {
   static const _kReceiptFooter = 'receipt.footer';
   static const _kTrackStock = 'shop.track_stock';
   static const _kReferralSeenEarned = 'referral.seen_earned';
+  static const _kStaffRole = 'staff.role';
+  static const _kStaffPin = 'staff.pin';
 
   Future<String?> _get(String key) async {
     final row = await (_db.select(_db.appSettings)
@@ -97,6 +99,24 @@ class SettingsRepository {
     } catch (_) {/* not available (tests) */}
     return id;
   }
+
+  // ---- Staff role (device-local, not synced) -----------------------------
+  // 'owner' (full access) or 'cashier' (restricted). Default owner: the shop
+  // owner sets up the device, then hands it to staff in cashier mode.
+  Future<String> staffRole() async => (await _get(_kStaffRole)) ?? 'owner';
+  Future<void> setStaffRole(String role) => _set(_kStaffRole, role);
+  Stream<String> watchStaffRole() {
+    return _db.select(_db.appSettings).watch().map((rows) {
+      for (final r in rows) {
+        if (r.key == _kStaffRole) return r.value;
+      }
+      return 'owner';
+    });
+  }
+
+  /// The owner PIN (4–6 digits) required to leave cashier mode. Null = unset.
+  Future<String?> staffPin() => _get(_kStaffPin);
+  Future<void> setStaffPin(String pin) => _set(_kStaffPin, pin);
 
   Future<String?> licenseJson() => _get(_kLicense);
   Future<void> setLicenseJson(String json) => _set(_kLicense, json);

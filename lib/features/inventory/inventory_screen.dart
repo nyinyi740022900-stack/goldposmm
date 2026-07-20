@@ -8,6 +8,7 @@ import '../../data/repositories/demo_seed.dart';
 import '../../domain/product_with_stock.dart';
 import '../../l10n/app_localizations.dart';
 import '../printing/printing_providers.dart';
+import '../staff/staff_providers.dart';
 import 'categories_screen.dart';
 import 'inventory_providers.dart';
 import 'product_edit_screen.dart';
@@ -45,6 +46,8 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
     final lowCount = ref.watch(lowStockCountProvider);
     final trackStock = ref.watch(trackStockProvider).valueOrNull ?? true;
     final currency = l.currencySymbol;
+    // Cashiers can browse inventory but not add/edit products.
+    final isOwner = ref.watch(isOwnerProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -75,11 +78,13 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _openEditor(),
-        icon: const Icon(Icons.add),
-        label: Text(l.commonAdd),
-      ),
+      floatingActionButton: isOwner
+          ? FloatingActionButton.extended(
+              onPressed: () => _openEditor(),
+              icon: const Icon(Icons.add),
+              label: Text(l.commonAdd),
+            )
+          : null,
       body: Column(
         children: [
           const _CategoryFilterBar(),
@@ -124,7 +129,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                           ? _StockBadge(
                               quantity: p.quantity, low: p.isLowStock)
                           : null,
-                      onTap: () => _openEditor(p),
+                      onTap: isOwner ? () => _openEditor(p) : null,
                     );
                   },
                 ),
