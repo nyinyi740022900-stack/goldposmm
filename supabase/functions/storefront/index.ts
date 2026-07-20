@@ -58,7 +58,7 @@ Deno.serve(async (req) => {
   if (action === "catalog") {
     const { data: products, error } = await admin
       .from("products")
-      .select("id, name, sale_price, unit")
+      .select("id, name, sale_price, unit, image_url")
       .eq("shop_id", sf.shop_id)
       .eq("is_active", true)
       .eq("is_deleted", false)

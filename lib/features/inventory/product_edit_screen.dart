@@ -1,7 +1,10 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../core/env.dart';
 import '../../core/theme/app_theme.dart';
 import '../../domain/product_with_stock.dart';
 import '../../l10n/app_localizations.dart';
@@ -29,13 +32,16 @@ class _ProductEditScreenState extends ConsumerState<ProductEditScreen> {
   late final TextEditingController _quantity;
   late final TextEditingController _reorder;
   String? _categoryId;
+  String? _imageUrl;
   bool _saving = false;
+  bool _uploading = false;
 
   @override
   void initState() {
     super.initState();
     final e = widget.existing;
     _categoryId = e?.product.categoryId;
+    _imageUrl = e?.product.imageUrl;
     _name = TextEditingController(text: e?.product.name ?? '');
     _sku = TextEditingController(text: e?.product.sku ?? '');
     _barcode = TextEditingController(text: e?.product.barcode ?? '');
@@ -65,6 +71,32 @@ class _ProductEditScreenState extends ConsumerState<ProductEditScreen> {
 
   int _int(TextEditingController c) => int.tryParse(c.text.trim()) ?? 0;
 
+  Future<void> _pickImage() async {
+    final res = await FilePicker.platform.pickFiles(
+      type: FileType.image,
+      withData: true,
+    );
+    final file = res?.files.firstOrNull;
+    if (file == null || file.bytes == null) return;
+    setState(() => _uploading = true);
+    try {
+      final ext = (file.extension ?? 'jpg').toLowerCase();
+      final path = 'p-${DateTime.now().millisecondsSinceEpoch}.$ext';
+      final storage = Supabase.instance.client.storage.from('product-images');
+      await storage.uploadBinary(path, file.bytes!,
+          fileOptions: const FileOptions(upsert: true));
+      final url = storage.getPublicUrl(path);
+      if (mounted) setState(() => _imageUrl = url);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('$e')));
+      }
+    } finally {
+      if (mounted) setState(() => _uploading = false);
+    }
+  }
+
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _saving = true);
@@ -80,6 +112,7 @@ class _ProductEditScreenState extends ConsumerState<ProductEditScreen> {
             costPrice: _int(_costPrice),
             quantity: _int(_quantity),
             reorderLevel: _int(_reorder),
+            imageUrl: _imageUrl,
           );
       if (mounted) Navigator.of(context).pop();
     } finally {
@@ -101,6 +134,10 @@ class _ProductEditScreenState extends ConsumerState<ProductEditScreen> {
         child: ListView(
           padding: const EdgeInsets.all(AppTheme.space4),
           children: [
+            if (Env.hasBackend) ...[
+              _photoField(l),
+              _gap,
+            ],
             _field(_name, l.productName,
                 validator: (v) =>
                     (v == null || v.trim().isEmpty) ? l.validationRequired : null),
@@ -144,6 +181,41 @@ class _ProductEditScreenState extends ConsumerState<ProductEditScreen> {
   }
 
   static const _gap = SizedBox(height: AppTheme.space3);
+
+  Widget _photoField(AppLocalizations l) {
+    return Row(
+      children: [
+        Container(
+          width: 72,
+          height: 72,
+          clipBehavior: Clip.antiAlias,
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: (_imageUrl ?? '').isEmpty
+              ? const Icon(Icons.image_outlined)
+              : Image.network(_imageUrl!,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, _, _) =>
+                      const Icon(Icons.broken_image_outlined)),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: OutlinedButton.icon(
+            onPressed: _uploading ? null : _pickImage,
+            icon: _uploading
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2))
+                : const Icon(Icons.add_a_photo_outlined),
+            label: Text(l.productPhoto),
+          ),
+        ),
+      ],
+    );
+  }
 
   Widget _categoryDropdown(AppLocalizations l) {
     final categories = ref.watch(categoriesStreamProvider).valueOrNull ?? const [];

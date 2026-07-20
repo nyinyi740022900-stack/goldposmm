@@ -8,7 +8,8 @@ class StoreProduct {
   final String name;
   final int price;
   final String unit;
-  const StoreProduct(this.id, this.name, this.price, this.unit);
+  final String? imageUrl;
+  const StoreProduct(this.id, this.name, this.price, this.unit, this.imageUrl);
 }
 
 /// Public shop info + payment numbers shown to customers.
@@ -57,6 +58,7 @@ class StorefrontApi {
               m['name'] as String,
               (m['sale_price'] as num?)?.toInt() ?? 0,
               (m['unit'] as String?) ?? 'pcs',
+              m['image_url'] as String?,
             ))
         .toList();
     return Catalog(

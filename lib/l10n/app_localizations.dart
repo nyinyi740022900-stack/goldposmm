@@ -512,6 +512,12 @@ abstract class AppLocalizations {
   /// **'Product name'**
   String get productName;
 
+  /// No description provided for @productPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Product photo'**
+  String get productPhoto;
+
   /// No description provided for @productPrice.
   ///
   /// In en, this message translates to:

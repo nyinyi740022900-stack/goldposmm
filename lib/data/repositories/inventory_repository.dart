@@ -67,6 +67,7 @@ class InventoryRepository {
     String unit = 'pcs',
     int? quantity,
     int reorderLevel = 0,
+    String? imageUrl,
   }) async {
     final productId = id ?? _uuid.v4();
     final now = DateTime.now();
@@ -82,6 +83,8 @@ class InventoryRepository {
         costPrice: Value(costPrice),
         salePrice: Value(salePrice),
         unit: Value(unit),
+        // Only overwrite the photo URL when one is supplied (keep existing).
+        imageUrl: imageUrl == null ? const Value.absent() : Value(imageUrl),
         isActive: const Value(true),
         updatedAt: Value(now),
         dirty: const Value(true),
