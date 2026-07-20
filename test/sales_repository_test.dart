@@ -57,10 +57,11 @@ void main() {
         .getSingle();
     expect(stock.quantity, 7);
 
-    // A 'sale' stock movement was recorded.
-    final moves = await db.select(db.stockMovements).get();
-    expect(moves.single.type, 'sale');
-    expect(moves.single.qtyDelta, -3);
+    // A 'sale' stock movement was recorded (alongside the opening movement).
+    final saleMoves = (await db.select(db.stockMovements).get())
+        .where((m) => m.type == 'sale')
+        .toList();
+    expect(saleMoves.single.qtyDelta, -3);
   });
 
   test('trackStock:false skips stock movement + decrement (invoice only)',
@@ -73,8 +74,11 @@ void main() {
       trackStock: false,
     );
 
-    // No stock movement recorded, stock level untouched.
-    expect(await db.select(db.stockMovements).get(), isEmpty);
+    // No 'sale' stock movement recorded, stock level untouched (the opening
+    // movement from seeding still exists).
+    final saleMoves = (await db.select(db.stockMovements).get())
+        .where((m) => m.type == 'sale');
+    expect(saleMoves, isEmpty);
     final stock = await (db.select(db.stockLevels)
           ..where((s) => s.productId.equals(p.id)))
         .getSingle();

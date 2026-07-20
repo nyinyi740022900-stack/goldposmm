@@ -157,6 +157,30 @@ class InventoryRepository {
           ..where((s) => s.productId.equals(productId)))
         .getSingleOrNull();
     final rowId = existing?.id ?? _uuid.v4();
+
+    // Record the change as an append-only movement so the ledger is complete:
+    // opening balance on create, adjustment on later edits. The ledger (which
+    // syncs append-only, never LWW) is the authoritative history — this is the
+    // basis for cross-channel stock reconciliation once a 2nd writer (the web
+    // storefront) exists. The cached level below is a fast-read denormalization.
+    final delta = quantity - (existing?.quantity ?? 0);
+    if (delta != 0) {
+      final moveId = _uuid.v4();
+      await _db.into(_db.stockMovements).insert(StockMovementsCompanion.insert(
+            id: moveId,
+            shopId: _shopId,
+            productId: productId,
+            type: existing == null ? 'opening' : 'adjustment',
+            qtyDelta: delta,
+            note: const Value('manual stock set'),
+            updatedAt: Value(now),
+          ));
+      await _enqueue('stock_movements', moveId, 'upsert', jsonEncode(
+          (await (_db.select(_db.stockMovements)..where((m) => m.id.equals(moveId)))
+                  .getSingle())
+              .toJson()));
+    }
+
     await _db.into(_db.stockLevels).insertOnConflictUpdate(StockLevelsCompanion(
           id: Value(rowId),
           shopId: Value(_shopId),
