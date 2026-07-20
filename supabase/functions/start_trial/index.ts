@@ -54,6 +54,9 @@ Deno.serve(async (req) => {
     const now = new Date();
     const expires = new Date(now);
     expires.setMonth(expires.getMonth() + TRIAL_MONTHS);
+    // Give trial shops a shareable referral code too (this insert bypasses the
+    // create_license RPC, which is where paid licenses get theirs).
+    const { data: refCode } = await admin.rpc("gen_referral_code");
     const { data: created, error: insErr } = await admin
       .from("licenses")
       .insert({
@@ -65,6 +68,7 @@ Deno.serve(async (req) => {
         device_id: deviceId,
         expires_at: expires.toISOString(),
         activated_at: now.toISOString(),
+        referral_code: refCode,
       })
       .select("*")
       .single();

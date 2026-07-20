@@ -22,6 +22,7 @@ class SettingsRepository {
   static const _kShopPhone = 'shop.phone';
   static const _kReceiptFooter = 'receipt.footer';
   static const _kTrackStock = 'shop.track_stock';
+  static const _kReferralSeenEarned = 'referral.seen_earned';
 
   Future<String?> _get(String key) async {
     final row = await (_db.select(_db.appSettings)
@@ -104,6 +105,17 @@ class SettingsRepository {
   static const _kTrialUsed = 'license.trial_used';
   Future<bool> trialUsed() async => (await _get(_kTrialUsed)) == 'true';
   Future<void> markTrialUsed() => _set(_kTrialUsed, 'true');
+
+  /// Watermark of the referral commission total (Ks) already seen by the user.
+  /// null = never checked, so the first check establishes a baseline silently
+  /// (no notification for commissions earned before this feature shipped).
+  Future<int?> referralSeenEarned() async {
+    final v = await _get(_kReferralSeenEarned);
+    return v == null ? null : int.tryParse(v);
+  }
+
+  Future<void> setReferralSeenEarned(int value) =>
+      _set(_kReferralSeenEarned, '$value');
 
   // Cached vendor config (payment accounts + support contact), refreshed from
   // the backend `app_config` table so it survives offline.

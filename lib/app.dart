@@ -7,6 +7,7 @@ import 'core/router.dart';
 import 'core/theme/app_theme.dart';
 import 'data/sync/sync_providers.dart';
 import 'features/license/license_providers.dart';
+import 'features/referral/referral_watcher.dart';
 import 'l10n/app_localizations.dart';
 
 class MmPosApp extends ConsumerWidget {
@@ -20,6 +21,8 @@ class MmPosApp extends ConsumerWidget {
     // starts connectivity-driven syncing at launch.
     ref.watch(licenseControllerProvider);
     ref.watch(syncControllerProvider);
+    // Poll for new referral commissions and fire the "earned" notification.
+    ref.watch(referralWatcherProvider);
     return MaterialApp.router(
       onGenerateTitle: (ctx) => AppLocalizations.of(ctx).appTitle,
       debugShowCheckedModeBanner: false,

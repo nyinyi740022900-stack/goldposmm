@@ -131,6 +131,16 @@ All tables carry: `id` (uuid), `shop_id` (uuid), `created_at`, `updated_at`, `is
 - **Local payment support:** owner can record a renewal payment (KBZPay/Wave/cash) which flags the license for manual/automated reconciliation server-side. (Automated gateway integration is a later phase.)
 - **Anti-abuse:** device binding, server-side expiry authoritative, key never trusted from client alone.
 
+### 6.1 Referral commission (Phase 6)
+
+- **Model:** single-level. Every license carries a shareable `referral_code` (`REF-XXXX`). A new shop may enter a referrer's code in its subscription request (`license_requests.referred_by_code`).
+- **Accrual (payment-tied only):** each time a referred shop's payment is fulfilled (admin `fulfill_request`), the referrer earns a commission = `paid_amount × referral.rate` (default 15%, in `app_config`). One immutable row per paid request in `referral_commissions`, deduped by a unique `source_request_id`. **No commission is ever created for recruitment alone** — this keeps it a legitimate affiliate program, not a pyramid scheme.
+- **Payout = license credit:** the referrer redeems the accumulated balance into whole months on their own license via `redeem_referral_balance()` (self-service, whole `price.monthly` units; remainder stays as balance). Draws recorded in `referral_redemptions`; balance = earned − redeemed.
+- **RLS:** a shop reads only its own `referrals` / commissions / redemptions (`referrer_shop_id = auth_shop_id()`); balance readout via SECURITY DEFINER `my_referral_balance()`. All writes are service-role (admin Edge Function) or the definer RPCs.
+- **App surface:** Settings → *Refer & earn* — running earnings wallet, progress toward the next free month, one-tap redeem, code share.
+- **Commission alert:** a local notification (`flutter_local_notifications`, no FCM) fires when the server-side earned total grows — polled at launch, on resume, and every 30 min, deduped by a `referral.seen_earned` watermark. Delivered next time the app opens; true background push is a later phase.
+- **Admin tooling:** a **Referrals** tab in the admin dashboard ([`lib/admin/`](lib/admin/)) — commissions grouped by referrer (lifetime earned + payment count) with one-click **Apply credit** (`apply_referral_credit`), plus the raw referral links. Commission rate/toggle editable under **Config** (`referral.rate`, `referral.enabled`).
+
 ---
 
 ## 7. Bluetooth Receipt Printing

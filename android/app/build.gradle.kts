@@ -6,10 +6,14 @@ plugins {
 
 android {
     namespace = "com.mmpos.mm_pos"
-    compileSdk = flutter.compileSdkVersion
+    // Bumped to 36: newer plugins (flutter_plugin_android_lifecycle via
+    // file_picker 8.x) require compiling against Android API 36+.
+    compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
+        // Required by flutter_local_notifications (uses java.time backport).
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
@@ -38,6 +42,10 @@ kotlin {
     compilerOptions {
         jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
     }
+}
+
+dependencies {
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }
 
 flutter {

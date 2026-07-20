@@ -40,12 +40,16 @@ app.*.symbols
 app.*.map.json
 
 # Android Studio will place build artifacts here
+/android/build/
 /android/app/debug
 /android/app/profile
 /android/app/release
 
 # Local Supabase credentials (keep the anon key out of source control)
 env.local.json
+
+# Personal Claude Code settings (per-developer deploy permissions, etc.)
+.claude/settings.local.json
 
 # Supabase CLI local state (linked project ref, pooler connection url, etc.)
 supabase/.temp/

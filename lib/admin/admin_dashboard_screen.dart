@@ -18,6 +18,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   List<Map<String, dynamic>>? _licenses;
   List<Map<String, dynamic>>? _requests;
   List<Map<String, dynamic>>? _events;
+  List<Map<String, dynamic>>? _referrals;
+  List<Map<String, dynamic>>? _commissions;
   Map<String, String>? _config;
   String? _error;
   bool _loading = false;
@@ -37,11 +39,15 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       final licenses = await widget.api.listLicenses();
       final requests = await widget.api.listRequests();
       final events = await widget.api.listEvents();
+      final referrals = await widget.api.listReferrals();
+      final commissions = await widget.api.listCommissions();
       final config = await widget.api.getConfig();
       setState(() {
         _licenses = licenses;
         _requests = requests;
         _events = events;
+        _referrals = referrals;
+        _commissions = commissions;
         _config = config;
       });
     } catch (e) {
@@ -56,7 +62,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     final pendingRequests =
         (_requests ?? []).where((r) => r['status'] == 'pending').length;
     return DefaultTabController(
-      length: 4,
+      length: 5,
       child: Scaffold(
         appBar: AppBar(
           title: const Text('MM POS Admin'),
@@ -64,6 +70,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             Tab(text: 'Licenses (${_licenses?.length ?? 0})'),
             Tab(text: 'Requests ($pendingRequests)'),
             Tab(text: 'History (${_events?.length ?? 0})'),
+            Tab(text: 'Referrals (${_referrals?.length ?? 0})'),
             const Tab(text: 'Config'),
           ]),
           actions: [
@@ -113,6 +120,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                       onIssue: _issueKey,
                     ),
                     _HistoryTab(rows: _events ?? const []),
+                    _ReferralsTab(
+                      commissions: _commissions ?? const [],
+                      referrals: _referrals ?? const [],
+                      onApplyCredit: _applyCredit,
+                    ),
                     _ConfigTab(
                       initial: _config ?? const {},
                       onSave: _saveConfig,
@@ -262,6 +274,23 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           ],
         ),
       );
+      _reload();
+    } catch (e) {
+      _snack('$e');
+    }
+  }
+
+  Future<void> _applyCredit(String shopId) async {
+    try {
+      final res = await widget.api.applyReferralCredit(shopId: shopId);
+      final months = (res['months'] as num?)?.toInt() ?? 0;
+      if (months <= 0) {
+        final balance = (res['balance'] as num?)?.toInt() ?? 0;
+        _snack('Not enough balance to credit a full month ($balance Ks).');
+      } else {
+        final amount = (res['amount'] as num?)?.toInt() ?? 0;
+        _snack('Credited $months month(s) = $amount Ks to $shopId.');
+      }
       _reload();
     } catch (e) {
       _snack('$e');

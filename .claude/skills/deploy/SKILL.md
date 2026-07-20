@@ -1,0 +1,54 @@
+---
+name: deploy
+description: Deploy GoldPOSMM — apply Supabase migrations + Edge Functions, redeploy the admin web to Vercel, and install the app on the iPhone. Use when shipping backend or app changes. Includes the exact commands, ordering, and known caveats.
+---
+
+# Deploy GoldPOSMM
+
+Always `flutter analyze` (clean) + `flutter test` (all pass) FIRST.
+
+Live project: `gnikispsurwrmkspuisj` (must be `supabase link`ed as the
+GoldPOSMM-owning account). Admin web: Vercel project `goldposmm-admin`, scope
+`nyi-nyi-s-projects1`. iPhone id: `00008150-001A44C41E08401C`.
+
+## 1. Supabase migrations
+```bash
+supabase migration list            # see what's pending
+supabase db push                   # apply new migrations
+```
+⚠️ For an RLS-changing migration, verify on a fresh anon session BEFORE trusting
+it: a matching-shop write → 201, a cross-shop write → 403, a no-claim write →
+403. (A migration that drops `dev_open` MUST re-create `shop_isolation` on all 9
+synced tables — otherwise core tables go default-deny. See the 0012 lesson.)
+
+## 2. Edge Functions
+```bash
+supabase functions deploy admin --project-ref gnikispsurwrmkspuisj
+supabase functions deploy activate --project-ref gnikispsurwrmkspuisj
+supabase functions deploy start_trial --project-ref gnikispsurwrmkspuisj
+```
+Secrets (rarely): `supabase secrets set NAME=value --project-ref ...`.
+
+## 3. Admin web → Vercel
+```bash
+flutter build web -t lib/admin/admin_main.dart --dart-define-from-file=env.local.json --no-web-resources-cdn
+# stage build/web/ + a vercel.json SPA-fallback, then:
+#   { "routes": [ { "handle": "filesystem" }, { "src": "/.*", "dest": "/index.html" } ] }
+cd build/web && vercel deploy --prod --yes --scope nyi-nyi-s-projects1
+```
+Stable URL: https://goldposmm-admin.vercel.app (use this; the per-deployment URL
+is SSO-gated).
+
+## 4. App → iPhone (wireless)
+```bash
+flutter run --release -d 00008150-001A44C41E08401C --dart-define-from-file=env.local.json
+```
+Run in the background; wait for "Flutter run key commands", then kill the
+process (app stays installed). If it fails with "Could not run … on iPhone",
+the phone is locked/asleep OR a native plugin failed to compile — check the log
+for `Swift Compiler Error` before assuming it's the device.
+
+## Notes
+- The auto-mode safety classifier may still block prod writes even with the
+  permission allow-rules; if so, hand the exact command to the user.
+- Reflect the deploy in `PROJECT_SPEC.md` §12 + the `supabase-backend` memory.

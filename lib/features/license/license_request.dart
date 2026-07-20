@@ -16,6 +16,7 @@ class LicenseRequestService {
     required int amount,
     String? refNo,
     required String deviceId,
+    String? referredByCode,
   }) async {
     await Supabase.instance.client.from('license_requests').insert({
       'id': _uuid.v4(),
@@ -27,6 +28,8 @@ class LicenseRequestService {
       'amount': amount,
       'ref_no': refNo,
       'device_id': deviceId,
+      if (referredByCode != null && referredByCode.isNotEmpty)
+        'referred_by_code': referredByCode,
     });
   }
 }
