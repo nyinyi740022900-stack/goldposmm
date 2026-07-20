@@ -326,6 +326,11 @@
   "orderItemsCount": "{count} items",
   "@orderItemsCount": { "placeholders": { "count": { "type": "int" } } },
   "orderPickPaymentMethod": "Payment method",
+  "ordersSearchHint": "Search name, phone, order #",
+  "ordersNoMatch": "No orders match your filters.",
+  "ordersClearFilters": "Clear filters",
+  "orderFilterChannel": "Channel",
+  "orderFilterPayment": "Payment",
 
   "currencySymbol": "Ks"
 }

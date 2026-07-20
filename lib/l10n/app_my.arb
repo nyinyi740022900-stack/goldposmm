@@ -325,6 +325,11 @@
   "orderItemsCount": "ပစ္စည်း {count} ခု",
   "@orderItemsCount": { "placeholders": { "count": { "type": "int" } } },
   "orderPickPaymentMethod": "ငွေပေးချေနည်း",
+  "ordersSearchHint": "နာမည်၊ ဖုန်း၊ order # ရှာ",
+  "ordersNoMatch": "filter နဲ့ ကိုက်ညီတဲ့ order မရှိပါ။",
+  "ordersClearFilters": "filter ရှင်း",
+  "orderFilterChannel": "ချန်နယ်",
+  "orderFilterPayment": "ငွေပေးချေမှု",
 
   "currencySymbol": "ကျပ်"
 }

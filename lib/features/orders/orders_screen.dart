@@ -19,9 +19,9 @@ class OrdersScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context);
-    final grouped = ref.watch(ordersByStatusProvider);
     final ordersAsync = ref.watch(ordersStreamProvider);
-    final totalCount =
+    final grouped = ref.watch(ordersByStatusProvider);
+    final filteredCount =
         grouped.values.fold<int>(0, (s, list) => s + list.length);
 
     return Scaffold(
@@ -34,32 +34,167 @@ class OrdersScreen extends ConsumerWidget {
       body: ordersAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('$e')),
-        data: (_) {
-          if (totalCount == 0) {
-            return _EmptyState(message: l.ordersEmpty);
+        data: (all) {
+          // Nothing in the DB at all → the first-run empty state (no filters).
+          if (all.isEmpty) {
+            return _EmptyState(
+                icon: Icons.dashboard_customize_outlined,
+                message: l.ordersEmpty);
           }
-          return SingleChildScrollView(
+          return Column(
+            children: [
+              const _FilterHeader(),
+              Expanded(
+                child: filteredCount == 0
+                    ? _EmptyState(
+                        icon: Icons.search_off, message: l.ordersNoMatch)
+                    : SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.all(12),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            for (final status in orderStatuses)
+                              _KanbanColumn(
+                                status: status,
+                                orders: grouped[status] ?? const [],
+                              ),
+                            // Cancelled orders only appear once there are any —
+                            // keeps the board clean but leaves them reachable.
+                            if ((grouped['cancelled'] ?? const []).isNotEmpty)
+                              _KanbanColumn(
+                                status: 'cancelled',
+                                orders: grouped['cancelled']!,
+                              ),
+                          ],
+                        ),
+                      ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+/// Search box + channel/payment filter chips above the board.
+class _FilterHeader extends ConsumerStatefulWidget {
+  const _FilterHeader();
+
+  @override
+  ConsumerState<_FilterHeader> createState() => _FilterHeaderState();
+}
+
+class _FilterHeaderState extends ConsumerState<_FilterHeader> {
+  final _search = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _search.text = ref.read(orderSearchProvider);
+  }
+
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
+  }
+
+  void _clearAll() {
+    _search.clear();
+    ref.read(orderSearchProvider.notifier).state = '';
+    ref.read(orderChannelFilterProvider.notifier).state = null;
+    ref.read(orderPaymentFilterProvider.notifier).state = null;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final active = ref.watch(ordersFilterActiveProvider);
+    final channel = ref.watch(orderChannelFilterProvider);
+    final payment = ref.watch(orderPaymentFilterProvider);
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TextField(
+            controller: _search,
+            decoration: InputDecoration(
+              isDense: true,
+              prefixIcon: const Icon(Icons.search),
+              hintText: l.ordersSearchHint,
+              suffixIcon: active
+                  ? IconButton(
+                      tooltip: l.ordersClearFilters,
+                      icon: const Icon(Icons.clear),
+                      onPressed: _clearAll,
+                    )
+                  : null,
+              border: const OutlineInputBorder(),
+            ),
+            onChanged: (v) =>
+                ref.read(orderSearchProvider.notifier).state = v,
+          ),
+          const SizedBox(height: 8),
+          SingleChildScrollView(
             scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.all(12),
             child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                for (final status in orderStatuses)
-                  _KanbanColumn(
-                    status: status,
-                    orders: grouped[status] ?? const [],
+                _FilterChip(
+                  label: l.categoryAll,
+                  selected: channel == null,
+                  onSelected: () => ref
+                      .read(orderChannelFilterProvider.notifier)
+                      .state = null,
+                ),
+                for (final c in orderChannels)
+                  _FilterChip(
+                    label: orderChannelLabel(l, c),
+                    selected: channel == c,
+                    onSelected: () => ref
+                        .read(orderChannelFilterProvider.notifier)
+                        .state = c,
                   ),
-                // Cancelled orders only appear once there are any — keeps the
-                // board clean but leaves them reachable to restore/delete.
-                if ((grouped['cancelled'] ?? const []).isNotEmpty)
-                  _KanbanColumn(
-                    status: 'cancelled',
-                    orders: grouped['cancelled']!,
+                const SizedBox(width: 12),
+                for (final p in const ['unpaid', 'partial', 'paid'])
+                  _FilterChip(
+                    label: orderPaymentLabel(l, p),
+                    selected: payment == p,
+                    onSelected: () => ref
+                        .read(orderPaymentFilterProvider.notifier)
+                        .state = (payment == p ? null : p),
                   ),
               ],
             ),
-          );
-        },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FilterChip extends StatelessWidget {
+  const _FilterChip({
+    required this.label,
+    required this.selected,
+    required this.onSelected,
+  });
+  final String label;
+  final bool selected;
+  final VoidCallback onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 6),
+      child: ChoiceChip(
+        label: Text(label),
+        selected: selected,
+        onSelected: (_) => onSelected(),
+        visualDensity: VisualDensity.compact,
       ),
     );
   }
@@ -229,7 +364,8 @@ class _PayDot extends StatelessWidget {
 }
 
 class _EmptyState extends StatelessWidget {
-  const _EmptyState({required this.message});
+  const _EmptyState({required this.icon, required this.message});
+  final IconData icon;
   final String message;
 
   @override
@@ -238,7 +374,7 @@ class _EmptyState extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.dashboard_customize_outlined,
+          Icon(icon,
               size: 56, color: Theme.of(context).colorScheme.outlineVariant),
           const SizedBox(height: 12),
           Padding(

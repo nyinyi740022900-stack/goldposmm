@@ -934,5 +934,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get orderPickPaymentMethod => 'Payment method';
 
   @override
+  String get ordersSearchHint => 'Search name, phone, order #';
+
+  @override
+  String get ordersNoMatch => 'No orders match your filters.';
+
+  @override
+  String get ordersClearFilters => 'Clear filters';
+
+  @override
+  String get orderFilterChannel => 'Channel';
+
+  @override
+  String get orderFilterPayment => 'Payment';
+
+  @override
   String get currencySymbol => 'Ks';
 }
