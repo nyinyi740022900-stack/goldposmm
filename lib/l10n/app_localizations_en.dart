@@ -63,6 +63,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sellTitle => 'Sell';
 
   @override
+  String sellStockCap(int count) {
+    return 'Only $count in stock';
+  }
+
+  @override
   String get sellCart => 'Cart';
 
   @override

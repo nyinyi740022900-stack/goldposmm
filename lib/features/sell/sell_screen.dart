@@ -172,8 +172,18 @@ class SellScreen extends ConsumerWidget {
                 name: p.product.name,
                 price: Money(p.product.salePrice).withSymbol(currency),
                 outOfStock: trackStock && p.quantity <= 0,
-                onTap: () =>
-                    ref.read(cartProvider.notifier).addProduct(p.product),
+                onTap: () {
+                  final ok = ref.read(cartProvider.notifier).addProduct(
+                        p.product,
+                        maxQty: trackStock ? p.quantity : null,
+                      );
+                  if (!ok) {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text(l.sellStockCap(p.quantity)),
+                      duration: const Duration(seconds: 1),
+                    ));
+                  }
+                },
               );
             },
                 );

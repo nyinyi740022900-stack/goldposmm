@@ -63,6 +63,11 @@ class AppLocalizationsMy extends AppLocalizations {
   String get sellTitle => 'ရောင်းချ';
 
   @override
+  String sellStockCap(int count) {
+    return 'လက်ကျန် $count ခုသာ ရှိပါသည်';
+  }
+
+  @override
   String get sellCart => 'ခြင်းတောင်း';
 
   @override

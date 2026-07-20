@@ -21,6 +21,8 @@
   "copied": "ကူးယူပြီး",
 
   "sellTitle": "ရောင်းချ",
+  "sellStockCap": "လက်ကျန် {count} ခုသာ ရှိပါသည်",
+  "@sellStockCap": { "placeholders": { "count": { "type": "int" } } },
   "sellCart": "ခြင်းတောင်း",
   "sellEmptyCart": "ပစ္စည်းမရှိသေးပါ။ ထည့်ရန် ပစ္စည်းကို နှိပ်ပါ။",
   "sellCheckout": "ငွေရှင်း",

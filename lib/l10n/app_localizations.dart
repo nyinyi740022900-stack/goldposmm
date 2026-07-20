@@ -206,6 +206,12 @@ abstract class AppLocalizations {
   /// **'Sell'**
   String get sellTitle;
 
+  /// No description provided for @sellStockCap.
+  ///
+  /// In en, this message translates to:
+  /// **'Only {count} in stock'**
+  String sellStockCap(int count);
+
   /// No description provided for @sellCart.
   ///
   /// In en, this message translates to:

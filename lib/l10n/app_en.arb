@@ -22,6 +22,8 @@
   "copied": "Copied",
 
   "sellTitle": "Sell",
+  "sellStockCap": "Only {count} in stock",
+  "@sellStockCap": { "placeholders": { "count": { "type": "int" } } },
   "sellCart": "Cart",
   "sellEmptyCart": "No items yet. Tap a product to add.",
   "sellCheckout": "Checkout",

@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/money.dart';
 import '../../core/theme/app_theme.dart';
 import '../../l10n/app_localizations.dart';
+import '../inventory/inventory_providers.dart';
 import '../license/license_providers.dart';
 import '../printing/print_action.dart';
 import '../printing/printing_providers.dart';
@@ -106,6 +107,12 @@ class _CheckoutSheetState extends ConsumerState<CheckoutSheet> {
     final l = AppLocalizations.of(context);
     final cart = ref.watch(cartProvider);
     final currency = l.currencySymbol;
+    // Live stock per product, to cap the qty steppers (no overselling).
+    final trackStock = ref.watch(trackStockProvider).valueOrNull ?? true;
+    final stockById = <String, int>{
+      for (final p in ref.watch(productsStreamProvider).valueOrNull ?? const [])
+        p.product.id: p.quantity,
+    };
     final total = cart.total.kyat;
     final paid = _resolvePaid(total);
     final change = paid > total ? paid - total : 0;
@@ -133,9 +140,21 @@ class _CheckoutSheetState extends ConsumerState<CheckoutSheet> {
             ...cart.lines.map((line) => _CartLineTile(
                   line: line,
                   currency: currency,
-                  onInc: () => ref
-                      .read(cartProvider.notifier)
-                      .increment(line.product.id),
+                  onInc: () {
+                    final ok = ref.read(cartProvider.notifier).increment(
+                          line.product.id,
+                          maxQty: trackStock
+                              ? stockById[line.product.id]
+                              : null,
+                        );
+                    if (!ok) {
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        content: Text(
+                            l.sellStockCap(stockById[line.product.id] ?? 0)),
+                        duration: const Duration(seconds: 1),
+                      ));
+                    }
+                  },
                   onDec: () => ref
                       .read(cartProvider.notifier)
                       .decrement(line.product.id),
