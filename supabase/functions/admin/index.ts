@@ -324,6 +324,59 @@ Deno.serve(async (req) => {
       return json({ ok: true });
     }
 
+    case "list_carriers": {
+      const { data, error } = await admin
+        .from("delivery_carriers")
+        .select("id, carrier, account_id, base_url, enabled, api_key, updated_at")
+        .order("carrier");
+      if (error) return json({ error: "server_error" }, 500);
+      // Never hand the raw API key back to the browser — expose only whether
+      // one is set + its last 4 chars so the admin can recognise it.
+      // deno-lint-ignore no-explicit-any
+      const rows = (data ?? []).map((r: any) => ({
+        id: r.id,
+        carrier: r.carrier,
+        account_id: r.account_id,
+        base_url: r.base_url,
+        enabled: r.enabled,
+        updated_at: r.updated_at,
+        api_key_set: !!(r.api_key && `${r.api_key}`.length > 0),
+        api_key_last4: r.api_key ? `${r.api_key}`.slice(-4) : null,
+      }));
+      return json({ rows });
+    }
+
+    case "set_carrier": {
+      const c = body.carrier ?? {};
+      const name = (c.carrier ?? "").trim();
+      if (!name) return json({ error: "bad_request" }, 400);
+      // deno-lint-ignore no-explicit-any
+      const row: Record<string, any> = {
+        carrier: name,
+        account_id: (c.account_id ?? "").trim() || null,
+        base_url: (c.base_url ?? "").trim() || null,
+        enabled: c.enabled === true,
+        updated_at: new Date().toISOString(),
+      };
+      if (c.id) row.id = c.id;
+      // Only overwrite the stored secret when a new non-empty key is supplied,
+      // so editing other fields never wipes it.
+      if (typeof c.api_key === "string" && c.api_key.trim().length > 0) {
+        row.api_key = c.api_key.trim();
+      }
+      const { error } = await admin.from("delivery_carriers").upsert(row);
+      if (error) return json({ error: "server_error", detail: error.message }, 500);
+      return json({ ok: true });
+    }
+
+    case "delete_carrier": {
+      const id = (body.id ?? "").trim();
+      if (!id) return json({ error: "bad_request" }, 400);
+      const { error } = await admin.from("delivery_carriers").delete().eq("id", id);
+      if (error) return json({ error: "server_error" }, 500);
+      return json({ ok: true });
+    }
+
     case "create_license": {
       const shopId = (body.shop_id ?? "").trim();
       const plan = (body.plan ?? "monthly").trim();
