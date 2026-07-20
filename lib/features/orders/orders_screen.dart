@@ -49,6 +49,13 @@ class OrdersScreen extends ConsumerWidget {
                     status: status,
                     orders: grouped[status] ?? const [],
                   ),
+                // Cancelled orders only appear once there are any — keeps the
+                // board clean but leaves them reachable to restore/delete.
+                if ((grouped['cancelled'] ?? const []).isNotEmpty)
+                  _KanbanColumn(
+                    status: 'cancelled',
+                    orders: grouped['cancelled']!,
+                  ),
               ],
             ),
           );

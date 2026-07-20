@@ -16,12 +16,16 @@ final ordersStreamProvider = StreamProvider<List<Order>>((ref) {
   return ref.watch(ordersRepositoryProvider).watchOrders();
 });
 
-/// Orders grouped into the Kanban columns (in [orderStatuses] order).
+/// Orders grouped by status. Includes the pipeline columns ([orderStatuses])
+/// plus a `cancelled` bucket so cancelled orders stay reachable (to restore or
+/// delete) instead of vanishing.
 final ordersByStatusProvider = Provider<Map<String, List<Order>>>((ref) {
   final all = ref.watch(ordersStreamProvider).valueOrNull ?? const [];
-  final map = {for (final s in orderStatuses) s: <Order>[]};
+  final map = {
+    for (final s in orderStatuses) s: <Order>[],
+    'cancelled': <Order>[],
+  };
   for (final o in all) {
-    // Cancelled orders stay off the board.
     (map[o.status])?.add(o);
   }
   return map;

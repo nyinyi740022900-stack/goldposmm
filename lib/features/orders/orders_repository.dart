@@ -215,8 +215,9 @@ class OrdersRepository {
     final lines = await items(orderId);
     final saleId = _uuid.v4();
     final now = DateTime.now();
-    final subtotal = order.itemsTotal;
-    final total = subtotal + order.deliveryFee;
+    // Delivery fee folds into the sale subtotal (it isn't a line item and has
+    // no discount), so the `subtotal − discount = total` invariant holds.
+    final total = order.itemsTotal + order.deliveryFee;
 
     await _db.transaction(() async {
       final invoiceNo = await _nextInvoiceNo(now);
@@ -224,7 +225,7 @@ class OrdersRepository {
             id: saleId,
             shopId: _shopId,
             invoiceNo: invoiceNo,
-            subtotal: Value(subtotal),
+            subtotal: Value(total),
             total: Value(total),
             paid: Value(total),
             paymentMethod: Value(paymentMethod),

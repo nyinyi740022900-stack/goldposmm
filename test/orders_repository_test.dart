@@ -98,6 +98,9 @@ void main() {
             .getSingle();
     expect(sale.total, 42000);
     expect(sale.paid, 42000);
+    // Delivery folds into subtotal so subtotal - discount == total holds.
+    expect(sale.subtotal, 42000);
+    expect(sale.discount, 0);
     expect(sale.invoiceNo, startsWith('INV-'));
 
     // Order is linked + marked paid.
