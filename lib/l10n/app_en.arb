@@ -349,5 +349,15 @@
   "staffOwnerOnlyDesc": "Switch to Owner mode (Settings) to view this.",
   "staffCashierBadge": "Cashier mode",
 
+  "storefrontTitle": "My web storefront",
+  "storefrontDesc": "Publish a public catalog your customers can order from — no app needed.",
+  "storefrontPublish": "Publish storefront",
+  "storefrontDisplayName": "Storefront name",
+  "storefrontYourLink": "Your shop link",
+  "storefrontEnabled": "Storefront enabled",
+  "storefrontCopied": "Link copied",
+  "storefrontNeedsName": "Enter a storefront name",
+  "storefrontShare": "Share this link with customers on Facebook, Viber, etc.",
+
   "currencySymbol": "Ks"
 }

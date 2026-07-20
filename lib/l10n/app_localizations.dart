@@ -1934,6 +1934,60 @@ abstract class AppLocalizations {
   /// **'Cashier mode'**
   String get staffCashierBadge;
 
+  /// No description provided for @storefrontTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'My web storefront'**
+  String get storefrontTitle;
+
+  /// No description provided for @storefrontDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Publish a public catalog your customers can order from — no app needed.'**
+  String get storefrontDesc;
+
+  /// No description provided for @storefrontPublish.
+  ///
+  /// In en, this message translates to:
+  /// **'Publish storefront'**
+  String get storefrontPublish;
+
+  /// No description provided for @storefrontDisplayName.
+  ///
+  /// In en, this message translates to:
+  /// **'Storefront name'**
+  String get storefrontDisplayName;
+
+  /// No description provided for @storefrontYourLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Your shop link'**
+  String get storefrontYourLink;
+
+  /// No description provided for @storefrontEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Storefront enabled'**
+  String get storefrontEnabled;
+
+  /// No description provided for @storefrontCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Link copied'**
+  String get storefrontCopied;
+
+  /// No description provided for @storefrontNeedsName.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a storefront name'**
+  String get storefrontNeedsName;
+
+  /// No description provided for @storefrontShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Share this link with customers on Facebook, Viber, etc.'**
+  String get storefrontShare;
+
   /// No description provided for @currencySymbol.
   ///
   /// In en, this message translates to:

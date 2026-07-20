@@ -18,7 +18,9 @@ import '../../core/money.dart';
 import '../backup/backup_screen.dart';
 import '../credit/credit_providers.dart';
 import '../credit/credit_screen.dart';
+import '../staff/staff_providers.dart';
 import '../staff/staff_ui.dart';
+import '../storefront/storefront_screen.dart';
 import '../support/support_providers.dart';
 import 'shop_profile_screen.dart';
 
@@ -78,6 +80,7 @@ class SettingsScreen extends ConsumerWidget {
           ),
           _LicenseTile(),
           _ReferralTile(),
+          if (ref.watch(isOwnerProvider)) _StorefrontTile(),
           _SupportTile(),
           const Divider(),
           const StaffModeCard(),
@@ -166,6 +169,25 @@ class _LicenseTile extends ConsumerWidget {
       trailing: const Icon(Icons.chevron_right),
       onTap: () => Navigator.of(context).push(MaterialPageRoute(
         builder: (_) => const LicenseScreen(),
+      )),
+    );
+  }
+}
+
+class _StorefrontTile extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
+    // Storefront config lives on the server; only offer it with a backend.
+    if (!Env.hasBackend) return const SizedBox.shrink();
+    return ListTile(
+      leading: const Icon(Icons.storefront),
+      title: Text(l.storefrontTitle),
+      subtitle: Text(l.storefrontDesc,
+          maxLines: 2, overflow: TextOverflow.ellipsis),
+      trailing: const Icon(Icons.chevron_right),
+      onTap: () => Navigator.of(context).push(MaterialPageRoute(
+        builder: (_) => const StorefrontScreen(),
       )),
     );
   }

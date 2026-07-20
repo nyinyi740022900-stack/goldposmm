@@ -990,5 +990,34 @@ class AppLocalizationsMy extends AppLocalizations {
   String get staffCashierBadge => 'Cashier mode';
 
   @override
+  String get storefrontTitle => 'ကျွန်ုပ်၏ Web ဆိုင်';
+
+  @override
+  String get storefrontDesc =>
+      'ဖောက်သည်များ app မလိုဘဲ order တင်နိုင်တဲ့ public catalog ထုတ်ဝေပါ။';
+
+  @override
+  String get storefrontPublish => 'ဆိုင် ထုတ်ဝေမည်';
+
+  @override
+  String get storefrontDisplayName => 'ဆိုင်နာမည်';
+
+  @override
+  String get storefrontYourLink => 'သင့်ဆိုင် link';
+
+  @override
+  String get storefrontEnabled => 'ဆိုင် ဖွင့်ထားသည်';
+
+  @override
+  String get storefrontCopied => 'Link ကူးယူပြီး';
+
+  @override
+  String get storefrontNeedsName => 'ဆိုင်နာမည် ထည့်ပါ';
+
+  @override
+  String get storefrontShare =>
+      'ဒီ link ကို Facebook, Viber စသည်တွင် ဖောက်သည်များထံ မျှဝေပါ။';
+
+  @override
   String get currencySymbol => 'ကျပ်';
 }
