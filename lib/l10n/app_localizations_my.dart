@@ -772,5 +772,160 @@ class AppLocalizationsMy extends AppLocalizations {
   }
 
   @override
+  String get navOrders => 'အော်ဒါ';
+
+  @override
+  String get ordersTitle => 'Social အော်ဒါများ';
+
+  @override
+  String get ordersEmpty => 'အော်ဒါ မရှိသေးပါ။ ထည့်ရန် + ကိုနှိပ်ပါ။';
+
+  @override
+  String get orderNew => 'အော်ဒါအသစ်';
+
+  @override
+  String get orderEditTitle => 'အော်ဒါ ပြင်ဆင်';
+
+  @override
+  String get orderStatusNew => 'အသစ်';
+
+  @override
+  String get orderStatusConfirmed => 'အတည်ပြုပြီး';
+
+  @override
+  String get orderStatusPacked => 'ထုပ်ပိုးပြီး';
+
+  @override
+  String get orderStatusShipped => 'ပို့ဆောင်ဆဲ';
+
+  @override
+  String get orderStatusDelivered => 'ရောက်ရှိပြီး';
+
+  @override
+  String get orderStatusCancelled => 'ပယ်ဖျက်ပြီး';
+
+  @override
+  String get orderChannelFacebook => 'Facebook';
+
+  @override
+  String get orderChannelViber => 'Viber';
+
+  @override
+  String get orderChannelTiktok => 'TikTok';
+
+  @override
+  String get orderChannelInstagram => 'Instagram';
+
+  @override
+  String get orderChannelPhone => 'ဖုန်း';
+
+  @override
+  String get orderChannelOther => 'အခြား';
+
+  @override
+  String get orderCustomerName => 'ဖောက်သည်အမည်';
+
+  @override
+  String get orderCustomerPhone => 'ဖုန်း (ရွေးချယ်နိုင်)';
+
+  @override
+  String get orderChannel => 'ချန်နယ်';
+
+  @override
+  String get orderDeliveryAddress => 'ပို့ဆောင်လိပ်စာ';
+
+  @override
+  String get orderDeliveryFee => 'ပို့ဆောင်ခ';
+
+  @override
+  String get orderNote => 'မှတ်စု';
+
+  @override
+  String get orderItems => 'ပစ္စည်းများ';
+
+  @override
+  String get orderAddItem => 'ပစ္စည်းထည့်';
+
+  @override
+  String get orderItemName => 'ပစ္စည်းအမည်';
+
+  @override
+  String get orderItemPrice => 'ဈေးနှုန်း';
+
+  @override
+  String get orderItemQty => 'အရေအတွက်';
+
+  @override
+  String get orderItemsTotal => 'ပစ္စည်း စုစုပေါင်း';
+
+  @override
+  String get orderTotal => 'စုစုပေါင်း';
+
+  @override
+  String get orderPayment => 'ငွေပေးချေမှု';
+
+  @override
+  String get orderPayUnpaid => 'မပေးရသေး';
+
+  @override
+  String get orderPayPartial => 'တစ်စိတ်တစ်ပိုင်း';
+
+  @override
+  String get orderPayPaid => 'ပေးပြီး';
+
+  @override
+  String get orderSave => 'အော်ဒါ သိမ်း';
+
+  @override
+  String get orderEdit => 'ပြင်ဆင်';
+
+  @override
+  String get orderDelete => 'အော်ဒါ ဖျက်';
+
+  @override
+  String get orderDeleteConfirm => 'ဒီအော်ဒါ ဖျက်မလား? ပြန်ဖျက်၍ မရပါ။';
+
+  @override
+  String get orderMoveTo => 'ရွှေ့မယ်';
+
+  @override
+  String get orderConvertToSale => 'အရောင်းအဖြစ် ပြောင်း';
+
+  @override
+  String get orderConvertHint =>
+      'ပြေစာထုတ်ပြီး catalog ပစ္စည်းများအတွက် stock နှုတ်ပါမည်။';
+
+  @override
+  String orderConverted(String invoice) {
+    return 'အော်ဒါကို အရောင်းအဖြစ် ပြောင်းပြီး ($invoice)။';
+  }
+
+  @override
+  String get orderAlreadySale => 'အရောင်းအဖြစ် မှတ်တမ်းတင်ပြီးပြီ။';
+
+  @override
+  String get orderCancel => 'အော်ဒါ ပယ်ဖျက်';
+
+  @override
+  String get orderRestore => 'အသစ်သို့ ပြန်ယူ';
+
+  @override
+  String get orderNeedsName => 'ဖောက်သည်အမည် ထည့်ပါ။';
+
+  @override
+  String get orderNeedsItem => 'ပစ္စည်း အနည်းဆုံး တစ်ခု ထည့်ပါ။';
+
+  @override
+  String get orderSaved => 'အော်ဒါ သိမ်းပြီး။';
+
+  @override
+  String orderItemsCount(int count) {
+    return 'ပစ္စည်း $count ခု';
+  }
+
+  @override
+  String get orderPickPaymentMethod => 'ငွေပေးချေနည်း';
+
+  @override
   String get currencySymbol => 'ကျပ်';
 }

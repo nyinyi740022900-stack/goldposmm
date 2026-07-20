@@ -22,6 +22,8 @@ part 'database.g.dart';
     Payments,
     LicensePayments,
     CreditPayments,
+    Orders,
+    OrderItems,
     AppSettings,
     Outbox,
   ],
@@ -33,7 +35,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -50,6 +52,11 @@ class AppDatabase extends _$AppDatabase {
           // v4: shop display name on license payments.
           if (from < 4) {
             await m.addColumn(licensePayments, licensePayments.shopName);
+          }
+          // v5: social-order Kanban pipeline.
+          if (from < 5) {
+            await m.createTable(orders);
+            await m.createTable(orderItems);
           }
         },
       );

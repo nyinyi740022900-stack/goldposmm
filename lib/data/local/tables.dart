@@ -154,6 +154,61 @@ class CreditPayments extends Table with SyncColumns {
   Set<Column> get primaryKey => {id};
 }
 
+/// A social-channel order (Facebook/Viber/TikTok/phone) tracked through a
+/// Kanban pipeline **before** it becomes an in-store sale. Unlike [Sales] this
+/// row is **mutable** — the [status] moves through the board and items get
+/// edited — so it syncs last-write-wins on [updatedAt] like every other table.
+///
+/// Stock is intentionally NOT touched here: when an order reaches `delivered`
+/// it is converted into a [Sales] row via `SalesRepository`, which is the one
+/// place that writes the append-only ledger + stock movements. [saleId] links
+/// back to that sale once converted.
+class Orders extends Table with SyncColumns {
+  /// Per-shop, per-day sequential: `ORD-yyyyMMdd-NNN`.
+  TextColumn get orderNo => text()();
+
+  /// facebook | viber | tiktok | instagram | phone | other
+  TextColumn get channel => text().withDefault(const Constant('facebook'))();
+
+  /// new | confirmed | packed | shipped | delivered | cancelled
+  TextColumn get status => text().withDefault(const Constant('new'))();
+
+  TextColumn get customerName => text()();
+  TextColumn get customerPhone => text().nullable()();
+  TextColumn get deliveryAddress => text().nullable()();
+  IntColumn get deliveryFee => integer().withDefault(const Constant(0))();
+
+  /// Denormalized Σ(order_items.line_total). Card total = itemsTotal + deliveryFee.
+  IntColumn get itemsTotal => integer().withDefault(const Constant(0))();
+
+  /// unpaid | partial | paid
+  TextColumn get paymentStatus =>
+      text().withDefault(const Constant('unpaid'))();
+  TextColumn get note => text().nullable()();
+
+  /// Set once the order is converted to an in-store [Sales] row.
+  TextColumn get saleId => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+class OrderItems extends Table with SyncColumns {
+  TextColumn get orderId => text()();
+
+  /// Nullable: a social order line may be a free-text item not in the catalog.
+  TextColumn get productId => text().nullable()();
+
+  /// Snapshots so the order stays stable if the product is later renamed/repriced.
+  TextColumn get nameSnapshot => text()();
+  IntColumn get priceSnapshot => integer()();
+  IntColumn get qty => integer()();
+  IntColumn get lineTotal => integer()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 /// Simple local key/value store for device-scoped app settings (printer MAC,
 /// paper size, selected language, etc.). Not synced.
 class AppSettings extends Table {
