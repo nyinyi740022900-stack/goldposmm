@@ -2,6 +2,7 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mm_pos/data/local/database.dart';
 import 'package:mm_pos/data/repositories/inventory_repository.dart';
+import 'package:mm_pos/features/orders/orders_providers.dart';
 import 'package:mm_pos/features/orders/orders_repository.dart';
 
 void main() {
@@ -167,4 +168,61 @@ void main() {
         (await db.select(db.outbox).get()).map((o) => o.entityTable).toSet();
     expect(tables, containsAll(<String>{'orders', 'order_items'}));
   });
+
+  group('groupOrdersForBoard filtering', () {
+    Future<List<Order>> seedBoard() async {
+      final a = await orders.saveOrder(
+        customerName: 'Aung Aung',
+        customerPhone: '0912345678',
+        channel: 'facebook',
+        lines: const [OrderDraftLine(name: 'X', price: 1000, qty: 1)],
+      );
+      final b = await orders.saveOrder(
+        customerName: 'Su Su',
+        channel: 'viber',
+        lines: const [OrderDraftLine(name: 'Y', price: 1000, qty: 1)],
+      );
+      await orders.setStatus(a, 'confirmed');
+      await orders.setStatus(b, 'packed');
+      return orders.watchOrders().first;
+    }
+
+    test('buckets by status into pipeline columns + cancelled', () async {
+      final all = await seedBoard();
+      final g = groupOrdersForBoard(all);
+      expect(g['confirmed'], hasLength(1));
+      expect(g['packed'], hasLength(1));
+      expect(g['new'], isEmpty);
+      expect(g.containsKey('cancelled'), isTrue);
+    });
+
+    test('search matches name, phone, or order number', () async {
+      final all = await seedBoard();
+      // by name
+      expect(_count(groupOrdersForBoard(all, query: 'aung')), 1);
+      // by phone
+      expect(_count(groupOrdersForBoard(all, query: '2345')), 1);
+      // by order number prefix
+      expect(_count(groupOrdersForBoard(all, query: 'ORD-')), 2);
+      // no match
+      expect(_count(groupOrdersForBoard(all, query: 'zzz')), 0);
+    });
+
+    test('channel filter narrows to one channel', () async {
+      final all = await seedBoard();
+      expect(_count(groupOrdersForBoard(all, channel: 'viber')), 1);
+      expect(_count(groupOrdersForBoard(all, channel: 'facebook')), 1);
+      expect(_count(groupOrdersForBoard(all, channel: 'tiktok')), 0);
+    });
+
+    test('payment filter narrows by payment status', () async {
+      final all = await seedBoard();
+      // both seeded orders are unpaid by default
+      expect(_count(groupOrdersForBoard(all, payment: 'unpaid')), 2);
+      expect(_count(groupOrdersForBoard(all, payment: 'paid')), 0);
+    });
+  });
 }
+
+int _count(Map<String, List<Order>> g) =>
+    g.values.fold(0, (s, list) => s + list.length);

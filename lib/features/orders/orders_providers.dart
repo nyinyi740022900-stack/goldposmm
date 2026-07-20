@@ -16,20 +16,62 @@ final ordersStreamProvider = StreamProvider<List<Order>>((ref) {
   return ref.watch(ordersRepositoryProvider).watchOrders();
 });
 
-/// Orders grouped by status. Includes the pipeline columns ([orderStatuses])
-/// plus a `cancelled` bucket so cancelled orders stay reachable (to restore or
-/// delete) instead of vanishing.
+/// Board search query (matches customer name, phone, or order number).
+final orderSearchProvider = StateProvider<String>((ref) => '');
+
+/// Channel filter (`null` = all channels).
+final orderChannelFilterProvider = StateProvider<String?>((ref) => null);
+
+/// Payment-status filter (`null` = all).
+final orderPaymentFilterProvider = StateProvider<String?>((ref) => null);
+
+/// True when any search/filter is narrowing the board (drives a clear button).
+final ordersFilterActiveProvider = Provider<bool>((ref) {
+  return ref.watch(orderSearchProvider).trim().isNotEmpty ||
+      ref.watch(orderChannelFilterProvider) != null ||
+      ref.watch(orderPaymentFilterProvider) != null;
+});
+
+/// Orders grouped by status, after applying the search + filters. Includes the
+/// pipeline columns ([orderStatuses]) plus a `cancelled` bucket so cancelled
+/// orders stay reachable (to restore or delete) instead of vanishing.
 final ordersByStatusProvider = Provider<Map<String, List<Order>>>((ref) {
   final all = ref.watch(ordersStreamProvider).valueOrNull ?? const [];
+  return groupOrdersForBoard(
+    all,
+    query: ref.watch(orderSearchProvider),
+    channel: ref.watch(orderChannelFilterProvider),
+    payment: ref.watch(orderPaymentFilterProvider),
+  );
+});
+
+/// Pure: filters [orders] by search/channel/payment and buckets them by status
+/// (the pipeline columns plus `cancelled`). Kept side-effect-free so it can be
+/// unit-tested without Riverpod. [query] matches customer name, phone, or
+/// order number (case-insensitive).
+Map<String, List<Order>> groupOrdersForBoard(
+  List<Order> orders, {
+  String query = '',
+  String? channel,
+  String? payment,
+}) {
+  final q = query.trim().toLowerCase();
   final map = {
     for (final s in orderStatuses) s: <Order>[],
     'cancelled': <Order>[],
   };
-  for (final o in all) {
+  for (final o in orders) {
+    if (channel != null && o.channel != channel) continue;
+    if (payment != null && o.paymentStatus != payment) continue;
+    if (q.isNotEmpty) {
+      final hay = '${o.customerName} ${o.customerPhone ?? ''} ${o.orderNo}'
+          .toLowerCase();
+      if (!hay.contains(q)) continue;
+    }
     (map[o.status])?.add(o);
   }
   return map;
-});
+}
 
 /// Items for one order (for the detail / editor sheet).
 final orderItemsProvider =

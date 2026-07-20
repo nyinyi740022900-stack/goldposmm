@@ -927,5 +927,20 @@ class AppLocalizationsMy extends AppLocalizations {
   String get orderPickPaymentMethod => 'ငွေပေးချေနည်း';
 
   @override
+  String get ordersSearchHint => 'နာမည်၊ ဖုန်း၊ order # ရှာ';
+
+  @override
+  String get ordersNoMatch => 'filter နဲ့ ကိုက်ညီတဲ့ order မရှိပါ။';
+
+  @override
+  String get ordersClearFilters => 'filter ရှင်း';
+
+  @override
+  String get orderFilterChannel => 'ချန်နယ်';
+
+  @override
+  String get orderFilterPayment => 'ငွေပေးချေမှု';
+
+  @override
   String get currencySymbol => 'ကျပ်';
 }

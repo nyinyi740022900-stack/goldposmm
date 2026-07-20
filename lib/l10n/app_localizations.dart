@@ -1814,6 +1814,36 @@ abstract class AppLocalizations {
   /// **'Payment method'**
   String get orderPickPaymentMethod;
 
+  /// No description provided for @ordersSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search name, phone, order #'**
+  String get ordersSearchHint;
+
+  /// No description provided for @ordersNoMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'No orders match your filters.'**
+  String get ordersNoMatch;
+
+  /// No description provided for @ordersClearFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear filters'**
+  String get ordersClearFilters;
+
+  /// No description provided for @orderFilterChannel.
+  ///
+  /// In en, this message translates to:
+  /// **'Channel'**
+  String get orderFilterChannel;
+
+  /// No description provided for @orderFilterPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment'**
+  String get orderFilterPayment;
+
   /// No description provided for @currencySymbol.
   ///
   /// In en, this message translates to:
