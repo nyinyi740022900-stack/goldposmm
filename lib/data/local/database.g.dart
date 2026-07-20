@@ -6466,6 +6466,17 @@ class $OrdersTable extends Orders with TableInfo<$OrdersTable, Order> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _paymentProofPathMeta = const VerificationMeta(
+    'paymentProofPath',
+  );
+  @override
+  late final GeneratedColumn<String> paymentProofPath = GeneratedColumn<String>(
+    'payment_proof_path',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -6485,6 +6496,7 @@ class $OrdersTable extends Orders with TableInfo<$OrdersTable, Order> {
     paymentStatus,
     note,
     saleId,
+    paymentProofPath,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -6620,6 +6632,15 @@ class $OrdersTable extends Orders with TableInfo<$OrdersTable, Order> {
         saleId.isAcceptableOrUnknown(data['sale_id']!, _saleIdMeta),
       );
     }
+    if (data.containsKey('payment_proof_path')) {
+      context.handle(
+        _paymentProofPathMeta,
+        paymentProofPath.isAcceptableOrUnknown(
+          data['payment_proof_path']!,
+          _paymentProofPathMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -6697,6 +6718,10 @@ class $OrdersTable extends Orders with TableInfo<$OrdersTable, Order> {
         DriftSqlType.string,
         data['${effectivePrefix}sale_id'],
       ),
+      paymentProofPath: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}payment_proof_path'],
+      ),
     );
   }
 
@@ -6736,6 +6761,10 @@ class Order extends DataClass implements Insertable<Order> {
 
   /// Set once the order is converted to an in-store [Sales] row.
   final String? saleId;
+
+  /// Storage path of a customer-uploaded payment screenshot (storefront
+  /// orders). Viewed by the shop via a signed URL.
+  final String? paymentProofPath;
   const Order({
     required this.id,
     required this.shopId,
@@ -6754,6 +6783,7 @@ class Order extends DataClass implements Insertable<Order> {
     required this.paymentStatus,
     this.note,
     this.saleId,
+    this.paymentProofPath,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -6783,6 +6813,9 @@ class Order extends DataClass implements Insertable<Order> {
     if (!nullToAbsent || saleId != null) {
       map['sale_id'] = Variable<String>(saleId);
     }
+    if (!nullToAbsent || paymentProofPath != null) {
+      map['payment_proof_path'] = Variable<String>(paymentProofPath);
+    }
     return map;
   }
 
@@ -6811,6 +6844,9 @@ class Order extends DataClass implements Insertable<Order> {
       saleId: saleId == null && nullToAbsent
           ? const Value.absent()
           : Value(saleId),
+      paymentProofPath: paymentProofPath == null && nullToAbsent
+          ? const Value.absent()
+          : Value(paymentProofPath),
     );
   }
 
@@ -6837,6 +6873,7 @@ class Order extends DataClass implements Insertable<Order> {
       paymentStatus: serializer.fromJson<String>(json['paymentStatus']),
       note: serializer.fromJson<String?>(json['note']),
       saleId: serializer.fromJson<String?>(json['saleId']),
+      paymentProofPath: serializer.fromJson<String?>(json['paymentProofPath']),
     );
   }
   @override
@@ -6860,6 +6897,7 @@ class Order extends DataClass implements Insertable<Order> {
       'paymentStatus': serializer.toJson<String>(paymentStatus),
       'note': serializer.toJson<String?>(note),
       'saleId': serializer.toJson<String?>(saleId),
+      'paymentProofPath': serializer.toJson<String?>(paymentProofPath),
     };
   }
 
@@ -6881,6 +6919,7 @@ class Order extends DataClass implements Insertable<Order> {
     String? paymentStatus,
     Value<String?> note = const Value.absent(),
     Value<String?> saleId = const Value.absent(),
+    Value<String?> paymentProofPath = const Value.absent(),
   }) => Order(
     id: id ?? this.id,
     shopId: shopId ?? this.shopId,
@@ -6903,6 +6942,9 @@ class Order extends DataClass implements Insertable<Order> {
     paymentStatus: paymentStatus ?? this.paymentStatus,
     note: note.present ? note.value : this.note,
     saleId: saleId.present ? saleId.value : this.saleId,
+    paymentProofPath: paymentProofPath.present
+        ? paymentProofPath.value
+        : this.paymentProofPath,
   );
   Order copyWithCompanion(OrdersCompanion data) {
     return Order(
@@ -6935,6 +6977,9 @@ class Order extends DataClass implements Insertable<Order> {
           : this.paymentStatus,
       note: data.note.present ? data.note.value : this.note,
       saleId: data.saleId.present ? data.saleId.value : this.saleId,
+      paymentProofPath: data.paymentProofPath.present
+          ? data.paymentProofPath.value
+          : this.paymentProofPath,
     );
   }
 
@@ -6957,7 +7002,8 @@ class Order extends DataClass implements Insertable<Order> {
           ..write('itemsTotal: $itemsTotal, ')
           ..write('paymentStatus: $paymentStatus, ')
           ..write('note: $note, ')
-          ..write('saleId: $saleId')
+          ..write('saleId: $saleId, ')
+          ..write('paymentProofPath: $paymentProofPath')
           ..write(')'))
         .toString();
   }
@@ -6981,6 +7027,7 @@ class Order extends DataClass implements Insertable<Order> {
     paymentStatus,
     note,
     saleId,
+    paymentProofPath,
   );
   @override
   bool operator ==(Object other) =>
@@ -7002,7 +7049,8 @@ class Order extends DataClass implements Insertable<Order> {
           other.itemsTotal == this.itemsTotal &&
           other.paymentStatus == this.paymentStatus &&
           other.note == this.note &&
-          other.saleId == this.saleId);
+          other.saleId == this.saleId &&
+          other.paymentProofPath == this.paymentProofPath);
 }
 
 class OrdersCompanion extends UpdateCompanion<Order> {
@@ -7023,6 +7071,7 @@ class OrdersCompanion extends UpdateCompanion<Order> {
   final Value<String> paymentStatus;
   final Value<String?> note;
   final Value<String?> saleId;
+  final Value<String?> paymentProofPath;
   final Value<int> rowid;
   const OrdersCompanion({
     this.id = const Value.absent(),
@@ -7042,6 +7091,7 @@ class OrdersCompanion extends UpdateCompanion<Order> {
     this.paymentStatus = const Value.absent(),
     this.note = const Value.absent(),
     this.saleId = const Value.absent(),
+    this.paymentProofPath = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   OrdersCompanion.insert({
@@ -7062,6 +7112,7 @@ class OrdersCompanion extends UpdateCompanion<Order> {
     this.paymentStatus = const Value.absent(),
     this.note = const Value.absent(),
     this.saleId = const Value.absent(),
+    this.paymentProofPath = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        shopId = Value(shopId),
@@ -7085,6 +7136,7 @@ class OrdersCompanion extends UpdateCompanion<Order> {
     Expression<String>? paymentStatus,
     Expression<String>? note,
     Expression<String>? saleId,
+    Expression<String>? paymentProofPath,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -7105,6 +7157,7 @@ class OrdersCompanion extends UpdateCompanion<Order> {
       if (paymentStatus != null) 'payment_status': paymentStatus,
       if (note != null) 'note': note,
       if (saleId != null) 'sale_id': saleId,
+      if (paymentProofPath != null) 'payment_proof_path': paymentProofPath,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -7127,6 +7180,7 @@ class OrdersCompanion extends UpdateCompanion<Order> {
     Value<String>? paymentStatus,
     Value<String?>? note,
     Value<String?>? saleId,
+    Value<String?>? paymentProofPath,
     Value<int>? rowid,
   }) {
     return OrdersCompanion(
@@ -7147,6 +7201,7 @@ class OrdersCompanion extends UpdateCompanion<Order> {
       paymentStatus: paymentStatus ?? this.paymentStatus,
       note: note ?? this.note,
       saleId: saleId ?? this.saleId,
+      paymentProofPath: paymentProofPath ?? this.paymentProofPath,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -7205,6 +7260,9 @@ class OrdersCompanion extends UpdateCompanion<Order> {
     if (saleId.present) {
       map['sale_id'] = Variable<String>(saleId.value);
     }
+    if (paymentProofPath.present) {
+      map['payment_proof_path'] = Variable<String>(paymentProofPath.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -7231,6 +7289,7 @@ class OrdersCompanion extends UpdateCompanion<Order> {
           ..write('paymentStatus: $paymentStatus, ')
           ..write('note: $note, ')
           ..write('saleId: $saleId, ')
+          ..write('paymentProofPath: $paymentProofPath, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -11661,6 +11720,7 @@ typedef $$OrdersTableCreateCompanionBuilder =
       Value<String> paymentStatus,
       Value<String?> note,
       Value<String?> saleId,
+      Value<String?> paymentProofPath,
       Value<int> rowid,
     });
 typedef $$OrdersTableUpdateCompanionBuilder =
@@ -11682,6 +11742,7 @@ typedef $$OrdersTableUpdateCompanionBuilder =
       Value<String> paymentStatus,
       Value<String?> note,
       Value<String?> saleId,
+      Value<String?> paymentProofPath,
       Value<int> rowid,
     });
 
@@ -11776,6 +11837,11 @@ class $$OrdersTableFilterComposer
 
   ColumnFilters<String> get saleId => $composableBuilder(
     column: $table.saleId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get paymentProofPath => $composableBuilder(
+    column: $table.paymentProofPath,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -11873,6 +11939,11 @@ class $$OrdersTableOrderingComposer
     column: $table.saleId,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get paymentProofPath => $composableBuilder(
+    column: $table.paymentProofPath,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$OrdersTableAnnotationComposer
@@ -11946,6 +12017,11 @@ class $$OrdersTableAnnotationComposer
 
   GeneratedColumn<String> get saleId =>
       $composableBuilder(column: $table.saleId, builder: (column) => column);
+
+  GeneratedColumn<String> get paymentProofPath => $composableBuilder(
+    column: $table.paymentProofPath,
+    builder: (column) => column,
+  );
 }
 
 class $$OrdersTableTableManager
@@ -11993,6 +12069,7 @@ class $$OrdersTableTableManager
                 Value<String> paymentStatus = const Value.absent(),
                 Value<String?> note = const Value.absent(),
                 Value<String?> saleId = const Value.absent(),
+                Value<String?> paymentProofPath = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => OrdersCompanion(
                 id: id,
@@ -12012,6 +12089,7 @@ class $$OrdersTableTableManager
                 paymentStatus: paymentStatus,
                 note: note,
                 saleId: saleId,
+                paymentProofPath: paymentProofPath,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -12033,6 +12111,7 @@ class $$OrdersTableTableManager
                 Value<String> paymentStatus = const Value.absent(),
                 Value<String?> note = const Value.absent(),
                 Value<String?> saleId = const Value.absent(),
+                Value<String?> paymentProofPath = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => OrdersCompanion.insert(
                 id: id,
@@ -12052,6 +12131,7 @@ class $$OrdersTableTableManager
                 paymentStatus: paymentStatus,
                 note: note,
                 saleId: saleId,
+                paymentProofPath: paymentProofPath,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

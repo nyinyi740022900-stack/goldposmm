@@ -932,6 +932,9 @@ class AppLocalizationsMy extends AppLocalizations {
   String get orderPickPaymentMethod => 'ငွေပေးချေနည်း';
 
   @override
+  String get orderPaymentProof => 'ငွေပေးချေမှု screenshot';
+
+  @override
   String get ordersSearchHint => 'နာမည်၊ ဖုန်း၊ order # ရှာ';
 
   @override

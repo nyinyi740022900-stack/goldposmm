@@ -1,3 +1,4 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -227,6 +228,9 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
   final _note = TextEditingController();
   bool _submitting = false;
   String? _orderNo;
+  List<int>? _proofBytes;
+  String? _proofExt;
+  String? _proofName;
 
   @override
   void dispose() {
@@ -237,16 +241,36 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
     super.dispose();
   }
 
+  Future<void> _pickProof() async {
+    final res = await FilePicker.platform.pickFiles(
+      type: FileType.image,
+      withData: true,
+    );
+    final file = res?.files.firstOrNull;
+    if (file == null || file.bytes == null) return;
+    setState(() {
+      _proofBytes = file.bytes!;
+      _proofExt = (file.extension ?? 'jpg').toLowerCase();
+      _proofName = file.name;
+    });
+  }
+
   Future<void> _submit() async {
     if (_name.text.trim().isEmpty) return;
     setState(() => _submitting = true);
     try {
+      String? proofPath;
+      if (_proofBytes != null) {
+        proofPath = await widget.api
+            .uploadPaymentProof(_proofBytes!, _proofExt ?? 'jpg');
+      }
       final no = await widget.api.submitOrder(
         slug: widget.slug,
         customerName: _name.text.trim(),
         phone: _phone.text.trim(),
         address: _address.text.trim(),
         note: _note.text.trim(),
+        paymentProofPath: proofPath,
         lines: widget.lines,
       );
       if (mounted) setState(() => _orderNo = no);
@@ -292,6 +316,35 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
             TextField(
                 controller: _note,
                 decoration: const InputDecoration(labelText: 'Note')),
+            const SizedBox(height: 16),
+            if ((widget.info.payKpay ?? '').isNotEmpty ||
+                (widget.info.payWave ?? '').isNotEmpty) ...[
+              Card(
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Pay to:',
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                      if ((widget.info.payKpay ?? '').isNotEmpty)
+                        Text('KBZPay: ${widget.info.payKpay}'),
+                      if ((widget.info.payWave ?? '').isNotEmpty)
+                        Text('WavePay: ${widget.info.payWave}'),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+            ],
+            OutlinedButton.icon(
+              onPressed: _pickProof,
+              icon: const Icon(Icons.upload_file),
+              label: Text(_proofName == null
+                  ? 'Attach payment screenshot'
+                  : 'Screenshot: $_proofName'),
+            ),
             const SizedBox(height: 16),
             Text('Total: ${_ks(widget.total)}',
                 style: Theme.of(context).textTheme.titleMedium),

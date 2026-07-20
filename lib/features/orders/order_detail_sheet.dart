@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../core/money.dart';
 import '../../data/local/database.dart';
@@ -116,6 +117,14 @@ class OrderDetailSheet extends ConsumerWidget {
                 Text(orderPaymentLabel(l, o.paymentStatus)),
               ],
             ),
+            if (o.paymentProofPath != null &&
+                o.paymentProofPath!.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text(l.orderPaymentProof,
+                  style: Theme.of(context).textTheme.labelLarge),
+              const SizedBox(height: 6),
+              _PaymentProof(path: o.paymentProofPath!),
+            ],
             const Divider(height: 24),
 
             // --- actions ---
@@ -279,6 +288,54 @@ class OrderDetailSheet extends ConsumerWidget {
     final nav = Navigator.of(context);
     await ref.read(ordersRepositoryProvider).deleteOrder(orderId);
     if (context.mounted) nav.pop();
+  }
+}
+
+/// Renders a storefront payment screenshot from its private storage path via a
+/// short-lived signed URL.
+class _PaymentProof extends StatefulWidget {
+  const _PaymentProof({required this.path});
+  final String path;
+
+  @override
+  State<_PaymentProof> createState() => _PaymentProofState();
+}
+
+class _PaymentProofState extends State<_PaymentProof> {
+  late final Future<String> _url;
+
+  @override
+  void initState() {
+    super.initState();
+    _url = Supabase.instance.client.storage
+        .from('payment-proofs')
+        .createSignedUrl(widget.path, 3600);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<String>(
+      future: _url,
+      builder: (context, snap) {
+        if (snap.connectionState != ConnectionState.done) {
+          return const SizedBox(
+              height: 120, child: Center(child: CircularProgressIndicator()));
+        }
+        if (snap.hasError || snap.data == null) {
+          return const Icon(Icons.broken_image_outlined);
+        }
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: Image.network(
+            snap.data!,
+            height: 200,
+            fit: BoxFit.contain,
+            errorBuilder: (_, _, _) =>
+                const Icon(Icons.broken_image_outlined),
+          ),
+        );
+      },
+    );
   }
 }
 

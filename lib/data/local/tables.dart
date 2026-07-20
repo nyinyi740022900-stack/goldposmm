@@ -189,6 +189,10 @@ class Orders extends Table with SyncColumns {
   /// Set once the order is converted to an in-store [Sales] row.
   TextColumn get saleId => text().nullable()();
 
+  /// Storage path of a customer-uploaded payment screenshot (storefront
+  /// orders). Viewed by the shop via a signed URL.
+  TextColumn get paymentProofPath => text().nullable()();
+
   @override
   Set<Column> get primaryKey => {id};
 }
