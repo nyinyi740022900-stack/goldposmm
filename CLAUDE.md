@@ -5,7 +5,8 @@ Offline-first POS + license SaaS for Myanmar SMEs. **Flutter** app (iOS/Android)
 Two languages everywhere: English + Myanmar.
 
 ## Stack & conventions
-- **State:** Riverpod. **Routing:** go_router (`StatefulShellRoute`, 5 tabs).
+- **State:** Riverpod. **Routing:** go_router (`StatefulShellRoute`, 6 tabs:
+  Sell, Inventory, Orders, Invoices, Analytics, Settings).
 - **Local DB:** Drift (SQLite) — offline source of truth. **Cloud:** Supabase.
 - **Structure:** feature-first under `lib/features/<name>/` (screen + providers +
   repository). Shared: `lib/core`, `lib/data` (local db, repositories, sync),

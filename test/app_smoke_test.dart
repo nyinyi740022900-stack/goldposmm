@@ -7,11 +7,12 @@ import 'package:mm_pos/core/providers.dart';
 import 'package:mm_pos/data/local/database.dart';
 import 'package:mm_pos/domain/product_with_stock.dart';
 import 'package:mm_pos/features/inventory/inventory_providers.dart';
+import 'package:mm_pos/features/orders/orders_providers.dart';
 import 'package:mm_pos/features/printing/printing_providers.dart';
 import 'package:mm_pos/features/sell/sell_screen.dart';
 
 void main() {
-  testWidgets('app boots to the sell screen with 5-tab bottom navigation',
+  testWidgets('app boots to the sell screen with 6-tab bottom navigation',
       (tester) async {
     // Phone-sized viewport so the responsive shell uses the bottom
     // NavigationBar (the default 800x600 surface shows the tablet rail).
@@ -37,6 +38,9 @@ void main() {
           trackStockProvider.overrideWith((ref) => Stream.value(true)),
           categoriesStreamProvider
               .overrideWith((ref) => Stream.value(<Category>[])),
+          // The Orders tab is built eagerly by the IndexedStack shell; give it
+          // a single-value stream so its Drift watch doesn't stay pending.
+          ordersStreamProvider.overrideWith((ref) => Stream.value(<Order>[])),
         ],
         child: const MmPosApp(),
       ),
@@ -45,6 +49,6 @@ void main() {
 
     expect(find.byType(SellScreen), findsOneWidget);
     expect(find.byType(NavigationBar), findsOneWidget);
-    expect(find.byType(NavigationDestination), findsNWidgets(5));
+    expect(find.byType(NavigationDestination), findsNWidgets(6));
   });
 }

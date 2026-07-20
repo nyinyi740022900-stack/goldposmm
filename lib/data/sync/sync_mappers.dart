@@ -39,6 +39,8 @@ final syncTables = <SyncTableDef>[
   _payments,
   _licensePayments,
   _creditPayments,
+  _orders,
+  _orderItems,
 ];
 
 // --- categories -------------------------------------------------------------
@@ -398,6 +400,104 @@ final _creditPayments = SyncTableDef(
           method: Value((m['method'] as String?) ?? 'cash'),
           amount: Value(_int(m['amount'])),
           note: Value(m['note'] as String?),
+          createdAt: Value(_dt(m['created_at'])),
+          updatedAt: Value(updated),
+          isDeleted: Value(_bool(m['is_deleted'])),
+          dirty: const Value(false),
+        ));
+  },
+);
+
+// --- orders -----------------------------------------------------------------
+final _orders = SyncTableDef(
+  name: 'orders',
+  toRemote: (db, id) async {
+    final r = await (db.select(db.orders)..where((t) => t.id.equals(id)))
+        .getSingleOrNull();
+    if (r == null) return null;
+    return {
+      'id': r.id,
+      'shop_id': r.shopId,
+      'order_no': r.orderNo,
+      'channel': r.channel,
+      'status': r.status,
+      'customer_name': r.customerName,
+      'customer_phone': r.customerPhone,
+      'delivery_address': r.deliveryAddress,
+      'delivery_fee': r.deliveryFee,
+      'items_total': r.itemsTotal,
+      'payment_status': r.paymentStatus,
+      'note': r.note,
+      'sale_id': r.saleId,
+      'created_at': _iso(r.createdAt),
+      'updated_at': _iso(r.updatedAt),
+      'is_deleted': r.isDeleted,
+    };
+  },
+  upsertLocal: (db, m) async {
+    final id = m['id'] as String;
+    final updated = _dt(m['updated_at']);
+    final local = await (db.select(db.orders)..where((t) => t.id.equals(id)))
+        .getSingleOrNull();
+    if (local != null && !local.updatedAt.isBefore(updated)) return;
+    await db.into(db.orders).insertOnConflictUpdate(OrdersCompanion(
+          id: Value(id),
+          shopId: Value(m['shop_id'] as String),
+          orderNo: Value(m['order_no'] as String),
+          channel: Value((m['channel'] as String?) ?? 'facebook'),
+          status: Value((m['status'] as String?) ?? 'new'),
+          customerName: Value(m['customer_name'] as String),
+          customerPhone: Value(m['customer_phone'] as String?),
+          deliveryAddress: Value(m['delivery_address'] as String?),
+          deliveryFee: Value(_int(m['delivery_fee'])),
+          itemsTotal: Value(_int(m['items_total'])),
+          paymentStatus: Value((m['payment_status'] as String?) ?? 'unpaid'),
+          note: Value(m['note'] as String?),
+          saleId: Value(m['sale_id'] as String?),
+          createdAt: Value(_dt(m['created_at'])),
+          updatedAt: Value(updated),
+          isDeleted: Value(_bool(m['is_deleted'])),
+          dirty: const Value(false),
+        ));
+  },
+);
+
+// --- order_items ------------------------------------------------------------
+final _orderItems = SyncTableDef(
+  name: 'order_items',
+  toRemote: (db, id) async {
+    final r = await (db.select(db.orderItems)..where((t) => t.id.equals(id)))
+        .getSingleOrNull();
+    if (r == null) return null;
+    return {
+      'id': r.id,
+      'shop_id': r.shopId,
+      'order_id': r.orderId,
+      'product_id': r.productId,
+      'name_snapshot': r.nameSnapshot,
+      'price_snapshot': r.priceSnapshot,
+      'qty': r.qty,
+      'line_total': r.lineTotal,
+      'created_at': _iso(r.createdAt),
+      'updated_at': _iso(r.updatedAt),
+      'is_deleted': r.isDeleted,
+    };
+  },
+  upsertLocal: (db, m) async {
+    final id = m['id'] as String;
+    final updated = _dt(m['updated_at']);
+    final local = await (db.select(db.orderItems)..where((t) => t.id.equals(id)))
+        .getSingleOrNull();
+    if (local != null && !local.updatedAt.isBefore(updated)) return;
+    await db.into(db.orderItems).insertOnConflictUpdate(OrderItemsCompanion(
+          id: Value(id),
+          shopId: Value(m['shop_id'] as String),
+          orderId: Value(m['order_id'] as String),
+          productId: Value(m['product_id'] as String?),
+          nameSnapshot: Value(m['name_snapshot'] as String),
+          priceSnapshot: Value(_int(m['price_snapshot'])),
+          qty: Value(_int(m['qty'])),
+          lineTotal: Value(_int(m['line_total'])),
           createdAt: Value(_dt(m['created_at'])),
           updatedAt: Value(updated),
           isDeleted: Value(_bool(m['is_deleted'])),

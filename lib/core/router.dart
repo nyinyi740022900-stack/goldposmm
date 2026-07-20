@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../features/analytics/analytics_screen.dart';
 import '../features/inventory/inventory_screen.dart';
 import '../features/invoices/invoices_screen.dart';
+import '../features/orders/orders_screen.dart';
 import '../features/sell/sell_screen.dart';
 import '../features/settings/settings_screen.dart';
 import '../l10n/app_localizations.dart';
@@ -21,6 +22,10 @@ final appRouter = GoRouter(
           GoRoute(
               path: '/inventory',
               builder: (_, _) => const InventoryScreen()),
+        ]),
+        StatefulShellBranch(routes: [
+          GoRoute(
+              path: '/orders', builder: (_, _) => const OrdersScreen()),
         ]),
         StatefulShellBranch(routes: [
           GoRoute(
@@ -54,6 +59,7 @@ class _ShellScaffold extends StatelessWidget {
     final destinations = <_Dest>[
       _Dest(Icons.point_of_sale, l.navSell),
       _Dest(Icons.inventory_2, l.navInventory),
+      _Dest(Icons.dashboard_customize_outlined, l.navOrders),
       _Dest(Icons.receipt_long, l.navInvoices),
       _Dest(Icons.bar_chart, l.navAnalytics),
       _Dest(Icons.settings, l.navSettings),

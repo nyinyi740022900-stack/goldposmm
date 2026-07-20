@@ -1514,6 +1514,306 @@ abstract class AppLocalizations {
   /// **'Last synced: {time}'**
   String syncLastSynced(String time);
 
+  /// No description provided for @navOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'Orders'**
+  String get navOrders;
+
+  /// No description provided for @ordersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Social Orders'**
+  String get ordersTitle;
+
+  /// No description provided for @ordersEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No orders yet. Tap + to add one.'**
+  String get ordersEmpty;
+
+  /// No description provided for @orderNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New order'**
+  String get orderNew;
+
+  /// No description provided for @orderEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit order'**
+  String get orderEditTitle;
+
+  /// No description provided for @orderStatusNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get orderStatusNew;
+
+  /// No description provided for @orderStatusConfirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirmed'**
+  String get orderStatusConfirmed;
+
+  /// No description provided for @orderStatusPacked.
+  ///
+  /// In en, this message translates to:
+  /// **'Packed'**
+  String get orderStatusPacked;
+
+  /// No description provided for @orderStatusShipped.
+  ///
+  /// In en, this message translates to:
+  /// **'Shipped'**
+  String get orderStatusShipped;
+
+  /// No description provided for @orderStatusDelivered.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivered'**
+  String get orderStatusDelivered;
+
+  /// No description provided for @orderStatusCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get orderStatusCancelled;
+
+  /// No description provided for @orderChannelFacebook.
+  ///
+  /// In en, this message translates to:
+  /// **'Facebook'**
+  String get orderChannelFacebook;
+
+  /// No description provided for @orderChannelViber.
+  ///
+  /// In en, this message translates to:
+  /// **'Viber'**
+  String get orderChannelViber;
+
+  /// No description provided for @orderChannelTiktok.
+  ///
+  /// In en, this message translates to:
+  /// **'TikTok'**
+  String get orderChannelTiktok;
+
+  /// No description provided for @orderChannelInstagram.
+  ///
+  /// In en, this message translates to:
+  /// **'Instagram'**
+  String get orderChannelInstagram;
+
+  /// No description provided for @orderChannelPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get orderChannelPhone;
+
+  /// No description provided for @orderChannelOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get orderChannelOther;
+
+  /// No description provided for @orderCustomerName.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer name'**
+  String get orderCustomerName;
+
+  /// No description provided for @orderCustomerPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone (optional)'**
+  String get orderCustomerPhone;
+
+  /// No description provided for @orderChannel.
+  ///
+  /// In en, this message translates to:
+  /// **'Channel'**
+  String get orderChannel;
+
+  /// No description provided for @orderDeliveryAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery address'**
+  String get orderDeliveryAddress;
+
+  /// No description provided for @orderDeliveryFee.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery fee'**
+  String get orderDeliveryFee;
+
+  /// No description provided for @orderNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get orderNote;
+
+  /// No description provided for @orderItems.
+  ///
+  /// In en, this message translates to:
+  /// **'Items'**
+  String get orderItems;
+
+  /// No description provided for @orderAddItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Add item'**
+  String get orderAddItem;
+
+  /// No description provided for @orderItemName.
+  ///
+  /// In en, this message translates to:
+  /// **'Item name'**
+  String get orderItemName;
+
+  /// No description provided for @orderItemPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Price'**
+  String get orderItemPrice;
+
+  /// No description provided for @orderItemQty.
+  ///
+  /// In en, this message translates to:
+  /// **'Qty'**
+  String get orderItemQty;
+
+  /// No description provided for @orderItemsTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Items subtotal'**
+  String get orderItemsTotal;
+
+  /// No description provided for @orderTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get orderTotal;
+
+  /// No description provided for @orderPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment'**
+  String get orderPayment;
+
+  /// No description provided for @orderPayUnpaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpaid'**
+  String get orderPayUnpaid;
+
+  /// No description provided for @orderPayPartial.
+  ///
+  /// In en, this message translates to:
+  /// **'Partial'**
+  String get orderPayPartial;
+
+  /// No description provided for @orderPayPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid'**
+  String get orderPayPaid;
+
+  /// No description provided for @orderSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save order'**
+  String get orderSave;
+
+  /// No description provided for @orderEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get orderEdit;
+
+  /// No description provided for @orderDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete order'**
+  String get orderDelete;
+
+  /// No description provided for @orderDeleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this order? This cannot be undone.'**
+  String get orderDeleteConfirm;
+
+  /// No description provided for @orderMoveTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Move to'**
+  String get orderMoveTo;
+
+  /// No description provided for @orderConvertToSale.
+  ///
+  /// In en, this message translates to:
+  /// **'Convert to sale'**
+  String get orderConvertToSale;
+
+  /// No description provided for @orderConvertHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Creates an invoice and deducts stock for catalog items.'**
+  String get orderConvertHint;
+
+  /// No description provided for @orderConverted.
+  ///
+  /// In en, this message translates to:
+  /// **'Order converted to a sale ({invoice}).'**
+  String orderConverted(String invoice);
+
+  /// No description provided for @orderAlreadySale.
+  ///
+  /// In en, this message translates to:
+  /// **'Already recorded as a sale.'**
+  String get orderAlreadySale;
+
+  /// No description provided for @orderCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel order'**
+  String get orderCancel;
+
+  /// No description provided for @orderRestore.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore to New'**
+  String get orderRestore;
+
+  /// No description provided for @orderNeedsName.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a customer name.'**
+  String get orderNeedsName;
+
+  /// No description provided for @orderNeedsItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Add at least one item.'**
+  String get orderNeedsItem;
+
+  /// No description provided for @orderSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Order saved.'**
+  String get orderSaved;
+
+  /// No description provided for @orderItemsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} items'**
+  String orderItemsCount(int count);
+
+  /// No description provided for @orderPickPaymentMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment method'**
+  String get orderPickPaymentMethod;
+
   /// No description provided for @currencySymbol.
   ///
   /// In en, this message translates to:

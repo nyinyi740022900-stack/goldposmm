@@ -779,5 +779,160 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get navOrders => 'Orders';
+
+  @override
+  String get ordersTitle => 'Social Orders';
+
+  @override
+  String get ordersEmpty => 'No orders yet. Tap + to add one.';
+
+  @override
+  String get orderNew => 'New order';
+
+  @override
+  String get orderEditTitle => 'Edit order';
+
+  @override
+  String get orderStatusNew => 'New';
+
+  @override
+  String get orderStatusConfirmed => 'Confirmed';
+
+  @override
+  String get orderStatusPacked => 'Packed';
+
+  @override
+  String get orderStatusShipped => 'Shipped';
+
+  @override
+  String get orderStatusDelivered => 'Delivered';
+
+  @override
+  String get orderStatusCancelled => 'Cancelled';
+
+  @override
+  String get orderChannelFacebook => 'Facebook';
+
+  @override
+  String get orderChannelViber => 'Viber';
+
+  @override
+  String get orderChannelTiktok => 'TikTok';
+
+  @override
+  String get orderChannelInstagram => 'Instagram';
+
+  @override
+  String get orderChannelPhone => 'Phone';
+
+  @override
+  String get orderChannelOther => 'Other';
+
+  @override
+  String get orderCustomerName => 'Customer name';
+
+  @override
+  String get orderCustomerPhone => 'Phone (optional)';
+
+  @override
+  String get orderChannel => 'Channel';
+
+  @override
+  String get orderDeliveryAddress => 'Delivery address';
+
+  @override
+  String get orderDeliveryFee => 'Delivery fee';
+
+  @override
+  String get orderNote => 'Note';
+
+  @override
+  String get orderItems => 'Items';
+
+  @override
+  String get orderAddItem => 'Add item';
+
+  @override
+  String get orderItemName => 'Item name';
+
+  @override
+  String get orderItemPrice => 'Price';
+
+  @override
+  String get orderItemQty => 'Qty';
+
+  @override
+  String get orderItemsTotal => 'Items subtotal';
+
+  @override
+  String get orderTotal => 'Total';
+
+  @override
+  String get orderPayment => 'Payment';
+
+  @override
+  String get orderPayUnpaid => 'Unpaid';
+
+  @override
+  String get orderPayPartial => 'Partial';
+
+  @override
+  String get orderPayPaid => 'Paid';
+
+  @override
+  String get orderSave => 'Save order';
+
+  @override
+  String get orderEdit => 'Edit';
+
+  @override
+  String get orderDelete => 'Delete order';
+
+  @override
+  String get orderDeleteConfirm => 'Delete this order? This cannot be undone.';
+
+  @override
+  String get orderMoveTo => 'Move to';
+
+  @override
+  String get orderConvertToSale => 'Convert to sale';
+
+  @override
+  String get orderConvertHint =>
+      'Creates an invoice and deducts stock for catalog items.';
+
+  @override
+  String orderConverted(String invoice) {
+    return 'Order converted to a sale ($invoice).';
+  }
+
+  @override
+  String get orderAlreadySale => 'Already recorded as a sale.';
+
+  @override
+  String get orderCancel => 'Cancel order';
+
+  @override
+  String get orderRestore => 'Restore to New';
+
+  @override
+  String get orderNeedsName => 'Enter a customer name.';
+
+  @override
+  String get orderNeedsItem => 'Add at least one item.';
+
+  @override
+  String get orderSaved => 'Order saved.';
+
+  @override
+  String orderItemsCount(int count) {
+    return '$count items';
+  }
+
+  @override
+  String get orderPickPaymentMethod => 'Payment method';
+
+  @override
   String get currencySymbol => 'Ks';
 }
