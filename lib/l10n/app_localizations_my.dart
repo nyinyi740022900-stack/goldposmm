@@ -947,5 +947,48 @@ class AppLocalizationsMy extends AppLocalizations {
   String get orderFilterPayment => 'ငွေပေးချေမှု';
 
   @override
+  String get staffMode => 'ဝန်ထမ်း mode';
+
+  @override
+  String get staffRoleOwner => 'ပိုင်ရှင်';
+
+  @override
+  String get staffRoleCashier => 'ကက်ရှီယာ';
+
+  @override
+  String get staffSwitchToCashier => 'Cashier mode သို့ ပြောင်း';
+
+  @override
+  String get staffUnlockOwner => 'ပိုင်ရှင် ဖွင့်';
+
+  @override
+  String get staffSetPin => 'ပိုင်ရှင် PIN သတ်မှတ်';
+
+  @override
+  String get staffChangePin => 'ပိုင်ရှင် PIN ပြောင်း';
+
+  @override
+  String get staffEnterPin => 'ပိုင်ရှင် PIN ရိုက်ထည့်';
+
+  @override
+  String get staffWrongPin => 'PIN မှားနေပါသည်';
+
+  @override
+  String get staffPinHint => 'ဂဏန်း ၄–၆ လုံး';
+
+  @override
+  String get staffPinSaved => 'PIN သိမ်းပြီး';
+
+  @override
+  String get staffOwnerOnly => 'ပိုင်ရှင်သာ ကြည့်နိုင်';
+
+  @override
+  String get staffOwnerOnlyDesc =>
+      'ဒါကို ကြည့်ရန် Owner mode (Settings) သို့ ပြောင်းပါ။';
+
+  @override
+  String get staffCashierBadge => 'Cashier mode';
+
+  @override
   String get currencySymbol => 'ကျပ်';
 }

@@ -334,5 +334,20 @@
   "orderFilterChannel": "Channel",
   "orderFilterPayment": "Payment",
 
+  "staffMode": "Staff mode",
+  "staffRoleOwner": "Owner",
+  "staffRoleCashier": "Cashier",
+  "staffSwitchToCashier": "Switch to Cashier mode",
+  "staffUnlockOwner": "Unlock Owner",
+  "staffSetPin": "Set owner PIN",
+  "staffChangePin": "Change owner PIN",
+  "staffEnterPin": "Enter owner PIN",
+  "staffWrongPin": "Wrong PIN",
+  "staffPinHint": "4–6 digits",
+  "staffPinSaved": "PIN saved",
+  "staffOwnerOnly": "Owner only",
+  "staffOwnerOnlyDesc": "Switch to Owner mode (Settings) to view this.",
+  "staffCashierBadge": "Cashier mode",
+
   "currencySymbol": "Ks"
 }

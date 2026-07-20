@@ -954,5 +954,48 @@ class AppLocalizationsEn extends AppLocalizations {
   String get orderFilterPayment => 'Payment';
 
   @override
+  String get staffMode => 'Staff mode';
+
+  @override
+  String get staffRoleOwner => 'Owner';
+
+  @override
+  String get staffRoleCashier => 'Cashier';
+
+  @override
+  String get staffSwitchToCashier => 'Switch to Cashier mode';
+
+  @override
+  String get staffUnlockOwner => 'Unlock Owner';
+
+  @override
+  String get staffSetPin => 'Set owner PIN';
+
+  @override
+  String get staffChangePin => 'Change owner PIN';
+
+  @override
+  String get staffEnterPin => 'Enter owner PIN';
+
+  @override
+  String get staffWrongPin => 'Wrong PIN';
+
+  @override
+  String get staffPinHint => '4–6 digits';
+
+  @override
+  String get staffPinSaved => 'PIN saved';
+
+  @override
+  String get staffOwnerOnly => 'Owner only';
+
+  @override
+  String get staffOwnerOnlyDesc =>
+      'Switch to Owner mode (Settings) to view this.';
+
+  @override
+  String get staffCashierBadge => 'Cashier mode';
+
+  @override
   String get currencySymbol => 'Ks';
 }

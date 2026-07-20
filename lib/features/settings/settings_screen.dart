@@ -18,6 +18,7 @@ import '../../core/money.dart';
 import '../backup/backup_screen.dart';
 import '../credit/credit_providers.dart';
 import '../credit/credit_screen.dart';
+import '../staff/staff_ui.dart';
 import '../support/support_providers.dart';
 import 'shop_profile_screen.dart';
 
@@ -78,6 +79,8 @@ class SettingsScreen extends ConsumerWidget {
           _LicenseTile(),
           _ReferralTile(),
           _SupportTile(),
+          const Divider(),
+          const StaffModeCard(),
           const Divider(),
           _SyncTile(),
         ],
