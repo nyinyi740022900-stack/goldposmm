@@ -338,8 +338,12 @@
 
   "staffMode": "Staff mode",
   "staffRoleOwner": "Owner",
+  "staffRoleManager": "Manager",
   "staffRoleCashier": "Cashier",
-  "staffSwitchToCashier": "Switch to Cashier mode",
+  "staffCurrentRole": "Current: {role}",
+  "@staffCurrentRole": { "placeholders": { "role": { "type": "String" } } },
+  "staffSwitchTo": "Switch to {role}",
+  "@staffSwitchTo": { "placeholders": { "role": { "type": "String" } } },
   "staffUnlockOwner": "Unlock Owner",
   "staffSetPin": "Set owner PIN",
   "staffChangePin": "Change owner PIN",
@@ -350,6 +354,7 @@
   "staffOwnerOnly": "Owner only",
   "staffOwnerOnlyDesc": "Switch to Owner mode (Settings) to view this.",
   "staffCashierBadge": "Cashier mode",
+  "staffManagerBadge": "Manager mode",
 
   "storefrontTitle": "My web storefront",
   "storefrontDesc": "Publish a public catalog your customers can order from — no app needed.",

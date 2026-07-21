@@ -46,8 +46,8 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
     final lowCount = ref.watch(lowStockCountProvider);
     final trackStock = ref.watch(trackStockProvider).valueOrNull ?? true;
     final currency = l.currencySymbol;
-    // Cashiers can browse inventory but not add/edit products.
-    final isOwner = ref.watch(isOwnerProvider);
+    // Cashiers can browse inventory but not add/edit products; managers can.
+    final canEdit = ref.watch(canEditInventoryProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -78,7 +78,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
           ),
         ),
       ),
-      floatingActionButton: isOwner
+      floatingActionButton: canEdit
           ? FloatingActionButton.extended(
               onPressed: () => _openEditor(),
               icon: const Icon(Icons.add),
@@ -129,7 +129,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                           ? _StockBadge(
                               quantity: p.quantity, low: p.isLowStock)
                           : null,
-                      onTap: isOwner ? () => _openEditor(p) : null,
+                      onTap: canEdit ? () => _openEditor(p) : null,
                     );
                   },
                 ),

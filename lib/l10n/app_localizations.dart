@@ -1874,17 +1874,29 @@ abstract class AppLocalizations {
   /// **'Owner'**
   String get staffRoleOwner;
 
+  /// No description provided for @staffRoleManager.
+  ///
+  /// In en, this message translates to:
+  /// **'Manager'**
+  String get staffRoleManager;
+
   /// No description provided for @staffRoleCashier.
   ///
   /// In en, this message translates to:
   /// **'Cashier'**
   String get staffRoleCashier;
 
-  /// No description provided for @staffSwitchToCashier.
+  /// No description provided for @staffCurrentRole.
   ///
   /// In en, this message translates to:
-  /// **'Switch to Cashier mode'**
-  String get staffSwitchToCashier;
+  /// **'Current: {role}'**
+  String staffCurrentRole(String role);
+
+  /// No description provided for @staffSwitchTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch to {role}'**
+  String staffSwitchTo(String role);
 
   /// No description provided for @staffUnlockOwner.
   ///
@@ -1945,6 +1957,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Cashier mode'**
   String get staffCashierBadge;
+
+  /// No description provided for @staffManagerBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Manager mode'**
+  String get staffManagerBadge;
 
   /// No description provided for @storefrontTitle.
   ///

@@ -966,10 +966,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get staffRoleOwner => 'Owner';
 
   @override
+  String get staffRoleManager => 'Manager';
+
+  @override
   String get staffRoleCashier => 'Cashier';
 
   @override
-  String get staffSwitchToCashier => 'Switch to Cashier mode';
+  String staffCurrentRole(String role) {
+    return 'Current: $role';
+  }
+
+  @override
+  String staffSwitchTo(String role) {
+    return 'Switch to $role';
+  }
 
   @override
   String get staffUnlockOwner => 'Unlock Owner';
@@ -1001,6 +1011,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get staffCashierBadge => 'Cashier mode';
+
+  @override
+  String get staffManagerBadge => 'Manager mode';
 
   @override
   String get storefrontTitle => 'My web storefront';
