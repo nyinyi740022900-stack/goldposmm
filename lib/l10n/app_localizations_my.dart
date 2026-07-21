@@ -959,10 +959,20 @@ class AppLocalizationsMy extends AppLocalizations {
   String get staffRoleOwner => 'ပိုင်ရှင်';
 
   @override
+  String get staffRoleManager => 'မန်နေဂျာ';
+
+  @override
   String get staffRoleCashier => 'ကက်ရှီယာ';
 
   @override
-  String get staffSwitchToCashier => 'Cashier mode သို့ ပြောင်း';
+  String staffCurrentRole(String role) {
+    return 'လက်ရှိ: $role';
+  }
+
+  @override
+  String staffSwitchTo(String role) {
+    return '$role သို့ ပြောင်း';
+  }
 
   @override
   String get staffUnlockOwner => 'ပိုင်ရှင် ဖွင့်';
@@ -994,6 +1004,9 @@ class AppLocalizationsMy extends AppLocalizations {
 
   @override
   String get staffCashierBadge => 'Cashier mode';
+
+  @override
+  String get staffManagerBadge => 'Manager mode';
 
   @override
   String get storefrontTitle => 'ကျွန်ုပ်၏ Web ဆိုင်';

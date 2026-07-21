@@ -5,8 +5,20 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../l10n/app_localizations.dart';
 import 'staff_providers.dart';
 
-/// Wraps owner-only content. In cashier mode it shows a lock placeholder
-/// instead of [child].
+String staffRoleLabel(AppLocalizations l, String role) {
+  switch (role) {
+    case 'manager':
+      return l.staffRoleManager;
+    case 'cashier':
+      return l.staffRoleCashier;
+    case 'owner':
+    default:
+      return l.staffRoleOwner;
+  }
+}
+
+/// Wraps owner-only content. In manager/cashier mode it shows a lock
+/// placeholder instead of [child].
 class OwnerOnlyGate extends ConsumerWidget {
   const OwnerOnlyGate({super.key, required this.child});
   final Widget child;
@@ -35,14 +47,17 @@ class OwnerOnlyGate extends ConsumerWidget {
   }
 }
 
-/// A small "Cashier mode" pill for app bars, so staff can see they're limited.
+/// A small pill for app bars showing the current non-owner mode, so staff can
+/// see they're limited.
 class CashierBadge extends ConsumerWidget {
   const CashierBadge({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (ref.watch(isOwnerProvider)) return const SizedBox.shrink();
+    final role = ref.watch(staffRoleProvider).valueOrNull ?? 'owner';
+    if (role == 'owner') return const SizedBox.shrink();
     final l = AppLocalizations.of(context);
+    final label = role == 'manager' ? l.staffManagerBadge : l.staffCashierBadge;
     return Container(
       margin: const EdgeInsets.only(right: 12),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -55,8 +70,7 @@ class CashierBadge extends ConsumerWidget {
         children: [
           const Icon(Icons.badge_outlined, size: 14),
           const SizedBox(width: 4),
-          Text(l.staffCashierBadge,
-              style: Theme.of(context).textTheme.labelSmall),
+          Text(label, style: Theme.of(context).textTheme.labelSmall),
         ],
       ),
     );
@@ -97,15 +111,38 @@ Future<String?> promptPin(BuildContext context, String title) {
   );
 }
 
-/// Settings section for switching between Owner and Cashier modes.
+/// Settings section to switch between Owner / Manager / Cashier and manage the
+/// owner PIN. Downgrading (owner→manager/cashier, manager→cashier) is free;
+/// upgrading prompts for the PIN.
 class StaffModeCard extends ConsumerWidget {
   const StaffModeCard({super.key});
+
+  Future<void> _switchTo(
+      BuildContext context, WidgetRef ref, String target) async {
+    final l = AppLocalizations.of(context);
+    final ctrl = ref.read(staffControllerProvider);
+    final currentRole = ref.read(staffRoleProvider).valueOrNull ?? 'owner';
+    final isUpgrade =
+        staffRoles.indexOf(target) > staffRoles.indexOf(currentRole);
+
+    String? pin;
+    if (isUpgrade) {
+      pin = await promptPin(context, l.staffEnterPin);
+      if (pin == null) return; // cancelled
+    }
+    if (!context.mounted) return;
+    final ok = await ctrl.switchRole(target, pin: pin);
+    if (!ok && context.mounted) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(l.staffWrongPin)));
+    }
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context);
-    final isOwner = ref.watch(isOwnerProvider);
-    final ctrl = ref.read(staffControllerProvider);
+    final role = ref.watch(staffRoleProvider).valueOrNull ?? 'owner';
+    final isOwner = role == 'owner';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -113,40 +150,28 @@ class StaffModeCard extends ConsumerWidget {
         ListTile(
           leading: Icon(isOwner ? Icons.verified_user : Icons.badge_outlined),
           title: Text(l.staffMode),
-          subtitle:
-              Text(isOwner ? l.staffRoleOwner : l.staffRoleCashier),
+          subtitle: Text(l.staffCurrentRole(staffRoleLabel(l, role))),
         ),
-        if (isOwner) ...[
-          ListTile(
-            leading: const Icon(Icons.badge_outlined),
-            title: Text(l.staffSwitchToCashier),
-            onTap: () => ctrl.enterCashierMode(),
-          ),
+        for (final target in staffRoles)
+          if (target != role)
+            ListTile(
+              leading: Icon(staffRoles.indexOf(target) > staffRoles.indexOf(role)
+                  ? Icons.lock_open_outlined
+                  : Icons.badge_outlined),
+              title: Text(l.staffSwitchTo(staffRoleLabel(l, target))),
+              onTap: () => _switchTo(context, ref, target),
+            ),
+        if (isOwner)
           ListTile(
             leading: const Icon(Icons.pin_outlined),
             title: Text(l.staffSetPin),
             onTap: () async {
               final pin = await promptPin(context, l.staffSetPin);
               if (pin == null || pin.isEmpty) return;
-              await ctrl.setPin(pin);
+              await ref.read(staffControllerProvider).setPin(pin);
               if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(l.staffPinSaved)));
-              }
-            },
-          ),
-        ] else
-          ListTile(
-            leading: const Icon(Icons.lock_open_outlined),
-            title: Text(l.staffUnlockOwner),
-            onTap: () async {
-              final pin = await promptPin(context, l.staffEnterPin);
-              if (pin == null) return;
-              final ok = await ctrl.unlockOwner(pin);
-              if (!context.mounted) return;
-              if (!ok) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(l.staffWrongPin)));
+                ScaffoldMessenger.of(context)
+                    .showSnackBar(SnackBar(content: Text(l.staffPinSaved)));
               }
             },
           ),

@@ -30,24 +30,43 @@ void main() {
     expect(await settings.staffRole(), 'owner');
   });
 
-  test('entering cashier mode persists', () async {
-    await ctrl().enterCashierMode();
+  test('downgrading (owner -> manager -> cashier) never needs a PIN',
+      () async {
+    expect(await ctrl().switchRole('manager'), isTrue);
+    expect(await settings.staffRole(), 'manager');
+    expect(await ctrl().switchRole('cashier'), isTrue);
     expect(await settings.staffRole(), 'cashier');
   });
 
-  test('unlockOwner succeeds with no PIN set', () async {
-    await ctrl().enterCashierMode();
-    expect(await ctrl().unlockOwner(''), isTrue);
+  test('upgrading with no PIN set succeeds', () async {
+    await ctrl().switchRole('cashier');
+    expect(await ctrl().switchRole('owner', pin: ''), isTrue);
     expect(await settings.staffRole(), 'owner');
   });
 
-  test('unlockOwner rejects a wrong PIN and stays cashier', () async {
+  test('upgrading with a wrong PIN fails and role is unchanged', () async {
     await ctrl().setPin('1234');
-    await ctrl().enterCashierMode();
-    expect(await ctrl().unlockOwner('9999'), isFalse);
+    await ctrl().switchRole('cashier');
+    expect(await ctrl().switchRole('manager', pin: '9999'), isFalse);
     expect(await settings.staffRole(), 'cashier');
-    // Correct PIN unlocks.
-    expect(await ctrl().unlockOwner('1234'), isTrue);
-    expect(await settings.staffRole(), 'owner');
+    // Correct PIN succeeds.
+    expect(await ctrl().switchRole('manager', pin: '1234'), isTrue);
+    expect(await settings.staffRole(), 'manager');
+  });
+
+  test('cashier -> manager is an upgrade and also requires the PIN',
+      () async {
+    await ctrl().setPin('1234');
+    await ctrl().switchRole('cashier');
+    expect(await ctrl().switchRole('manager', pin: '0000'), isFalse);
+    expect(await settings.staffRole(), 'cashier');
+  });
+
+  test('manager -> cashier is a downgrade and needs no PIN even with one set',
+      () async {
+    await ctrl().setPin('1234');
+    await ctrl().switchRole('manager', pin: '1234');
+    expect(await ctrl().switchRole('cashier'), isTrue);
+    expect(await settings.staffRole(), 'cashier');
   });
 }

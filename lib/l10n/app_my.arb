@@ -337,8 +337,12 @@
 
   "staffMode": "ဝန်ထမ်း mode",
   "staffRoleOwner": "ပိုင်ရှင်",
+  "staffRoleManager": "မန်နေဂျာ",
   "staffRoleCashier": "ကက်ရှီယာ",
-  "staffSwitchToCashier": "Cashier mode သို့ ပြောင်း",
+  "staffCurrentRole": "လက်ရှိ: {role}",
+  "@staffCurrentRole": { "placeholders": { "role": { "type": "String" } } },
+  "staffSwitchTo": "{role} သို့ ပြောင်း",
+  "@staffSwitchTo": { "placeholders": { "role": { "type": "String" } } },
   "staffUnlockOwner": "ပိုင်ရှင် ဖွင့်",
   "staffSetPin": "ပိုင်ရှင် PIN သတ်မှတ်",
   "staffChangePin": "ပိုင်ရှင် PIN ပြောင်း",
@@ -349,6 +353,7 @@
   "staffOwnerOnly": "ပိုင်ရှင်သာ ကြည့်နိုင်",
   "staffOwnerOnlyDesc": "ဒါကို ကြည့်ရန် Owner mode (Settings) သို့ ပြောင်းပါ။",
   "staffCashierBadge": "Cashier mode",
+  "staffManagerBadge": "Manager mode",
 
   "storefrontTitle": "ကျွန်ုပ်၏ Web ဆိုင်",
   "storefrontDesc": "ဖောက်သည်များ app မလိုဘဲ order တင်နိုင်တဲ့ public catalog ထုတ်ဝေပါ။",
