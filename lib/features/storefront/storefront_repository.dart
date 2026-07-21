@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Public base URL where the storefront web app is hosted. A shop's page is
@@ -8,9 +10,18 @@ const storefrontBaseUrl = 'https://goldposmm-shop.vercel.app';
 class StorefrontRow {
   final String slug;
   final String? displayName;
+  final String? phone;
+  final String? address;
+  final String? logoUrl;
   final bool enabled;
-  const StorefrontRow(
-      {required this.slug, this.displayName, this.enabled = true});
+  const StorefrontRow({
+    required this.slug,
+    this.displayName,
+    this.phone,
+    this.address,
+    this.logoUrl,
+    this.enabled = true,
+  });
 
   String get url => '$storefrontBaseUrl/$slug';
 }
@@ -29,6 +40,9 @@ class StorefrontRepository {
     return StorefrontRow(
       slug: m['slug'] as String,
       displayName: m['display_name'] as String?,
+      phone: m['phone'] as String?,
+      address: m['address'] as String?,
+      logoUrl: m['logo_url'] as String?,
       enabled: m['enabled'] as bool? ?? true,
     );
   }
@@ -68,5 +82,34 @@ class StorefrontRepository {
     await _c
         .from('storefronts')
         .update({'enabled': enabled}).eq('shop_id', _shopId);
+  }
+
+  /// Updates display fields on an existing storefront (name/phone/address
+  /// shown to customers, and the logo). Pass only what changed; omitted
+  /// fields are left as-is.
+  Future<void> updateProfile({
+    String? displayName,
+    String? phone,
+    String? address,
+    String? logoUrl,
+  }) async {
+    final patch = <String, dynamic>{
+      'display_name': ?displayName,
+      'phone': ?phone,
+      'address': ?address,
+      'logo_url': ?logoUrl,
+    };
+    if (patch.isEmpty) return;
+    await _c.from('storefronts').update(patch).eq('shop_id', _shopId);
+  }
+
+  /// Uploads a logo image to the shared public product-images bucket and
+  /// returns its public URL.
+  Future<String> uploadLogo(List<int> bytes, String ext) async {
+    final path = 'logo-$_shopId-${DateTime.now().millisecondsSinceEpoch}.$ext';
+    final storage = _c.storage.from('product-images');
+    await storage.uploadBinary(path, Uint8List.fromList(bytes),
+        fileOptions: const FileOptions(upsert: true));
+    return storage.getPublicUrl(path);
   }
 }

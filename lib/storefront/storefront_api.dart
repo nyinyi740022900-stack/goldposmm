@@ -19,8 +19,14 @@ class StoreInfo {
   final String? address;
   final String? payKpay;
   final String? payWave;
+  final String? logoUrl;
   const StoreInfo(
-      {this.displayName, this.phone, this.address, this.payKpay, this.payWave});
+      {this.displayName,
+      this.phone,
+      this.address,
+      this.payKpay,
+      this.payWave,
+      this.logoUrl});
 }
 
 class Catalog {
@@ -68,6 +74,7 @@ class StorefrontApi {
         address: s['address'] as String?,
         payKpay: s['pay_kpay'] as String?,
         payWave: s['pay_wave'] as String?,
+        logoUrl: s['logo_url'] as String?,
       ),
       products,
     );

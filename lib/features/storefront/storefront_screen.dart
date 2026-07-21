@@ -1,3 +1,4 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -14,7 +15,8 @@ final myStorefrontProvider = FutureProvider<StorefrontRow?>((ref) {
   return ref.watch(storefrontRepositoryProvider).mine();
 });
 
-/// Owner screen to publish/manage the shop's public web storefront.
+/// Owner screen to publish/manage the shop's public web storefront: name,
+/// phone, address, logo, and the enabled toggle + shareable link.
 class StorefrontScreen extends ConsumerStatefulWidget {
   const StorefrontScreen({super.key});
 
@@ -24,12 +26,28 @@ class StorefrontScreen extends ConsumerStatefulWidget {
 
 class _StorefrontScreenState extends ConsumerState<StorefrontScreen> {
   final _name = TextEditingController();
+  final _phone = TextEditingController();
+  final _address = TextEditingController();
   bool _busy = false;
+  bool _uploadingLogo = false;
+  String? _logoUrl;
+  bool _initializedFromRow = false;
 
   @override
   void dispose() {
     _name.dispose();
+    _phone.dispose();
+    _address.dispose();
     super.dispose();
+  }
+
+  void _initFrom(StorefrontRow row) {
+    if (_initializedFromRow) return;
+    _initializedFromRow = true;
+    _name.text = row.displayName ?? '';
+    _phone.text = row.phone ?? '';
+    _address.text = row.address ?? '';
+    _logoUrl = row.logoUrl;
   }
 
   Future<void> _publish() async {
@@ -41,9 +59,12 @@ class _StorefrontScreenState extends ConsumerState<StorefrontScreen> {
     }
     setState(() => _busy = true);
     try {
-      await ref
-          .read(storefrontRepositoryProvider)
-          .publish(displayName: _name.text.trim());
+      await ref.read(storefrontRepositoryProvider).publish(
+            displayName: _name.text.trim(),
+            phone: _phone.text.trim().isEmpty ? null : _phone.text.trim(),
+            address:
+                _address.text.trim().isEmpty ? null : _address.text.trim(),
+          );
       ref.invalidate(myStorefrontProvider);
     } catch (e) {
       if (mounted) {
@@ -52,6 +73,51 @@ class _StorefrontScreenState extends ConsumerState<StorefrontScreen> {
       }
     } finally {
       if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _saveProfile() async {
+    setState(() => _busy = true);
+    try {
+      await ref.read(storefrontRepositoryProvider).updateProfile(
+            displayName: _name.text.trim(),
+            phone: _phone.text.trim(),
+            address: _address.text.trim(),
+            logoUrl: _logoUrl,
+          );
+      ref.invalidate(myStorefrontProvider);
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('Saved')));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('$e')));
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _pickLogo() async {
+    final res =
+        await FilePicker.platform.pickFiles(type: FileType.image, withData: true);
+    final file = res?.files.firstOrNull;
+    if (file == null || file.bytes == null) return;
+    setState(() => _uploadingLogo = true);
+    try {
+      final ext = (file.extension ?? 'jpg').toLowerCase();
+      final url =
+          await ref.read(storefrontRepositoryProvider).uploadLogo(file.bytes!, ext);
+      if (mounted) setState(() => _logoUrl = url);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('$e')));
+      }
+    } finally {
+      if (mounted) setState(() => _uploadingLogo = false);
     }
   }
 
@@ -64,9 +130,11 @@ class _StorefrontScreenState extends ConsumerState<StorefrontScreen> {
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('$e')),
-        data: (row) => row == null
-            ? _publishForm(l)
-            : _manageView(l, row),
+        data: (row) {
+          if (row == null) return _publishForm(l);
+          _initFrom(row);
+          return _manageView(l, row);
+        },
       ),
     );
   }
@@ -83,6 +151,24 @@ class _StorefrontScreenState extends ConsumerState<StorefrontScreen> {
           decoration: InputDecoration(
             labelText: l.storefrontDisplayName,
             border: const OutlineInputBorder(),
+          ),
+        ),
+        const SizedBox(height: 12),
+        TextField(
+          controller: _phone,
+          keyboardType: TextInputType.phone,
+          decoration: const InputDecoration(
+            labelText: 'Phone (shown to customers)',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        const SizedBox(height: 12),
+        TextField(
+          controller: _address,
+          maxLines: 2,
+          decoration: const InputDecoration(
+            labelText: 'Address (shown to customers)',
+            border: OutlineInputBorder(),
           ),
         ),
         const SizedBox(height: 16),
@@ -104,6 +190,64 @@ class _StorefrontScreenState extends ConsumerState<StorefrontScreen> {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
+        Center(
+          child: Column(
+            children: [
+              Container(
+                width: 84,
+                height: 84,
+                clipBehavior: Clip.antiAlias,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                ),
+                child: (_logoUrl ?? '').isEmpty
+                    ? const Icon(Icons.storefront, size: 36)
+                    : Image.network(_logoUrl!,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, _, _) =>
+                            const Icon(Icons.broken_image_outlined)),
+              ),
+              const SizedBox(height: 8),
+              TextButton.icon(
+                onPressed: _uploadingLogo ? null : _pickLogo,
+                icon: _uploadingLogo
+                    ? const SizedBox(
+                        width: 14,
+                        height: 14,
+                        child: CircularProgressIndicator(strokeWidth: 2))
+                    : const Icon(Icons.add_a_photo_outlined, size: 18),
+                label: const Text('Shop logo'),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          controller: _name,
+          textCapitalization: TextCapitalization.words,
+          decoration:
+              InputDecoration(labelText: l.storefrontDisplayName),
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          controller: _phone,
+          keyboardType: TextInputType.phone,
+          decoration: const InputDecoration(labelText: 'Phone'),
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          controller: _address,
+          maxLines: 2,
+          decoration: const InputDecoration(labelText: 'Address'),
+        ),
+        const SizedBox(height: 12),
+        FilledButton.icon(
+          onPressed: _busy ? null : _saveProfile,
+          icon: const Icon(Icons.check),
+          label: const Text('Save'),
+        ),
+        const Divider(height: 32),
         SwitchListTile(
           contentPadding: EdgeInsets.zero,
           title: Text(l.storefrontEnabled),
