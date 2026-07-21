@@ -71,6 +71,7 @@ Deno.serve(async (req) => {
         address: sf.address,
         pay_kpay: sf.pay_kpay,
         pay_wave: sf.pay_wave,
+        logo_url: sf.logo_url,
       },
       products,
     });

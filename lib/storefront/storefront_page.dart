@@ -1,5 +1,6 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
 import 'storefront_api.dart';
@@ -80,20 +81,7 @@ class _StorefrontPageState extends State<StorefrontPage> {
           _byId = {for (final p in catalog.products) p.id: p};
           return CustomScrollView(
             slivers: [
-              SliverAppBar.large(
-                title: Text(catalog.info.displayName ?? 'Shop'),
-              ),
-              if ((catalog.info.address ?? '').isNotEmpty)
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                    child: Row(children: [
-                      const Icon(Icons.location_on_outlined, size: 16),
-                      const SizedBox(width: 6),
-                      Expanded(child: Text(catalog.info.address!)),
-                    ]),
-                  ),
-                ),
+              SliverToBoxAdapter(child: _ShopBanner(info: catalog.info)),
               SliverPadding(
                 padding: const EdgeInsets.all(12),
                 sliver: SliverGrid(
@@ -136,6 +124,115 @@ class _StorefrontPageState extends State<StorefrontPage> {
                 ),
               ),
             ),
+    );
+  }
+}
+
+/// Shop banner: logo, name, phone (tap to copy), address.
+class _ShopBanner extends StatelessWidget {
+  const _ShopBanner({required this.info});
+  final StoreInfo info;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(20, 28, 20, 20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [scheme.primaryContainer, scheme.surface],
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Container(
+                width: 64,
+                height: 64,
+                clipBehavior: Clip.antiAlias,
+                decoration: BoxDecoration(
+                  color: scheme.surface,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.08),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2)),
+                  ],
+                ),
+                child: (info.logoUrl ?? '').isEmpty
+                    ? Icon(Icons.storefront, color: scheme.primary, size: 30)
+                    : Image.network(
+                        info.logoUrl!,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, _, _) =>
+                            Icon(Icons.storefront, color: scheme.primary),
+                      ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Text(
+                  info.displayName ?? 'Shop',
+                  style: Theme.of(context)
+                      .textTheme
+                      .headlineSmall
+                      ?.copyWith(fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+          if ((info.phone ?? '').isNotEmpty || (info.address ?? '').isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 14),
+              child: Wrap(
+                spacing: 16,
+                runSpacing: 6,
+                children: [
+                  if ((info.phone ?? '').isNotEmpty)
+                    InkWell(
+                      borderRadius: BorderRadius.circular(6),
+                      onTap: () {
+                        Clipboard.setData(ClipboardData(text: info.phone!));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text('Phone number copied'),
+                                duration: Duration(seconds: 1)));
+                      },
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.call_outlined,
+                              size: 16, color: scheme.primary),
+                          const SizedBox(width: 6),
+                          Text(info.phone!),
+                        ],
+                      ),
+                    ),
+                  if ((info.address ?? '').isNotEmpty)
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.location_on_outlined,
+                            size: 16, color: scheme.primary),
+                        const SizedBox(width: 6),
+                        ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 260),
+                          child: Text(info.address!,
+                              maxLines: 1, overflow: TextOverflow.ellipsis),
+                        ),
+                      ],
+                    ),
+                ],
+              ),
+            ),
+        ],
+      ),
     );
   }
 }
