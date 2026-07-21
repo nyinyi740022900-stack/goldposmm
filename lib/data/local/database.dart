@@ -35,7 +35,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -65,6 +65,14 @@ class AppDatabase extends _$AppDatabase {
           // v7: public product photo URL for the web storefront.
           if (from < 7) {
             await m.addColumn(products, products.imageUrl);
+          }
+          // v8: delivery tracking (township, carrier, tracking number,
+          // delivery status) — carrier-agnostic groundwork.
+          if (from < 8) {
+            await m.addColumn(orders, orders.township);
+            await m.addColumn(orders, orders.deliveryCarrier);
+            await m.addColumn(orders, orders.trackingNumber);
+            await m.addColumn(orders, orders.deliveryStatus);
           }
         },
       );

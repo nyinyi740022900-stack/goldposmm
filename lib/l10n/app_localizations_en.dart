@@ -945,6 +945,68 @@ class AppLocalizationsEn extends AppLocalizations {
   String get orderPaymentProof => 'Payment screenshot';
 
   @override
+  String get deliverySection => 'Delivery';
+
+  @override
+  String get deliveryTownship => 'Township';
+
+  @override
+  String get deliveryTownshipNone => 'No township set';
+
+  @override
+  String get deliveryCarrier => 'Carrier';
+
+  @override
+  String get deliveryCarrierNinjaVan => 'Ninja Van';
+
+  @override
+  String get deliveryCarrierRoyalExpress => 'Royal Express';
+
+  @override
+  String get deliveryCarrierOther => 'Other';
+
+  @override
+  String get deliveryCarrierNone => 'Not assigned';
+
+  @override
+  String get deliveryTrackingNumber => 'Tracking / waybill number';
+
+  @override
+  String get deliveryTrackingHint =>
+      'Enter after booking on the carrier\'s own app';
+
+  @override
+  String get deliveryStatusLabel => 'Delivery status';
+
+  @override
+  String get deliveryStatusPending => 'Pending';
+
+  @override
+  String get deliveryStatusBooked => 'Booked';
+
+  @override
+  String get deliveryStatusOutForDelivery => 'Out for delivery';
+
+  @override
+  String get deliveryStatusDelivered => 'Delivered';
+
+  @override
+  String get deliveryStatusFailed => 'Failed';
+
+  @override
+  String get deliveryStatusReturned => 'Returned';
+
+  @override
+  String get deliverySave => 'Save delivery info';
+
+  @override
+  String get deliverySaved => 'Delivery info saved';
+
+  @override
+  String get deliveryManualNote =>
+      'No live carrier API yet — book the waybill in the carrier\'s own app, then record the tracking number here.';
+
+  @override
   String get ordersSearchHint => 'Search name, phone, order #';
 
   @override

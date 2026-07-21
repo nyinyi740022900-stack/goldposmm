@@ -938,6 +938,68 @@ class AppLocalizationsMy extends AppLocalizations {
   String get orderPaymentProof => 'ငွေပေးချေမှု screenshot';
 
   @override
+  String get deliverySection => 'ပို့ဆောင်ရေး';
+
+  @override
+  String get deliveryTownship => 'မြို့နယ်';
+
+  @override
+  String get deliveryTownshipNone => 'မြို့နယ် မသတ်မှတ်ရသေး';
+
+  @override
+  String get deliveryCarrier => 'ပို့ဆောင်ရေးကုမ္ပဏီ';
+
+  @override
+  String get deliveryCarrierNinjaVan => 'Ninja Van';
+
+  @override
+  String get deliveryCarrierRoyalExpress => 'Royal Express';
+
+  @override
+  String get deliveryCarrierOther => 'အခြား';
+
+  @override
+  String get deliveryCarrierNone => 'မသတ်မှတ်ရသေး';
+
+  @override
+  String get deliveryTrackingNumber => 'Tracking / waybill နံပါတ်';
+
+  @override
+  String get deliveryTrackingHint =>
+      'ကုမ္ပဏီရဲ့ app/website မှာ book ပြီးမှ ဒီမှာ ရိုက်ထည့်ပါ';
+
+  @override
+  String get deliveryStatusLabel => 'ပို့ဆောင်မှု အခြေအနေ';
+
+  @override
+  String get deliveryStatusPending => 'မစသေး';
+
+  @override
+  String get deliveryStatusBooked => 'Book လုပ်ပြီး';
+
+  @override
+  String get deliveryStatusOutForDelivery => 'ပို့ဆောင်နေဆဲ';
+
+  @override
+  String get deliveryStatusDelivered => 'ပို့ပြီး';
+
+  @override
+  String get deliveryStatusFailed => 'မအောင်မြင်';
+
+  @override
+  String get deliveryStatusReturned => 'ပြန်လာသည်';
+
+  @override
+  String get deliverySave => 'ပို့ဆောင်ရေးအချက်အလက် သိမ်း';
+
+  @override
+  String get deliverySaved => 'ပို့ဆောင်ရေးအချက်အလက် သိမ်းပြီး';
+
+  @override
+  String get deliveryManualNote =>
+      'အခုထိ ကုမ္ပဏီ API တိုက်ရိုက် မချိတ်ဆက်ရသေးပါ — waybill ကို ကုမ္ပဏီရဲ့ app/website မှာ ကိုယ်တိုင် book လုပ်ပြီး tracking number ကို ဒီမှာ မှတ်ထားပါ။';
+
+  @override
   String get ordersSearchHint => 'နာမည်၊ ဖုန်း၊ order # ရှာ';
 
   @override

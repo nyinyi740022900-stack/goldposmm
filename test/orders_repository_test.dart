@@ -159,6 +159,34 @@ void main() {
     expect(await orders.watchOrders().first, isEmpty);
   });
 
+  test('setDelivery records township/carrier/tracking/status and preserves '
+      'fields not passed', () async {
+    final id = await orders.saveOrder(
+      customerName: 'Delivery Test',
+      channel: 'facebook',
+      lines: const [OrderDraftLine(name: 'Item', price: 500, qty: 1)],
+    );
+    await orders.setDelivery(
+      id,
+      township: 'Bahan',
+      carrier: 'ninja_van',
+      trackingNumber: 'NV12345',
+      deliveryStatus: 'booked',
+    );
+    var order = await orders.getOrder(id);
+    expect(order.township, 'Bahan');
+    expect(order.deliveryCarrier, 'ninja_van');
+    expect(order.trackingNumber, 'NV12345');
+    expect(order.deliveryStatus, 'booked');
+
+    // Updating only the status leaves the other delivery fields untouched.
+    await orders.setDelivery(id, deliveryStatus: 'out_for_delivery');
+    order = await orders.getOrder(id);
+    expect(order.township, 'Bahan');
+    expect(order.trackingNumber, 'NV12345');
+    expect(order.deliveryStatus, 'out_for_delivery');
+  });
+
   test('outbox queues order + order_items rows for sync', () async {
     final id = await orders.saveOrder(
       customerName: 'Z',

@@ -195,6 +195,23 @@ class Orders extends Table with SyncColumns {
   /// orders). Viewed by the shop via a signed URL.
   TextColumn get paymentProofPath => text().nullable()();
 
+  /// Myanmar township the delivery address is in (free-text key from a fixed
+  /// list — see `myanmarTownships`). Lets a shop route/batch by area even
+  /// before a real carrier API is wired up.
+  TextColumn get township => text().nullable()();
+
+  /// ninja_van | royal_express | other | null (not yet assigned).
+  TextColumn get deliveryCarrier => text().nullable()();
+
+  /// Waybill/tracking number. Entered manually today (via the carrier's own
+  /// app/site); becomes carrier-API-issued once a real integration lands.
+  TextColumn get trackingNumber => text().nullable()();
+
+  /// pending | booked | out_for_delivery | delivered | failed | returned.
+  /// Separate from [status] (the Kanban stage) — this tracks the delivery leg
+  /// specifically, which can keep moving after the order itself is "shipped".
+  TextColumn get deliveryStatus => text().nullable()();
+
   @override
   Set<Column> get primaryKey => {id};
 }

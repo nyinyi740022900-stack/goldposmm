@@ -6528,6 +6528,50 @@ class $OrdersTable extends Orders with TableInfo<$OrdersTable, Order> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _townshipMeta = const VerificationMeta(
+    'township',
+  );
+  @override
+  late final GeneratedColumn<String> township = GeneratedColumn<String>(
+    'township',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _deliveryCarrierMeta = const VerificationMeta(
+    'deliveryCarrier',
+  );
+  @override
+  late final GeneratedColumn<String> deliveryCarrier = GeneratedColumn<String>(
+    'delivery_carrier',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _trackingNumberMeta = const VerificationMeta(
+    'trackingNumber',
+  );
+  @override
+  late final GeneratedColumn<String> trackingNumber = GeneratedColumn<String>(
+    'tracking_number',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _deliveryStatusMeta = const VerificationMeta(
+    'deliveryStatus',
+  );
+  @override
+  late final GeneratedColumn<String> deliveryStatus = GeneratedColumn<String>(
+    'delivery_status',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -6548,6 +6592,10 @@ class $OrdersTable extends Orders with TableInfo<$OrdersTable, Order> {
     note,
     saleId,
     paymentProofPath,
+    township,
+    deliveryCarrier,
+    trackingNumber,
+    deliveryStatus,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -6692,6 +6740,39 @@ class $OrdersTable extends Orders with TableInfo<$OrdersTable, Order> {
         ),
       );
     }
+    if (data.containsKey('township')) {
+      context.handle(
+        _townshipMeta,
+        township.isAcceptableOrUnknown(data['township']!, _townshipMeta),
+      );
+    }
+    if (data.containsKey('delivery_carrier')) {
+      context.handle(
+        _deliveryCarrierMeta,
+        deliveryCarrier.isAcceptableOrUnknown(
+          data['delivery_carrier']!,
+          _deliveryCarrierMeta,
+        ),
+      );
+    }
+    if (data.containsKey('tracking_number')) {
+      context.handle(
+        _trackingNumberMeta,
+        trackingNumber.isAcceptableOrUnknown(
+          data['tracking_number']!,
+          _trackingNumberMeta,
+        ),
+      );
+    }
+    if (data.containsKey('delivery_status')) {
+      context.handle(
+        _deliveryStatusMeta,
+        deliveryStatus.isAcceptableOrUnknown(
+          data['delivery_status']!,
+          _deliveryStatusMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -6773,6 +6854,22 @@ class $OrdersTable extends Orders with TableInfo<$OrdersTable, Order> {
         DriftSqlType.string,
         data['${effectivePrefix}payment_proof_path'],
       ),
+      township: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}township'],
+      ),
+      deliveryCarrier: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}delivery_carrier'],
+      ),
+      trackingNumber: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}tracking_number'],
+      ),
+      deliveryStatus: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}delivery_status'],
+      ),
     );
   }
 
@@ -6816,6 +6913,23 @@ class Order extends DataClass implements Insertable<Order> {
   /// Storage path of a customer-uploaded payment screenshot (storefront
   /// orders). Viewed by the shop via a signed URL.
   final String? paymentProofPath;
+
+  /// Myanmar township the delivery address is in (free-text key from a fixed
+  /// list — see `myanmarTownships`). Lets a shop route/batch by area even
+  /// before a real carrier API is wired up.
+  final String? township;
+
+  /// ninja_van | royal_express | other | null (not yet assigned).
+  final String? deliveryCarrier;
+
+  /// Waybill/tracking number. Entered manually today (via the carrier's own
+  /// app/site); becomes carrier-API-issued once a real integration lands.
+  final String? trackingNumber;
+
+  /// pending | booked | out_for_delivery | delivered | failed | returned.
+  /// Separate from [status] (the Kanban stage) — this tracks the delivery leg
+  /// specifically, which can keep moving after the order itself is "shipped".
+  final String? deliveryStatus;
   const Order({
     required this.id,
     required this.shopId,
@@ -6835,6 +6949,10 @@ class Order extends DataClass implements Insertable<Order> {
     this.note,
     this.saleId,
     this.paymentProofPath,
+    this.township,
+    this.deliveryCarrier,
+    this.trackingNumber,
+    this.deliveryStatus,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -6867,6 +6985,18 @@ class Order extends DataClass implements Insertable<Order> {
     if (!nullToAbsent || paymentProofPath != null) {
       map['payment_proof_path'] = Variable<String>(paymentProofPath);
     }
+    if (!nullToAbsent || township != null) {
+      map['township'] = Variable<String>(township);
+    }
+    if (!nullToAbsent || deliveryCarrier != null) {
+      map['delivery_carrier'] = Variable<String>(deliveryCarrier);
+    }
+    if (!nullToAbsent || trackingNumber != null) {
+      map['tracking_number'] = Variable<String>(trackingNumber);
+    }
+    if (!nullToAbsent || deliveryStatus != null) {
+      map['delivery_status'] = Variable<String>(deliveryStatus);
+    }
     return map;
   }
 
@@ -6898,6 +7028,18 @@ class Order extends DataClass implements Insertable<Order> {
       paymentProofPath: paymentProofPath == null && nullToAbsent
           ? const Value.absent()
           : Value(paymentProofPath),
+      township: township == null && nullToAbsent
+          ? const Value.absent()
+          : Value(township),
+      deliveryCarrier: deliveryCarrier == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deliveryCarrier),
+      trackingNumber: trackingNumber == null && nullToAbsent
+          ? const Value.absent()
+          : Value(trackingNumber),
+      deliveryStatus: deliveryStatus == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deliveryStatus),
     );
   }
 
@@ -6925,6 +7067,10 @@ class Order extends DataClass implements Insertable<Order> {
       note: serializer.fromJson<String?>(json['note']),
       saleId: serializer.fromJson<String?>(json['saleId']),
       paymentProofPath: serializer.fromJson<String?>(json['paymentProofPath']),
+      township: serializer.fromJson<String?>(json['township']),
+      deliveryCarrier: serializer.fromJson<String?>(json['deliveryCarrier']),
+      trackingNumber: serializer.fromJson<String?>(json['trackingNumber']),
+      deliveryStatus: serializer.fromJson<String?>(json['deliveryStatus']),
     );
   }
   @override
@@ -6949,6 +7095,10 @@ class Order extends DataClass implements Insertable<Order> {
       'note': serializer.toJson<String?>(note),
       'saleId': serializer.toJson<String?>(saleId),
       'paymentProofPath': serializer.toJson<String?>(paymentProofPath),
+      'township': serializer.toJson<String?>(township),
+      'deliveryCarrier': serializer.toJson<String?>(deliveryCarrier),
+      'trackingNumber': serializer.toJson<String?>(trackingNumber),
+      'deliveryStatus': serializer.toJson<String?>(deliveryStatus),
     };
   }
 
@@ -6971,6 +7121,10 @@ class Order extends DataClass implements Insertable<Order> {
     Value<String?> note = const Value.absent(),
     Value<String?> saleId = const Value.absent(),
     Value<String?> paymentProofPath = const Value.absent(),
+    Value<String?> township = const Value.absent(),
+    Value<String?> deliveryCarrier = const Value.absent(),
+    Value<String?> trackingNumber = const Value.absent(),
+    Value<String?> deliveryStatus = const Value.absent(),
   }) => Order(
     id: id ?? this.id,
     shopId: shopId ?? this.shopId,
@@ -6996,6 +7150,16 @@ class Order extends DataClass implements Insertable<Order> {
     paymentProofPath: paymentProofPath.present
         ? paymentProofPath.value
         : this.paymentProofPath,
+    township: township.present ? township.value : this.township,
+    deliveryCarrier: deliveryCarrier.present
+        ? deliveryCarrier.value
+        : this.deliveryCarrier,
+    trackingNumber: trackingNumber.present
+        ? trackingNumber.value
+        : this.trackingNumber,
+    deliveryStatus: deliveryStatus.present
+        ? deliveryStatus.value
+        : this.deliveryStatus,
   );
   Order copyWithCompanion(OrdersCompanion data) {
     return Order(
@@ -7031,6 +7195,16 @@ class Order extends DataClass implements Insertable<Order> {
       paymentProofPath: data.paymentProofPath.present
           ? data.paymentProofPath.value
           : this.paymentProofPath,
+      township: data.township.present ? data.township.value : this.township,
+      deliveryCarrier: data.deliveryCarrier.present
+          ? data.deliveryCarrier.value
+          : this.deliveryCarrier,
+      trackingNumber: data.trackingNumber.present
+          ? data.trackingNumber.value
+          : this.trackingNumber,
+      deliveryStatus: data.deliveryStatus.present
+          ? data.deliveryStatus.value
+          : this.deliveryStatus,
     );
   }
 
@@ -7054,13 +7228,17 @@ class Order extends DataClass implements Insertable<Order> {
           ..write('paymentStatus: $paymentStatus, ')
           ..write('note: $note, ')
           ..write('saleId: $saleId, ')
-          ..write('paymentProofPath: $paymentProofPath')
+          ..write('paymentProofPath: $paymentProofPath, ')
+          ..write('township: $township, ')
+          ..write('deliveryCarrier: $deliveryCarrier, ')
+          ..write('trackingNumber: $trackingNumber, ')
+          ..write('deliveryStatus: $deliveryStatus')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     id,
     shopId,
     createdAt,
@@ -7079,7 +7257,11 @@ class Order extends DataClass implements Insertable<Order> {
     note,
     saleId,
     paymentProofPath,
-  );
+    township,
+    deliveryCarrier,
+    trackingNumber,
+    deliveryStatus,
+  ]);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -7101,7 +7283,11 @@ class Order extends DataClass implements Insertable<Order> {
           other.paymentStatus == this.paymentStatus &&
           other.note == this.note &&
           other.saleId == this.saleId &&
-          other.paymentProofPath == this.paymentProofPath);
+          other.paymentProofPath == this.paymentProofPath &&
+          other.township == this.township &&
+          other.deliveryCarrier == this.deliveryCarrier &&
+          other.trackingNumber == this.trackingNumber &&
+          other.deliveryStatus == this.deliveryStatus);
 }
 
 class OrdersCompanion extends UpdateCompanion<Order> {
@@ -7123,6 +7309,10 @@ class OrdersCompanion extends UpdateCompanion<Order> {
   final Value<String?> note;
   final Value<String?> saleId;
   final Value<String?> paymentProofPath;
+  final Value<String?> township;
+  final Value<String?> deliveryCarrier;
+  final Value<String?> trackingNumber;
+  final Value<String?> deliveryStatus;
   final Value<int> rowid;
   const OrdersCompanion({
     this.id = const Value.absent(),
@@ -7143,6 +7333,10 @@ class OrdersCompanion extends UpdateCompanion<Order> {
     this.note = const Value.absent(),
     this.saleId = const Value.absent(),
     this.paymentProofPath = const Value.absent(),
+    this.township = const Value.absent(),
+    this.deliveryCarrier = const Value.absent(),
+    this.trackingNumber = const Value.absent(),
+    this.deliveryStatus = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   OrdersCompanion.insert({
@@ -7164,6 +7358,10 @@ class OrdersCompanion extends UpdateCompanion<Order> {
     this.note = const Value.absent(),
     this.saleId = const Value.absent(),
     this.paymentProofPath = const Value.absent(),
+    this.township = const Value.absent(),
+    this.deliveryCarrier = const Value.absent(),
+    this.trackingNumber = const Value.absent(),
+    this.deliveryStatus = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        shopId = Value(shopId),
@@ -7188,6 +7386,10 @@ class OrdersCompanion extends UpdateCompanion<Order> {
     Expression<String>? note,
     Expression<String>? saleId,
     Expression<String>? paymentProofPath,
+    Expression<String>? township,
+    Expression<String>? deliveryCarrier,
+    Expression<String>? trackingNumber,
+    Expression<String>? deliveryStatus,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -7209,6 +7411,10 @@ class OrdersCompanion extends UpdateCompanion<Order> {
       if (note != null) 'note': note,
       if (saleId != null) 'sale_id': saleId,
       if (paymentProofPath != null) 'payment_proof_path': paymentProofPath,
+      if (township != null) 'township': township,
+      if (deliveryCarrier != null) 'delivery_carrier': deliveryCarrier,
+      if (trackingNumber != null) 'tracking_number': trackingNumber,
+      if (deliveryStatus != null) 'delivery_status': deliveryStatus,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -7232,6 +7438,10 @@ class OrdersCompanion extends UpdateCompanion<Order> {
     Value<String?>? note,
     Value<String?>? saleId,
     Value<String?>? paymentProofPath,
+    Value<String?>? township,
+    Value<String?>? deliveryCarrier,
+    Value<String?>? trackingNumber,
+    Value<String?>? deliveryStatus,
     Value<int>? rowid,
   }) {
     return OrdersCompanion(
@@ -7253,6 +7463,10 @@ class OrdersCompanion extends UpdateCompanion<Order> {
       note: note ?? this.note,
       saleId: saleId ?? this.saleId,
       paymentProofPath: paymentProofPath ?? this.paymentProofPath,
+      township: township ?? this.township,
+      deliveryCarrier: deliveryCarrier ?? this.deliveryCarrier,
+      trackingNumber: trackingNumber ?? this.trackingNumber,
+      deliveryStatus: deliveryStatus ?? this.deliveryStatus,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -7314,6 +7528,18 @@ class OrdersCompanion extends UpdateCompanion<Order> {
     if (paymentProofPath.present) {
       map['payment_proof_path'] = Variable<String>(paymentProofPath.value);
     }
+    if (township.present) {
+      map['township'] = Variable<String>(township.value);
+    }
+    if (deliveryCarrier.present) {
+      map['delivery_carrier'] = Variable<String>(deliveryCarrier.value);
+    }
+    if (trackingNumber.present) {
+      map['tracking_number'] = Variable<String>(trackingNumber.value);
+    }
+    if (deliveryStatus.present) {
+      map['delivery_status'] = Variable<String>(deliveryStatus.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -7341,6 +7567,10 @@ class OrdersCompanion extends UpdateCompanion<Order> {
           ..write('note: $note, ')
           ..write('saleId: $saleId, ')
           ..write('paymentProofPath: $paymentProofPath, ')
+          ..write('township: $township, ')
+          ..write('deliveryCarrier: $deliveryCarrier, ')
+          ..write('trackingNumber: $trackingNumber, ')
+          ..write('deliveryStatus: $deliveryStatus, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -11791,6 +12021,10 @@ typedef $$OrdersTableCreateCompanionBuilder =
       Value<String?> note,
       Value<String?> saleId,
       Value<String?> paymentProofPath,
+      Value<String?> township,
+      Value<String?> deliveryCarrier,
+      Value<String?> trackingNumber,
+      Value<String?> deliveryStatus,
       Value<int> rowid,
     });
 typedef $$OrdersTableUpdateCompanionBuilder =
@@ -11813,6 +12047,10 @@ typedef $$OrdersTableUpdateCompanionBuilder =
       Value<String?> note,
       Value<String?> saleId,
       Value<String?> paymentProofPath,
+      Value<String?> township,
+      Value<String?> deliveryCarrier,
+      Value<String?> trackingNumber,
+      Value<String?> deliveryStatus,
       Value<int> rowid,
     });
 
@@ -11912,6 +12150,26 @@ class $$OrdersTableFilterComposer
 
   ColumnFilters<String> get paymentProofPath => $composableBuilder(
     column: $table.paymentProofPath,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get township => $composableBuilder(
+    column: $table.township,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get deliveryCarrier => $composableBuilder(
+    column: $table.deliveryCarrier,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get trackingNumber => $composableBuilder(
+    column: $table.trackingNumber,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get deliveryStatus => $composableBuilder(
+    column: $table.deliveryStatus,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -12014,6 +12272,26 @@ class $$OrdersTableOrderingComposer
     column: $table.paymentProofPath,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get township => $composableBuilder(
+    column: $table.township,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get deliveryCarrier => $composableBuilder(
+    column: $table.deliveryCarrier,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get trackingNumber => $composableBuilder(
+    column: $table.trackingNumber,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get deliveryStatus => $composableBuilder(
+    column: $table.deliveryStatus,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$OrdersTableAnnotationComposer
@@ -12092,6 +12370,24 @@ class $$OrdersTableAnnotationComposer
     column: $table.paymentProofPath,
     builder: (column) => column,
   );
+
+  GeneratedColumn<String> get township =>
+      $composableBuilder(column: $table.township, builder: (column) => column);
+
+  GeneratedColumn<String> get deliveryCarrier => $composableBuilder(
+    column: $table.deliveryCarrier,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get trackingNumber => $composableBuilder(
+    column: $table.trackingNumber,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get deliveryStatus => $composableBuilder(
+    column: $table.deliveryStatus,
+    builder: (column) => column,
+  );
 }
 
 class $$OrdersTableTableManager
@@ -12140,6 +12436,10 @@ class $$OrdersTableTableManager
                 Value<String?> note = const Value.absent(),
                 Value<String?> saleId = const Value.absent(),
                 Value<String?> paymentProofPath = const Value.absent(),
+                Value<String?> township = const Value.absent(),
+                Value<String?> deliveryCarrier = const Value.absent(),
+                Value<String?> trackingNumber = const Value.absent(),
+                Value<String?> deliveryStatus = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => OrdersCompanion(
                 id: id,
@@ -12160,6 +12460,10 @@ class $$OrdersTableTableManager
                 note: note,
                 saleId: saleId,
                 paymentProofPath: paymentProofPath,
+                township: township,
+                deliveryCarrier: deliveryCarrier,
+                trackingNumber: trackingNumber,
+                deliveryStatus: deliveryStatus,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -12182,6 +12486,10 @@ class $$OrdersTableTableManager
                 Value<String?> note = const Value.absent(),
                 Value<String?> saleId = const Value.absent(),
                 Value<String?> paymentProofPath = const Value.absent(),
+                Value<String?> township = const Value.absent(),
+                Value<String?> deliveryCarrier = const Value.absent(),
+                Value<String?> trackingNumber = const Value.absent(),
+                Value<String?> deliveryStatus = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => OrdersCompanion.insert(
                 id: id,
@@ -12202,6 +12510,10 @@ class $$OrdersTableTableManager
                 note: note,
                 saleId: saleId,
                 paymentProofPath: paymentProofPath,
+                township: township,
+                deliveryCarrier: deliveryCarrier,
+                trackingNumber: trackingNumber,
+                deliveryStatus: deliveryStatus,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
