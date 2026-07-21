@@ -1832,6 +1832,126 @@ abstract class AppLocalizations {
   /// **'Payment screenshot'**
   String get orderPaymentProof;
 
+  /// No description provided for @deliverySection.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery'**
+  String get deliverySection;
+
+  /// No description provided for @deliveryTownship.
+  ///
+  /// In en, this message translates to:
+  /// **'Township'**
+  String get deliveryTownship;
+
+  /// No description provided for @deliveryTownshipNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No township set'**
+  String get deliveryTownshipNone;
+
+  /// No description provided for @deliveryCarrier.
+  ///
+  /// In en, this message translates to:
+  /// **'Carrier'**
+  String get deliveryCarrier;
+
+  /// No description provided for @deliveryCarrierNinjaVan.
+  ///
+  /// In en, this message translates to:
+  /// **'Ninja Van'**
+  String get deliveryCarrierNinjaVan;
+
+  /// No description provided for @deliveryCarrierRoyalExpress.
+  ///
+  /// In en, this message translates to:
+  /// **'Royal Express'**
+  String get deliveryCarrierRoyalExpress;
+
+  /// No description provided for @deliveryCarrierOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get deliveryCarrierOther;
+
+  /// No description provided for @deliveryCarrierNone.
+  ///
+  /// In en, this message translates to:
+  /// **'Not assigned'**
+  String get deliveryCarrierNone;
+
+  /// No description provided for @deliveryTrackingNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Tracking / waybill number'**
+  String get deliveryTrackingNumber;
+
+  /// No description provided for @deliveryTrackingHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter after booking on the carrier\'s own app'**
+  String get deliveryTrackingHint;
+
+  /// No description provided for @deliveryStatusLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery status'**
+  String get deliveryStatusLabel;
+
+  /// No description provided for @deliveryStatusPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get deliveryStatusPending;
+
+  /// No description provided for @deliveryStatusBooked.
+  ///
+  /// In en, this message translates to:
+  /// **'Booked'**
+  String get deliveryStatusBooked;
+
+  /// No description provided for @deliveryStatusOutForDelivery.
+  ///
+  /// In en, this message translates to:
+  /// **'Out for delivery'**
+  String get deliveryStatusOutForDelivery;
+
+  /// No description provided for @deliveryStatusDelivered.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivered'**
+  String get deliveryStatusDelivered;
+
+  /// No description provided for @deliveryStatusFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed'**
+  String get deliveryStatusFailed;
+
+  /// No description provided for @deliveryStatusReturned.
+  ///
+  /// In en, this message translates to:
+  /// **'Returned'**
+  String get deliveryStatusReturned;
+
+  /// No description provided for @deliverySave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save delivery info'**
+  String get deliverySave;
+
+  /// No description provided for @deliverySaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery info saved'**
+  String get deliverySaved;
+
+  /// No description provided for @deliveryManualNote.
+  ///
+  /// In en, this message translates to:
+  /// **'No live carrier API yet — book the waybill in the carrier\'s own app, then record the tracking number here.'**
+  String get deliveryManualNote;
+
   /// No description provided for @ordersSearchHint.
   ///
   /// In en, this message translates to:

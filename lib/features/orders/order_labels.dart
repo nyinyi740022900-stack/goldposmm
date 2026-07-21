@@ -86,3 +86,35 @@ String orderPaymentLabel(AppLocalizations l, String status) {
       return l.orderPayUnpaid;
   }
 }
+
+/// Localized label for a delivery-carrier code.
+String deliveryCarrierLabel(AppLocalizations l, String carrier) {
+  switch (carrier) {
+    case 'ninja_van':
+      return l.deliveryCarrierNinjaVan;
+    case 'royal_express':
+      return l.deliveryCarrierRoyalExpress;
+    case 'other':
+    default:
+      return l.deliveryCarrierOther;
+  }
+}
+
+/// Localized label for a delivery-leg status code.
+String deliveryStatusLabel(AppLocalizations l, String status) {
+  switch (status) {
+    case 'booked':
+      return l.deliveryStatusBooked;
+    case 'out_for_delivery':
+      return l.deliveryStatusOutForDelivery;
+    case 'delivered':
+      return l.deliveryStatusDelivered;
+    case 'failed':
+      return l.deliveryStatusFailed;
+    case 'returned':
+      return l.deliveryStatusReturned;
+    case 'pending':
+    default:
+      return l.deliveryStatusPending;
+  }
+}

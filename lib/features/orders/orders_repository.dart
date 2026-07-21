@@ -26,6 +26,23 @@ const orderChannels = <String>[
   'other',
 ];
 
+/// Carriers a shop can assign an order to. No live API integration yet — see
+/// PROJECT_SPEC §12 (Ninja Van needs a sandbox application; Royal Express has
+/// no public developer API). The waybill/tracking number is entered manually
+/// from the carrier's own app/site in the meantime.
+const deliveryCarriers = <String>['ninja_van', 'royal_express', 'other'];
+
+/// Delivery-leg status, separate from the Kanban [orderStatuses] stage — this
+/// tracks the handoff to a carrier specifically.
+const deliveryStatuses = <String>[
+  'pending',
+  'booked',
+  'out_for_delivery',
+  'delivered',
+  'failed',
+  'returned',
+];
+
 /// A line the caller wants on an order, before it is persisted. A line may
 /// reference a catalog product ([productId]) or be a free-text item.
 class OrderDraftLine {
@@ -167,6 +184,36 @@ class OrdersRepository {
       await (_db.update(_db.orders)..where((o) => o.id.equals(orderId)))
           .write(OrdersCompanion(
         paymentStatus: Value(paymentStatus),
+        updatedAt: Value(now),
+        dirty: const Value(true),
+      ));
+      await _enqueueOrder(orderId);
+    });
+  }
+
+  /// Records delivery info for an order: township, assigned carrier, a
+  /// manually-entered tracking number, and the delivery-leg status. Pass only
+  /// what changed; omitted fields are left as-is.
+  Future<void> setDelivery(
+    String orderId, {
+    String? township,
+    String? carrier,
+    String? trackingNumber,
+    String? deliveryStatus,
+  }) async {
+    final now = DateTime.now();
+    await _db.transaction(() async {
+      await (_db.update(_db.orders)..where((o) => o.id.equals(orderId)))
+          .write(OrdersCompanion(
+        township: township == null ? const Value.absent() : Value(township),
+        deliveryCarrier:
+            carrier == null ? const Value.absent() : Value(carrier),
+        trackingNumber: trackingNumber == null
+            ? const Value.absent()
+            : Value(trackingNumber),
+        deliveryStatus: deliveryStatus == null
+            ? const Value.absent()
+            : Value(deliveryStatus),
         updatedAt: Value(now),
         dirty: const Value(true),
       ));

@@ -331,6 +331,25 @@ class _OrderCard extends StatelessWidget {
                   _PayDot(status: order.paymentStatus),
                 ],
               ),
+              if ((order.trackingNumber ?? '').isNotEmpty) ...[
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Icon(Icons.local_shipping_outlined,
+                        size: 12, color: Theme.of(context).colorScheme.outline),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        deliveryStatusLabel(
+                            l, order.deliveryStatus ?? 'pending'),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.labelSmall,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ],
           ),
         ),

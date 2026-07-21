@@ -7,6 +7,7 @@ import '../../data/local/database.dart';
 import '../../l10n/app_localizations.dart';
 import '../sell/payment_labels.dart';
 import '../sell/sales_providers.dart';
+import 'myanmar_townships.dart';
 import 'order_editor_sheet.dart';
 import 'order_labels.dart';
 import 'orders_providers.dart';
@@ -125,6 +126,8 @@ class OrderDetailSheet extends ConsumerWidget {
               const SizedBox(height: 6),
               _PaymentProof(path: o.paymentProofPath!),
             ],
+            const Divider(height: 24),
+            _DeliverySection(order: o),
             const Divider(height: 24),
 
             // --- actions ---
@@ -355,6 +358,131 @@ class _StatusChip extends StatelessWidget {
       ),
       child: Text(orderStatusLabel(l, status),
           style: TextStyle(color: c, fontWeight: FontWeight.w600, fontSize: 12)),
+    );
+  }
+}
+
+/// Inline editor for township / carrier / tracking number / delivery status.
+/// No live carrier API — the waybill is booked in the carrier's own app and
+/// the tracking number is recorded here manually (see PROJECT_SPEC §12).
+class _DeliverySection extends ConsumerStatefulWidget {
+  const _DeliverySection({required this.order});
+  final Order order;
+
+  @override
+  ConsumerState<_DeliverySection> createState() => _DeliverySectionState();
+}
+
+class _DeliverySectionState extends ConsumerState<_DeliverySection> {
+  late String? _township;
+  late String? _carrier;
+  late final TextEditingController _tracking;
+  late String _deliveryStatus;
+  bool _saving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _township = widget.order.township;
+    _carrier = widget.order.deliveryCarrier;
+    _tracking = TextEditingController(text: widget.order.trackingNumber ?? '');
+    _deliveryStatus = widget.order.deliveryStatus ?? 'pending';
+  }
+
+  @override
+  void dispose() {
+    _tracking.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    final l = AppLocalizations.of(context);
+    setState(() => _saving = true);
+    await ref.read(ordersRepositoryProvider).setDelivery(
+          widget.order.id,
+          township: _township ?? '',
+          carrier: _carrier ?? '',
+          trackingNumber: _tracking.text.trim(),
+          deliveryStatus: _deliveryStatus,
+        );
+    if (!mounted) return;
+    setState(() => _saving = false);
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(l.deliverySaved)));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(l.deliverySection,
+            style: Theme.of(context).textTheme.labelLarge),
+        const SizedBox(height: 4),
+        Text(l.deliveryManualNote,
+            style: Theme.of(context).textTheme.bodySmall),
+        const SizedBox(height: 10),
+        DropdownButtonFormField<String>(
+          initialValue:
+              myanmarTownships.contains(_township) ? _township : null,
+          decoration: InputDecoration(
+              labelText: l.deliveryTownship, isDense: true),
+          items: [
+            for (final t in myanmarTownships)
+              DropdownMenuItem(value: t, child: Text(t)),
+          ],
+          onChanged: (v) => setState(() => _township = v),
+        ),
+        const SizedBox(height: 8),
+        DropdownButtonFormField<String>(
+          initialValue:
+              deliveryCarriers.contains(_carrier) ? _carrier : null,
+          decoration:
+              InputDecoration(labelText: l.deliveryCarrier, isDense: true),
+          items: [
+            for (final c in deliveryCarriers)
+              DropdownMenuItem(
+                  value: c, child: Text(deliveryCarrierLabel(l, c))),
+          ],
+          onChanged: (v) => setState(() => _carrier = v),
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          controller: _tracking,
+          decoration: InputDecoration(
+            labelText: l.deliveryTrackingNumber,
+            hintText: l.deliveryTrackingHint,
+            isDense: true,
+          ),
+        ),
+        const SizedBox(height: 8),
+        DropdownButtonFormField<String>(
+          initialValue: _deliveryStatus,
+          decoration:
+              InputDecoration(labelText: l.deliveryStatusLabel, isDense: true),
+          items: [
+            for (final s in deliveryStatuses)
+              DropdownMenuItem(value: s, child: Text(deliveryStatusLabel(l, s))),
+          ],
+          onChanged: (v) =>
+              setState(() => _deliveryStatus = v ?? 'pending'),
+        ),
+        const SizedBox(height: 10),
+        Align(
+          alignment: Alignment.centerRight,
+          child: TextButton.icon(
+            onPressed: _saving ? null : _save,
+            icon: _saving
+                ? const SizedBox(
+                    width: 14,
+                    height: 14,
+                    child: CircularProgressIndicator(strokeWidth: 2))
+                : const Icon(Icons.check, size: 18),
+            label: Text(l.deliverySave),
+          ),
+        ),
+      ],
     );
   }
 }
