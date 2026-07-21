@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../core/env.dart';
+import '../../core/image_util.dart';
 import '../../core/theme/app_theme.dart';
 import '../../domain/product_with_stock.dart';
 import '../../l10n/app_localizations.dart';
@@ -80,10 +81,11 @@ class _ProductEditScreenState extends ConsumerState<ProductEditScreen> {
     if (file == null || file.bytes == null) return;
     setState(() => _uploading = true);
     try {
-      final ext = (file.extension ?? 'jpg').toLowerCase();
-      final path = 'p-${DateTime.now().millisecondsSinceEpoch}.$ext';
+      final c = compressImage(Uint8List.fromList(file.bytes!),
+          fallbackExt: (file.extension ?? 'jpg').toLowerCase());
+      final path = 'p-${DateTime.now().millisecondsSinceEpoch}.${c.ext}';
       final storage = Supabase.instance.client.storage.from('product-images');
-      await storage.uploadBinary(path, file.bytes!,
+      await storage.uploadBinary(path, c.bytes,
           fileOptions: const FileOptions(upsert: true));
       final url = storage.getPublicUrl(path);
       if (mounted) setState(() => _imageUrl = url);

@@ -330,6 +330,7 @@
   "@orderItemsCount": { "placeholders": { "count": { "type": "int" } } },
   "orderPickPaymentMethod": "Payment method",
   "orderPaymentProof": "Payment screenshot",
+  "orderInvoice": "Share invoice",
   "deliverySection": "Delivery",
   "deliveryTownship": "Township",
   "deliveryTownshipNone": "No township set",

@@ -100,6 +100,7 @@ class StorefrontApi {
     required String customerName,
     String? phone,
     String? address,
+    String? township,
     String? note,
     String? paymentProofPath,
     required List<OrderLine> lines,
@@ -110,6 +111,7 @@ class StorefrontApi {
       'customer_name': customerName,
       'phone': phone,
       'address': address,
+      'township': township,
       'note': note,
       'payment_proof_path': paymentProofPath,
       'lines': [

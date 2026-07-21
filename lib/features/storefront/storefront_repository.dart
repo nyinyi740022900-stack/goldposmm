@@ -2,6 +2,8 @@ import 'dart:typed_data';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../core/image_util.dart';
+
 /// Public base URL where the storefront web app is hosted. A shop's page is
 /// `$storefrontBaseUrl/<slug>`.
 const storefrontBaseUrl = 'https://goldposmm-shop.vercel.app';
@@ -106,9 +108,11 @@ class StorefrontRepository {
   /// Uploads a logo image to the shared public product-images bucket and
   /// returns its public URL.
   Future<String> uploadLogo(List<int> bytes, String ext) async {
-    final path = 'logo-$_shopId-${DateTime.now().millisecondsSinceEpoch}.$ext';
+    final c = compressImage(Uint8List.fromList(bytes), fallbackExt: ext);
+    final path =
+        'logo-$_shopId-${DateTime.now().millisecondsSinceEpoch}.${c.ext}';
     final storage = _c.storage.from('product-images');
-    await storage.uploadBinary(path, Uint8List.fromList(bytes),
+    await storage.uploadBinary(path, c.bytes,
         fileOptions: const FileOptions(upsert: true));
     return storage.getPublicUrl(path);
   }

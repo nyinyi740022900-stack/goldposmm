@@ -945,6 +945,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get orderPaymentProof => 'Payment screenshot';
 
   @override
+  String get orderInvoice => 'Share invoice';
+
+  @override
   String get deliverySection => 'Delivery';
 
   @override

@@ -8,6 +8,7 @@ import '../../l10n/app_localizations.dart';
 import '../sell/payment_labels.dart';
 import '../sell/sales_providers.dart';
 import 'myanmar_townships.dart';
+import 'order_invoice.dart';
 import 'order_editor_sheet.dart';
 import 'order_labels.dart';
 import 'orders_providers.dart';
@@ -77,6 +78,8 @@ class OrderDetailSheet extends ConsumerWidget {
               _kv(context, Icons.phone_outlined, o.customerPhone!),
             if (o.deliveryAddress != null && o.deliveryAddress!.isNotEmpty)
               _kv(context, Icons.location_on_outlined, o.deliveryAddress!),
+            if (o.township != null && o.township!.isNotEmpty)
+              _kv(context, Icons.map_outlined, o.township!),
             if (o.note != null && o.note!.isNotEmpty)
               _kv(context, Icons.sticky_note_2_outlined, o.note!),
             const Divider(height: 20),
@@ -197,6 +200,14 @@ class OrderDetailSheet extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: 8),
+            OutlinedButton.icon(
+              onPressed: items.isEmpty
+                  ? null
+                  : () => _shareInvoice(context, ref, o, items),
+              icon: const Icon(Icons.receipt_long),
+              label: Text(l.orderInvoice),
+            ),
+            const SizedBox(height: 8),
             TextButton.icon(
               onPressed: () => _confirmDelete(context, ref),
               icon: const Icon(Icons.delete_outline, color: Colors.red),
@@ -221,6 +232,18 @@ class OrderDetailSheet extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _shareInvoice(BuildContext context, WidgetRef ref, Order o,
+      List<OrderItem> items) async {
+    try {
+      await shareOrderInvoice(context, ref, o, items);
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('$e')));
+      }
+    }
   }
 
   Future<void> _convert(BuildContext context, WidgetRef ref, Order o) async {
