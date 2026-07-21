@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
+import '../core/image_util.dart';
+import '../features/orders/myanmar_townships.dart';
 import 'storefront_api.dart';
 
 final _money = NumberFormat('#,##0', 'en_US');
@@ -345,6 +347,7 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
   final _phone = TextEditingController();
   final _address = TextEditingController();
   final _note = TextEditingController();
+  String? _township;
   bool _submitting = false;
   String? _orderNo;
   List<int>? _proofBytes;
@@ -367,9 +370,12 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
     );
     final file = res?.files.firstOrNull;
     if (file == null || file.bytes == null) return;
+    // Shrink before upload — phone screenshots are often several MB.
+    final c = compressImage(Uint8List.fromList(file.bytes!),
+        fallbackExt: (file.extension ?? 'jpg').toLowerCase());
     setState(() {
-      _proofBytes = file.bytes!;
-      _proofExt = (file.extension ?? 'jpg').toLowerCase();
+      _proofBytes = c.bytes;
+      _proofExt = c.ext;
       _proofName = file.name;
     });
   }
@@ -388,6 +394,7 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
         customerName: _name.text.trim(),
         phone: _phone.text.trim(),
         address: _address.text.trim(),
+        township: _township,
         note: _note.text.trim(),
         paymentProofPath: proofPath,
         lines: widget.lines,
@@ -431,6 +438,17 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
                 maxLines: 2,
                 decoration:
                     const InputDecoration(labelText: 'Delivery address')),
+            const SizedBox(height: 8),
+            DropdownButtonFormField<String>(
+              initialValue: _township,
+              isExpanded: true,
+              decoration: const InputDecoration(labelText: 'Township'),
+              items: [
+                for (final t in myanmarTownships)
+                  DropdownMenuItem(value: t, child: Text(t)),
+              ],
+              onChanged: (v) => setState(() => _township = v),
+            ),
             const SizedBox(height: 8),
             TextField(
                 controller: _note,

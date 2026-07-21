@@ -938,6 +938,9 @@ class AppLocalizationsMy extends AppLocalizations {
   String get orderPaymentProof => 'ငွေပေးချေမှု screenshot';
 
   @override
+  String get orderInvoice => 'ဘောက်ချာ မျှဝေ';
+
+  @override
   String get deliverySection => 'ပို့ဆောင်ရေး';
 
   @override

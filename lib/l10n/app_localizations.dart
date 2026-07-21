@@ -1832,6 +1832,12 @@ abstract class AppLocalizations {
   /// **'Payment screenshot'**
   String get orderPaymentProof;
 
+  /// No description provided for @orderInvoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Share invoice'**
+  String get orderInvoice;
+
   /// No description provided for @deliverySection.
   ///
   /// In en, this message translates to:

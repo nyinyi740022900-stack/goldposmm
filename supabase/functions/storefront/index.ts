@@ -100,6 +100,7 @@ Deno.serve(async (req) => {
       customer_name: name,
       customer_phone: (body.phone ?? "").trim() || null,
       delivery_address: (body.address ?? "").trim() || null,
+      township: (body.township ?? "").trim() || null,
       items_total: itemsTotal,
       payment_status: "unpaid",
       note: (body.note ?? "").trim() || null,

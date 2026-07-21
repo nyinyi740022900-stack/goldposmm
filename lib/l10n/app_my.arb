@@ -329,6 +329,7 @@
   "@orderItemsCount": { "placeholders": { "count": { "type": "int" } } },
   "orderPickPaymentMethod": "ငွေပေးချေနည်း",
   "orderPaymentProof": "ငွေပေးချေမှု screenshot",
+  "orderInvoice": "ဘောက်ချာ မျှဝေ",
   "deliverySection": "ပို့ဆောင်ရေး",
   "deliveryTownship": "မြို့နယ်",
   "deliveryTownshipNone": "မြို့နယ် မသတ်မှတ်ရသေး",
