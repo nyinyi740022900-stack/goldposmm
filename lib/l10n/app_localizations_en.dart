@@ -272,6 +272,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsTitle => 'Settings';
 
   @override
+  String get settingsSectionBusiness => 'Business';
+
+  @override
+  String get settingsSectionFinance => 'Finance';
+
+  @override
+  String get settingsSectionDevice => 'Device & Staff';
+
+  @override
+  String get settingsSectionHelp => 'Help';
+
+  @override
   String get settingsLanguage => 'Language';
 
   @override
@@ -854,6 +866,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get orderNote => 'Note';
+
+  @override
+  String get orderMoreDetails =>
+      'More details (phone, address, delivery fee, note)';
 
   @override
   String get orderItems => 'Items';

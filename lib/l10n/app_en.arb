@@ -94,6 +94,10 @@
   "deleteConfirmBody": "This item will be removed.",
 
   "settingsTitle": "Settings",
+  "settingsSectionBusiness": "Business",
+  "settingsSectionFinance": "Finance",
+  "settingsSectionDevice": "Device & Staff",
+  "settingsSectionHelp": "Help",
   "settingsLanguage": "Language",
   "settingsPrinter": "Printer",
   "settingsShop": "Shop profile",
@@ -299,6 +303,7 @@
   "orderDeliveryAddress": "Delivery address",
   "orderDeliveryFee": "Delivery fee",
   "orderNote": "Note",
+  "orderMoreDetails": "More details (phone, address, delivery fee, note)",
   "orderItems": "Items",
   "orderAddItem": "Add item",
   "orderItemName": "Item name",

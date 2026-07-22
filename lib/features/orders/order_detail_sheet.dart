@@ -51,6 +51,11 @@ class OrderDetailSheet extends ConsumerWidget {
     final total = o.itemsTotal + o.deliveryFee;
     final isCancelled = o.status == 'cancelled';
     final canConvert = o.status == 'delivered' && o.saleId == null;
+    // Show delivery tracking once the order has reached 'shipped' or later
+    // (or already has delivery info recorded, e.g. edited earlier).
+    final showDelivery = orderStatuses.indexOf(o.status) >=
+            orderStatuses.indexOf('shipped') ||
+        (o.trackingNumber ?? '').isNotEmpty;
 
     return SafeArea(
       top: false,
@@ -72,6 +77,27 @@ class OrderDetailSheet extends ConsumerWidget {
             const SizedBox(height: 4),
             Text(orderChannelLabel(l, o.channel),
                 style: Theme.of(context).textTheme.bodySmall),
+            // Move-to is the single most-used action on this sheet (moving an
+            // order across the Kanban pipeline) — surfaced first so it never
+            // requires scrolling past customer/item/delivery detail.
+            if (!isCancelled) ...[
+              const SizedBox(height: 14),
+              Text(l.orderMoveTo,
+                  style: Theme.of(context).textTheme.labelLarge),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final s in orderStatuses)
+                    ChoiceChip(
+                      label: Text(orderStatusLabel(l, s)),
+                      selected: o.status == s,
+                      onSelected: (_) => repo.setStatus(orderId, s),
+                    ),
+                ],
+              ),
+            ],
             const Divider(height: 20),
             _kv(context, Icons.person_outline, o.customerName),
             if (o.customerPhone != null && o.customerPhone!.isNotEmpty)
@@ -129,29 +155,17 @@ class OrderDetailSheet extends ConsumerWidget {
               const SizedBox(height: 6),
               _PaymentProof(path: o.paymentProofPath!),
             ],
-            const Divider(height: 24),
-            _DeliverySection(order: o),
+            // Delivery info is only relevant once an order is actually being
+            // shipped — hidden for new/confirmed/packed so the common
+            // "just move this order along" flow doesn't scroll past a form
+            // that's still empty and irrelevant at that stage.
+            if (showDelivery) ...[
+              const Divider(height: 24),
+              _DeliverySection(order: o),
+            ],
             const Divider(height: 24),
 
             // --- actions ---
-            if (!isCancelled) ...[
-              Text(l.orderMoveTo,
-                  style: Theme.of(context).textTheme.labelLarge),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  for (final s in orderStatuses)
-                    ChoiceChip(
-                      label: Text(orderStatusLabel(l, s)),
-                      selected: o.status == s,
-                      onSelected: (_) => repo.setStatus(orderId, s),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 16),
-            ],
             if (canConvert)
               FilledButton.icon(
                 onPressed: () => _convert(context, ref, o),

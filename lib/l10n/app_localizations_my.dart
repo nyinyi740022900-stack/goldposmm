@@ -265,6 +265,18 @@ class AppLocalizationsMy extends AppLocalizations {
   String get settingsTitle => 'ဆက်တင်';
 
   @override
+  String get settingsSectionBusiness => 'ရောင်းဝယ်ရေး';
+
+  @override
+  String get settingsSectionFinance => 'ငွေကြေး';
+
+  @override
+  String get settingsSectionDevice => 'စက်/ဝန်ထမ်း';
+
+  @override
+  String get settingsSectionHelp => 'အကူအညီ';
+
+  @override
   String get settingsLanguage => 'ဘာသာစကား';
 
   @override
@@ -847,6 +859,9 @@ class AppLocalizationsMy extends AppLocalizations {
 
   @override
   String get orderNote => 'မှတ်စု';
+
+  @override
+  String get orderMoreDetails => 'အသေးစိတ် (ဖုန်း၊ လိပ်စာ၊ ပို့ဆောင်ခ၊ မှတ်စု)';
 
   @override
   String get orderItems => 'ပစ္စည်းများ';
