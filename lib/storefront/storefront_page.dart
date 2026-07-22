@@ -4,8 +4,11 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
 import '../core/image_util.dart';
+import '../features/invoices/invoice_capture.dart';
+import '../features/invoices/invoice_view.dart';
 import '../features/orders/myanmar_townships.dart';
 import 'storefront_api.dart';
+import 'storefront_download.dart';
 
 final _money = NumberFormat('#,##0', 'en_US');
 String _ks(int v) => '${_money.format(v)} Ks';
@@ -350,6 +353,7 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
   String? _township;
   bool _submitting = false;
   String? _orderNo;
+  bool _downloading = false;
   List<int>? _proofBytes;
   String? _proofExt;
   String? _proofName;
@@ -504,34 +508,96 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
     );
   }
 
-  Widget _confirmation(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.check_circle, color: Colors.green, size: 56),
-          const SizedBox(height: 12),
-          Text('Order placed!',
-              style: Theme.of(context).textTheme.titleLarge),
-          const SizedBox(height: 4),
-          Text('Order no: $_orderNo'),
-          const SizedBox(height: 16),
-          if ((widget.info.payKpay ?? '').isNotEmpty ||
-              (widget.info.payWave ?? '').isNotEmpty) ...[
-            const Text('Transfer and send the screenshot to the shop:'),
-            const SizedBox(height: 8),
-            if ((widget.info.payKpay ?? '').isNotEmpty)
-              Text('KBZPay: ${widget.info.payKpay}'),
-            if ((widget.info.payWave ?? '').isNotEmpty)
-              Text('WavePay: ${widget.info.payWave}'),
-            const SizedBox(height: 16),
-          ],
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop('done'),
-            child: const Text('Done'),
-          ),
+  InvoiceData get _invoiceData => InvoiceData(
+        shopName: widget.info.displayName ?? 'Shop',
+        shopLogoUrl: widget.info.logoUrl,
+        shopPhone: widget.info.phone,
+        shopAddress: widget.info.address,
+        invoiceNo: _orderNo ?? '',
+        date: DateTime.now(),
+        customerName: _name.text.trim(),
+        customerPhone:
+            _phone.text.trim().isEmpty ? null : _phone.text.trim(),
+        deliveryAddress:
+            _address.text.trim().isEmpty ? null : _address.text.trim(),
+        township: _township,
+        items: [
+          for (final l in widget.lines)
+            InvoiceItemData(
+                name: l.name, qty: l.qty, lineTotal: l.price * l.qty),
         ],
+      );
+
+  Future<void> _downloadInvoice(BuildContext context) async {
+    setState(() => _downloading = true);
+    try {
+      final invoice = _invoiceData;
+      if ((invoice.shopLogoUrl ?? '').isNotEmpty) {
+        try {
+          await precacheImage(NetworkImage(invoice.shopLogoUrl!), context);
+        } catch (_) {}
+      }
+      if (!context.mounted) return;
+      final bytes =
+          await captureWidgetAsPng(context, InvoiceView(data: invoice));
+      downloadBytes(bytes, 'invoice-${invoice.invoiceNo}.png');
+    } finally {
+      if (mounted) setState(() => _downloading = false);
+    }
+  }
+
+  Widget _confirmation(BuildContext context) {
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.check_circle, color: Colors.green, size: 48),
+            const SizedBox(height: 8),
+            Text('Order placed!',
+                style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: 4),
+            Text('Order no: $_orderNo'),
+            const SizedBox(height: 16),
+            InvoiceView(data: _invoiceData),
+            const SizedBox(height: 12),
+            if ((widget.info.payKpay ?? '').isNotEmpty ||
+                (widget.info.payWave ?? '').isNotEmpty) ...[
+              const Text('Transfer and send the screenshot to the shop:'),
+              const SizedBox(height: 8),
+              if ((widget.info.payKpay ?? '').isNotEmpty)
+                Text('KBZPay: ${widget.info.payKpay}'),
+              if ((widget.info.payWave ?? '').isNotEmpty)
+                Text('WavePay: ${widget.info.payWave}'),
+              const SizedBox(height: 16),
+            ],
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed:
+                        _downloading ? null : () => _downloadInvoice(context),
+                    icon: _downloading
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2))
+                        : const Icon(Icons.download),
+                    label: const Text('Download'),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: FilledButton(
+                    onPressed: () => Navigator.of(context).pop('done'),
+                    child: const Text('Done'),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
