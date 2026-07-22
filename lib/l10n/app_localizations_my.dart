@@ -277,6 +277,9 @@ class AppLocalizationsMy extends AppLocalizations {
   String get settingsSectionHelp => 'အကူအညီ';
 
   @override
+  String get settingsSectionOwnerTools => 'ပိုင်ရှင် Tools';
+
+  @override
   String get settingsLanguage => 'ဘာသာစကား';
 
   @override
@@ -1039,10 +1042,7 @@ class AppLocalizationsMy extends AppLocalizations {
   String get staffRoleOwner => 'ပိုင်ရှင်';
 
   @override
-  String get staffRoleManager => 'မန်နေဂျာ';
-
-  @override
-  String get staffRoleCashier => 'ကက်ရှီယာ';
+  String get staffRoleStaff => 'ဝန်ထမ်း';
 
   @override
   String staffCurrentRole(String role) {
@@ -1083,10 +1083,7 @@ class AppLocalizationsMy extends AppLocalizations {
       'ဒါကို ကြည့်ရန် Owner mode (Settings) သို့ ပြောင်းပါ။';
 
   @override
-  String get staffCashierBadge => 'Cashier mode';
-
-  @override
-  String get staffManagerBadge => 'Manager mode';
+  String get staffBadge => 'ဝန်ထမ်း mode';
 
   @override
   String get storefrontTitle => 'ကျွန်ုပ်၏ Web ဆိုင်';
@@ -1116,6 +1113,45 @@ class AppLocalizationsMy extends AppLocalizations {
   @override
   String get storefrontShare =>
       'ဒီ link ကို Facebook, Viber စသည်တွင် ဖောက်သည်များထံ မျှဝေပါ။';
+
+  @override
+  String get onboardWelcomeTitle => 'GoldPOSMM မှ ကြိုဆိုပါတယ်';
+
+  @override
+  String get onboardWelcomeBody =>
+      'မြန်မာဆိုင်များအတွက် offline-first POS app ပါ။ ဆိုင်ကို စတင်သတ်မှတ်ကြရအောင် — မိနစ်ပိုင်းပဲ ကြာပါမယ်။';
+
+  @override
+  String get onboardNext => 'ရှေ့ဆက်';
+
+  @override
+  String get onboardSkip => 'ကျော်';
+
+  @override
+  String get onboardGetStarted => 'စတင်မည်';
+
+  @override
+  String get onboardShopTitle => 'သင့်ဆိုင်';
+
+  @override
+  String get onboardShopBody => 'ဒါက ပြေစာပေါ်မှာ ပါဝင်ပါမယ်။';
+
+  @override
+  String get onboardLicenseTitle => 'အခမဲ့ Trial သို့မဟုတ် License Key';
+
+  @override
+  String get onboardLicenseBody =>
+      'Card မလို၊ sign up မလိုဘဲ ၂ လ အခမဲ့ trial အလိုအလျောက် ရရှိပါမယ်။ Agent ဆီက license key ရှိပြီးသားလား? အခုပဲ activate လုပ်ပါ ဒါမှမဟုတ် နောက်မှ Settings ကနေ ထည့်နိုင်ပါတယ်။';
+
+  @override
+  String get onboardActivateNow => 'License key ချက်ချင်း activate';
+
+  @override
+  String get onboardStaffTitle => 'Owner နှင့် Staff Mode';
+
+  @override
+  String get onboardStaffBody =>
+      'အခု Owner mode မှာ ရှိပါတယ် — အားလုံး ရနိုင်ပါတယ်။ ဖုန်းကို ဝန်ထမ်းကို လက်ဆင့်ကမ်းမလား? Settings → ပိုင်ရှင် Tools → Staff သို့ ပြောင်းပါ။ Staff mode မှာ Sell + Orders ပဲ မြင်ရမယ်၊ Owner ပြန်ဖို့ PIN လိုပါမယ်။';
 
   @override
   String get currencySymbol => 'ကျပ်';

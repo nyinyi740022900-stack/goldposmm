@@ -614,6 +614,12 @@ abstract class AppLocalizations {
   /// **'Help'**
   String get settingsSectionHelp;
 
+  /// No description provided for @settingsSectionOwnerTools.
+  ///
+  /// In en, this message translates to:
+  /// **'Owner Tools'**
+  String get settingsSectionOwnerTools;
+
   /// No description provided for @settingsLanguage.
   ///
   /// In en, this message translates to:
@@ -2030,17 +2036,11 @@ abstract class AppLocalizations {
   /// **'Owner'**
   String get staffRoleOwner;
 
-  /// No description provided for @staffRoleManager.
+  /// No description provided for @staffRoleStaff.
   ///
   /// In en, this message translates to:
-  /// **'Manager'**
-  String get staffRoleManager;
-
-  /// No description provided for @staffRoleCashier.
-  ///
-  /// In en, this message translates to:
-  /// **'Cashier'**
-  String get staffRoleCashier;
+  /// **'Staff'**
+  String get staffRoleStaff;
 
   /// No description provided for @staffCurrentRole.
   ///
@@ -2108,17 +2108,11 @@ abstract class AppLocalizations {
   /// **'Switch to Owner mode (Settings) to view this.'**
   String get staffOwnerOnlyDesc;
 
-  /// No description provided for @staffCashierBadge.
+  /// No description provided for @staffBadge.
   ///
   /// In en, this message translates to:
-  /// **'Cashier mode'**
-  String get staffCashierBadge;
-
-  /// No description provided for @staffManagerBadge.
-  ///
-  /// In en, this message translates to:
-  /// **'Manager mode'**
-  String get staffManagerBadge;
+  /// **'Staff mode'**
+  String get staffBadge;
 
   /// No description provided for @storefrontTitle.
   ///
@@ -2173,6 +2167,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Share this link with customers on Facebook, Viber, etc.'**
   String get storefrontShare;
+
+  /// No description provided for @onboardWelcomeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to GoldPOSMM'**
+  String get onboardWelcomeTitle;
+
+  /// No description provided for @onboardWelcomeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline-first point of sale for Myanmar shops. Let\'s get your shop set up — it only takes a minute.'**
+  String get onboardWelcomeBody;
+
+  /// No description provided for @onboardNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get onboardNext;
+
+  /// No description provided for @onboardSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get onboardSkip;
+
+  /// No description provided for @onboardGetStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Get started'**
+  String get onboardGetStarted;
+
+  /// No description provided for @onboardShopTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your shop'**
+  String get onboardShopTitle;
+
+  /// No description provided for @onboardShopBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This appears on your printed receipts.'**
+  String get onboardShopBody;
+
+  /// No description provided for @onboardLicenseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Free trial or license key'**
+  String get onboardLicenseTitle;
+
+  /// No description provided for @onboardLicenseBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You get a 2-month free trial automatically — no card, no signup. Already have a license key from an agent? Activate it now, or add it later from Settings.'**
+  String get onboardLicenseBody;
+
+  /// No description provided for @onboardActivateNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Activate a license key'**
+  String get onboardActivateNow;
+
+  /// No description provided for @onboardStaffTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Owner and Staff modes'**
+  String get onboardStaffTitle;
+
+  /// No description provided for @onboardStaffBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re in Owner mode — full access. Handing the phone to an employee? Go to Settings → Owner Tools → Switch to Staff. Staff mode only shows Sell and Orders; a PIN is needed to switch back to Owner.'**
+  String get onboardStaffBody;
 
   /// No description provided for @currencySymbol.
   ///

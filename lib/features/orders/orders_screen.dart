@@ -271,13 +271,13 @@ class _KanbanColumn extends ConsumerWidget {
   }
 }
 
-class _OrderCard extends StatelessWidget {
+class _OrderCard extends ConsumerWidget {
   const _OrderCard({required this.order});
   final Order order;
 
   @override
-  Widget build(BuildContext context) {
-    final card = _cardBody(context);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final card = _cardBody(context, ref);
     return Padding(
       padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
       child: LongPressDraggable<Order>(
@@ -292,7 +292,7 @@ class _OrderCard extends StatelessWidget {
     );
   }
 
-  Widget _cardBody(BuildContext context) {
+  Widget _cardBody(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context);
     final sym = l.currencySymbol;
     final total = order.itemsTotal + order.deliveryFee;
@@ -317,6 +317,11 @@ class _OrderCard extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(fontWeight: FontWeight.w600)),
                   ),
+                  // Quick-move without opening the full detail sheet — the
+                  // drag gesture above does the same thing but isn't always
+                  // discoverable, especially on a small phone screen.
+                  if (order.status != 'cancelled')
+                    _QuickMoveMenu(order: order, ref: ref),
                 ],
               ),
               const SizedBox(height: 2),
@@ -354,6 +359,45 @@ class _OrderCard extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Compact "..." menu on a Kanban card — moves the order's status in one tap,
+/// without opening the full detail sheet.
+class _QuickMoveMenu extends StatelessWidget {
+  const _QuickMoveMenu({required this.order, required this.ref});
+  final Order order;
+  final WidgetRef ref;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    return PopupMenuButton<String>(
+      icon: const Icon(Icons.more_vert, size: 18),
+      padding: EdgeInsets.zero,
+      tooltip: l.orderMoveTo,
+      onSelected: (status) =>
+          ref.read(ordersRepositoryProvider).setStatus(order.id, status),
+      itemBuilder: (context) => [
+        for (final s in orderStatuses)
+          if (s != order.status)
+            PopupMenuItem(
+              value: s,
+              child: Row(
+                children: [
+                  Container(
+                    width: 8,
+                    height: 8,
+                    decoration: BoxDecoration(
+                        color: orderStatusColor(s), shape: BoxShape.circle),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(orderStatusLabel(l, s)),
+                ],
+              ),
+            ),
+      ],
     );
   }
 }

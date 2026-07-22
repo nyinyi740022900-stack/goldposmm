@@ -6,19 +6,11 @@ import '../../l10n/app_localizations.dart';
 import 'staff_providers.dart';
 
 String staffRoleLabel(AppLocalizations l, String role) {
-  switch (role) {
-    case 'manager':
-      return l.staffRoleManager;
-    case 'cashier':
-      return l.staffRoleCashier;
-    case 'owner':
-    default:
-      return l.staffRoleOwner;
-  }
+  return role == 'owner' ? l.staffRoleOwner : l.staffRoleStaff;
 }
 
-/// Wraps owner-only content. In manager/cashier mode it shows a lock
-/// placeholder instead of [child].
+/// Wraps owner-only content. In staff mode it shows a lock placeholder
+/// instead of [child].
 class OwnerOnlyGate extends ConsumerWidget {
   const OwnerOnlyGate({super.key, required this.child});
   final Widget child;
@@ -47,17 +39,14 @@ class OwnerOnlyGate extends ConsumerWidget {
   }
 }
 
-/// A small pill for app bars showing the current non-owner mode, so staff can
-/// see they're limited.
-class CashierBadge extends ConsumerWidget {
-  const CashierBadge({super.key});
+/// A small pill for app bars showing that the device is in staff mode.
+class StaffBadge extends ConsumerWidget {
+  const StaffBadge({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final role = ref.watch(staffRoleProvider).valueOrNull ?? 'owner';
-    if (role == 'owner') return const SizedBox.shrink();
+    if (ref.watch(isOwnerProvider)) return const SizedBox.shrink();
     final l = AppLocalizations.of(context);
-    final label = role == 'manager' ? l.staffManagerBadge : l.staffCashierBadge;
     return Container(
       margin: const EdgeInsets.only(right: 12),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -70,7 +59,7 @@ class CashierBadge extends ConsumerWidget {
         children: [
           const Icon(Icons.badge_outlined, size: 14),
           const SizedBox(width: 4),
-          Text(label, style: Theme.of(context).textTheme.labelSmall),
+          Text(l.staffBadge, style: Theme.of(context).textTheme.labelSmall),
         ],
       ),
     );
@@ -111,9 +100,10 @@ Future<String?> promptPin(BuildContext context, String title) {
   );
 }
 
-/// Settings section to switch between Owner / Manager / Cashier and manage the
-/// owner PIN. Downgrading (owner→manager/cashier, manager→cashier) is free;
-/// upgrading prompts for the PIN.
+/// Settings section to switch between Owner and Staff mode, and manage the
+/// owner PIN. Switching to Staff is free; switching to Owner prompts for the
+/// PIN. Deliberately just two modes — a finer-grained role tier was tried and
+/// folded back into this for simplicity.
 class StaffModeCard extends ConsumerWidget {
   const StaffModeCard({super.key});
 
@@ -121,12 +111,9 @@ class StaffModeCard extends ConsumerWidget {
       BuildContext context, WidgetRef ref, String target) async {
     final l = AppLocalizations.of(context);
     final ctrl = ref.read(staffControllerProvider);
-    final currentRole = ref.read(staffRoleProvider).valueOrNull ?? 'owner';
-    final isUpgrade =
-        staffRoles.indexOf(target) > staffRoles.indexOf(currentRole);
 
     String? pin;
-    if (isUpgrade) {
+    if (target == 'owner') {
       pin = await promptPin(context, l.staffEnterPin);
       if (pin == null) return; // cancelled
     }
@@ -155,7 +142,7 @@ class StaffModeCard extends ConsumerWidget {
         for (final target in staffRoles)
           if (target != role)
             ListTile(
-              leading: Icon(staffRoles.indexOf(target) > staffRoles.indexOf(role)
+              leading: Icon(target == 'owner'
                   ? Icons.lock_open_outlined
                   : Icons.badge_outlined),
               title: Text(l.staffSwitchTo(staffRoleLabel(l, target))),

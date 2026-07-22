@@ -7,8 +7,15 @@ import 'core/router.dart';
 import 'core/theme/app_theme.dart';
 import 'data/sync/sync_providers.dart';
 import 'features/license/license_providers.dart';
+import 'features/onboarding/onboarding_flow.dart';
+import 'features/printing/printing_providers.dart';
 import 'features/referral/referral_watcher.dart';
 import 'l10n/app_localizations.dart';
+
+/// Whether the one-time first-run onboarding has been completed.
+final _onboardingDoneProvider = FutureProvider<bool>((ref) {
+  return ref.watch(settingsRepositoryProvider).onboardingComplete();
+});
 
 class MmPosApp extends ConsumerWidget {
   const MmPosApp({super.key});
@@ -23,6 +30,13 @@ class MmPosApp extends ConsumerWidget {
     ref.watch(syncControllerProvider);
     // Poll for new referral commissions and fire the "earned" notification.
     ref.watch(referralWatcherProvider);
+
+    // Shown once per install, before the tabbed shell. Loading reads as
+    // "done" so the (effectively instant) first Drift read never flashes
+    // onboarding for a frame on every ordinary launch.
+    final showOnboarding =
+        ref.watch(_onboardingDoneProvider).valueOrNull == false;
+
     return MaterialApp.router(
       onGenerateTitle: (ctx) => AppLocalizations.of(ctx).appTitle,
       debugShowCheckedModeBanner: false,
@@ -39,6 +53,13 @@ class MmPosApp extends ConsumerWidget {
       ],
       supportedLocales: AppLocalizations.supportedLocales,
       routerConfig: appRouter,
+      builder: (context, child) {
+        if (showOnboarding) {
+          return OnboardingFlow(
+              onDone: () => ref.invalidate(_onboardingDoneProvider));
+        }
+        return child!;
+      },
     );
   }
 }

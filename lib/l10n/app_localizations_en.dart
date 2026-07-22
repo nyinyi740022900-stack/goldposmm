@@ -284,6 +284,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsSectionHelp => 'Help';
 
   @override
+  String get settingsSectionOwnerTools => 'Owner Tools';
+
+  @override
   String get settingsLanguage => 'Language';
 
   @override
@@ -1047,10 +1050,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get staffRoleOwner => 'Owner';
 
   @override
-  String get staffRoleManager => 'Manager';
-
-  @override
-  String get staffRoleCashier => 'Cashier';
+  String get staffRoleStaff => 'Staff';
 
   @override
   String staffCurrentRole(String role) {
@@ -1091,10 +1091,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Switch to Owner mode (Settings) to view this.';
 
   @override
-  String get staffCashierBadge => 'Cashier mode';
-
-  @override
-  String get staffManagerBadge => 'Manager mode';
+  String get staffBadge => 'Staff mode';
 
   @override
   String get storefrontTitle => 'My web storefront';
@@ -1124,6 +1121,45 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get storefrontShare =>
       'Share this link with customers on Facebook, Viber, etc.';
+
+  @override
+  String get onboardWelcomeTitle => 'Welcome to GoldPOSMM';
+
+  @override
+  String get onboardWelcomeBody =>
+      'Offline-first point of sale for Myanmar shops. Let\'s get your shop set up — it only takes a minute.';
+
+  @override
+  String get onboardNext => 'Next';
+
+  @override
+  String get onboardSkip => 'Skip';
+
+  @override
+  String get onboardGetStarted => 'Get started';
+
+  @override
+  String get onboardShopTitle => 'Your shop';
+
+  @override
+  String get onboardShopBody => 'This appears on your printed receipts.';
+
+  @override
+  String get onboardLicenseTitle => 'Free trial or license key';
+
+  @override
+  String get onboardLicenseBody =>
+      'You get a 2-month free trial automatically — no card, no signup. Already have a license key from an agent? Activate it now, or add it later from Settings.';
+
+  @override
+  String get onboardActivateNow => 'Activate a license key';
+
+  @override
+  String get onboardStaffTitle => 'Owner and Staff modes';
+
+  @override
+  String get onboardStaffBody =>
+      'You\'re in Owner mode — full access. Handing the phone to an employee? Go to Settings → Owner Tools → Switch to Staff. Staff mode only shows Sell and Orders; a PIN is needed to switch back to Owner.';
 
   @override
   String get currencySymbol => 'Ks';

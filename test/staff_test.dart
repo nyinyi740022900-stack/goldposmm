@@ -30,43 +30,30 @@ void main() {
     expect(await settings.staffRole(), 'owner');
   });
 
-  test('downgrading (owner -> manager -> cashier) never needs a PIN',
-      () async {
-    expect(await ctrl().switchRole('manager'), isTrue);
-    expect(await settings.staffRole(), 'manager');
-    expect(await ctrl().switchRole('cashier'), isTrue);
-    expect(await settings.staffRole(), 'cashier');
+  test('switching to staff never needs a PIN', () async {
+    expect(await ctrl().switchRole('staff'), isTrue);
+    expect(await settings.staffRole(), 'staff');
   });
 
-  test('upgrading with no PIN set succeeds', () async {
-    await ctrl().switchRole('cashier');
+  test('switching back to owner with no PIN set succeeds', () async {
+    await ctrl().switchRole('staff');
     expect(await ctrl().switchRole('owner', pin: ''), isTrue);
     expect(await settings.staffRole(), 'owner');
   });
 
-  test('upgrading with a wrong PIN fails and role is unchanged', () async {
+  test('switching to owner with a wrong PIN fails and stays staff', () async {
     await ctrl().setPin('1234');
-    await ctrl().switchRole('cashier');
-    expect(await ctrl().switchRole('manager', pin: '9999'), isFalse);
-    expect(await settings.staffRole(), 'cashier');
+    await ctrl().switchRole('staff');
+    expect(await ctrl().switchRole('owner', pin: '9999'), isFalse);
+    expect(await settings.staffRole(), 'staff');
     // Correct PIN succeeds.
-    expect(await ctrl().switchRole('manager', pin: '1234'), isTrue);
-    expect(await settings.staffRole(), 'manager');
+    expect(await ctrl().switchRole('owner', pin: '1234'), isTrue);
+    expect(await settings.staffRole(), 'owner');
   });
 
-  test('cashier -> manager is an upgrade and also requires the PIN',
-      () async {
+  test('switching to staff needs no PIN even when one is set', () async {
     await ctrl().setPin('1234');
-    await ctrl().switchRole('cashier');
-    expect(await ctrl().switchRole('manager', pin: '0000'), isFalse);
-    expect(await settings.staffRole(), 'cashier');
-  });
-
-  test('manager -> cashier is a downgrade and needs no PIN even with one set',
-      () async {
-    await ctrl().setPin('1234');
-    await ctrl().switchRole('manager', pin: '1234');
-    expect(await ctrl().switchRole('cashier'), isTrue);
-    expect(await settings.staffRole(), 'cashier');
+    expect(await ctrl().switchRole('staff'), isTrue);
+    expect(await settings.staffRole(), 'staff');
   });
 }

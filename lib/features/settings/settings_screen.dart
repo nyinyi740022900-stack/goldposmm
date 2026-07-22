@@ -86,11 +86,17 @@ class SettingsScreen extends ConsumerWidget {
               builder: (_) => const PrinterSettingsScreen(),
             )),
           ),
-          const StaffModeCard(),
           _SyncTile(),
 
           _SectionHeader(l.settingsSectionHelp),
           _SupportTile(),
+
+          // Kept well away from the everyday settings above — this is where
+          // an owner locks the device into Staff mode (or switches back with
+          // the PIN), not something staff should stumble across while
+          // browsing Settings.
+          _SectionHeader(l.settingsSectionOwnerTools),
+          const StaffModeCard(),
         ],
       ),
     );
