@@ -35,6 +35,32 @@ class SettingsScreen extends ConsumerWidget {
       appBar: AppBar(title: Text(l.settingsTitle)),
       body: ListView(
         children: [
+          _SectionHeader(l.settingsSectionBusiness),
+          ListTile(
+            leading: const Icon(Icons.store),
+            title: Text(l.settingsShop),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.of(context).push(MaterialPageRoute(
+              builder: (_) => const ShopProfileScreen(),
+            )),
+          ),
+          _TrackStockTile(),
+          _CreditTile(),
+          if (ref.watch(isOwnerProvider)) _StorefrontTile(),
+
+          _SectionHeader(l.settingsSectionFinance),
+          _LicenseTile(),
+          _ReferralTile(),
+          ListTile(
+            leading: const Icon(Icons.backup),
+            title: Text(l.backupTitle),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.of(context).push(MaterialPageRoute(
+              builder: (_) => const BackupScreen(),
+            )),
+          ),
+
+          _SectionHeader(l.settingsSectionDevice),
           ListTile(
             leading: const Icon(Icons.language),
             title: Text(l.settingsLanguage),
@@ -60,33 +86,35 @@ class SettingsScreen extends ConsumerWidget {
               builder: (_) => const PrinterSettingsScreen(),
             )),
           ),
-          ListTile(
-            leading: const Icon(Icons.store),
-            title: Text(l.settingsShop),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => Navigator.of(context).push(MaterialPageRoute(
-              builder: (_) => const ShopProfileScreen(),
-            )),
-          ),
-          _TrackStockTile(),
-          _CreditTile(),
-          ListTile(
-            leading: const Icon(Icons.backup),
-            title: Text(l.backupTitle),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => Navigator.of(context).push(MaterialPageRoute(
-              builder: (_) => const BackupScreen(),
-            )),
-          ),
-          _LicenseTile(),
-          _ReferralTile(),
-          if (ref.watch(isOwnerProvider)) _StorefrontTile(),
-          _SupportTile(),
-          const Divider(),
           const StaffModeCard(),
-          const Divider(),
           _SyncTile(),
+
+          _SectionHeader(l.settingsSectionHelp),
+          _SupportTile(),
         ],
+      ),
+    );
+  }
+}
+
+/// A small uppercase label that groups the settings list into sections, so a
+/// screen with a dozen+ tiles reads as a few short lists instead of one flat
+/// wall (Business / Finance / Device & Staff / Help).
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader(this.label);
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 20, 16, 6),
+      child: Text(
+        label.toUpperCase(),
+        style: Theme.of(context).textTheme.labelMedium?.copyWith(
+              color: Theme.of(context).colorScheme.primary,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 0.8,
+            ),
       ),
     );
   }

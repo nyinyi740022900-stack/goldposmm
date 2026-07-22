@@ -590,6 +590,30 @@ abstract class AppLocalizations {
   /// **'Settings'**
   String get settingsTitle;
 
+  /// No description provided for @settingsSectionBusiness.
+  ///
+  /// In en, this message translates to:
+  /// **'Business'**
+  String get settingsSectionBusiness;
+
+  /// No description provided for @settingsSectionFinance.
+  ///
+  /// In en, this message translates to:
+  /// **'Finance'**
+  String get settingsSectionFinance;
+
+  /// No description provided for @settingsSectionDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Device & Staff'**
+  String get settingsSectionDevice;
+
+  /// No description provided for @settingsSectionHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Help'**
+  String get settingsSectionHelp;
+
   /// No description provided for @settingsLanguage.
   ///
   /// In en, this message translates to:
@@ -1663,6 +1687,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Note'**
   String get orderNote;
+
+  /// No description provided for @orderMoreDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'More details (phone, address, delivery fee, note)'**
+  String get orderMoreDetails;
 
   /// No description provided for @orderItems.
   ///

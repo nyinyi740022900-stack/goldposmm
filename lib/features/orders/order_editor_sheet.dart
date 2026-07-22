@@ -106,6 +106,14 @@ class _OrderEditorSheetState extends ConsumerState<OrderEditorSheet> {
   int get _itemsTotal => _lines.fold(0, (s, l) => s + l.lineTotal);
   int get _deliveryFeeVal => int.tryParse(_deliveryFee.text.trim()) ?? 0;
 
+  /// Auto-expand "More details" when editing an order that already has any
+  /// of those optional fields filled, so nothing looks lost.
+  bool get _hasMoreDetails =>
+      _phone.text.isNotEmpty ||
+      _address.text.isNotEmpty ||
+      _deliveryFee.text.isNotEmpty ||
+      _note.text.isNotEmpty;
+
   Future<void> _pickProduct(_LineDraft line) async {
     final products = ref.read(productsStreamProvider).valueOrNull ?? const [];
     final selected = await showModalBottomSheet<ProductPick>(
@@ -191,11 +199,6 @@ class _OrderEditorSheetState extends ConsumerState<OrderEditorSheet> {
             decoration: InputDecoration(labelText: l.orderCustomerName),
           ),
           const SizedBox(height: 12),
-          TextField(
-            controller: _phone,
-            keyboardType: TextInputType.phone,
-            decoration: InputDecoration(labelText: l.orderCustomerPhone),
-          ),
           const SizedBox(height: 12),
           DropdownButtonFormField<String>(
             initialValue: _channel,
@@ -206,13 +209,55 @@ class _OrderEditorSheetState extends ConsumerState<OrderEditorSheet> {
             ],
             onChanged: (v) => setState(() => _channel = v ?? 'facebook'),
           ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _address,
-            maxLines: 2,
-            decoration: InputDecoration(labelText: l.orderDeliveryAddress),
+          const SizedBox(height: 8),
+          // Phone/address/delivery-fee/note are all optional — folded away by
+          // default so a quick "name + item" order takes one glance to fill,
+          // and auto-expanded when editing an order that already has any of
+          // this filled in (so nothing looks lost).
+          Theme(
+            data: Theme.of(context)
+                .copyWith(dividerColor: Colors.transparent),
+            child: ExpansionTile(
+              initiallyExpanded: _hasMoreDetails,
+              tilePadding: EdgeInsets.zero,
+              childrenPadding: EdgeInsets.zero,
+              title: Text(l.orderMoreDetails,
+                  style: Theme.of(context).textTheme.labelLarge),
+              children: [
+                TextField(
+                  controller: _phone,
+                  keyboardType: TextInputType.phone,
+                  decoration: InputDecoration(labelText: l.orderCustomerPhone),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _address,
+                  maxLines: 2,
+                  decoration:
+                      InputDecoration(labelText: l.orderDeliveryAddress),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _deliveryFee,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  decoration: InputDecoration(
+                    labelText: l.orderDeliveryFee,
+                    suffixText: sym,
+                  ),
+                  onChanged: (_) => setState(() {}),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _note,
+                  maxLines: 2,
+                  decoration: InputDecoration(labelText: l.orderNote),
+                ),
+                const SizedBox(height: 8),
+              ],
+            ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 12),
           Row(
             children: [
               Text(l.orderItems,
@@ -226,23 +271,6 @@ class _OrderEditorSheetState extends ConsumerState<OrderEditorSheet> {
             ],
           ),
           for (final line in _lines) _itemRow(l, line),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _deliveryFee,
-            keyboardType: TextInputType.number,
-            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-            decoration: InputDecoration(
-              labelText: l.orderDeliveryFee,
-              suffixText: sym,
-            ),
-            onChanged: (_) => setState(() {}),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _note,
-            maxLines: 2,
-            decoration: InputDecoration(labelText: l.orderNote),
-          ),
           const SizedBox(height: 16),
           _totalRow(l.orderItemsTotal, Money(_itemsTotal).withSymbol(sym)),
           _totalRow(l.orderTotal,

@@ -93,6 +93,10 @@
   "deleteConfirmBody": "ဤပစ္စည်းကို ဖယ်ရှားပါမည်။",
 
   "settingsTitle": "ဆက်တင်",
+  "settingsSectionBusiness": "ရောင်းဝယ်ရေး",
+  "settingsSectionFinance": "ငွေကြေး",
+  "settingsSectionDevice": "စက်/ဝန်ထမ်း",
+  "settingsSectionHelp": "အကူအညီ",
   "settingsLanguage": "ဘာသာစကား",
   "settingsPrinter": "ပရင်တာ",
   "settingsShop": "ဆိုင်အချက်အလက်",
@@ -298,6 +302,7 @@
   "orderDeliveryAddress": "ပို့ဆောင်လိပ်စာ",
   "orderDeliveryFee": "ပို့ဆောင်ခ",
   "orderNote": "မှတ်စု",
+  "orderMoreDetails": "အသေးစိတ် (ဖုန်း၊ လိပ်စာ၊ ပို့ဆောင်ခ၊ မှတ်စု)",
   "orderItems": "ပစ္စည်းများ",
   "orderAddItem": "ပစ္စည်းထည့်",
   "orderItemName": "ပစ္စည်းအမည်",
