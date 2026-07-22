@@ -41,7 +41,10 @@ Color orderStatusColor(String status) {
   }
 }
 
-/// Localized label for a social channel code.
+/// Localized label for a social channel code. `storefront` is the shop's own
+/// web catalog (an order the customer placed directly, not via a social
+/// message) — it must be handled explicitly here, or it silently falls
+/// through to the `facebook` label below.
 String orderChannelLabel(AppLocalizations l, String channel) {
   switch (channel) {
     case 'viber':
@@ -52,6 +55,8 @@ String orderChannelLabel(AppLocalizations l, String channel) {
       return l.orderChannelInstagram;
     case 'phone':
       return l.orderChannelPhone;
+    case 'storefront':
+      return l.orderChannelStorefront;
     case 'other':
       return l.orderChannelOther;
     case 'facebook':
@@ -64,6 +69,8 @@ IconData orderChannelIcon(String channel) {
   switch (channel) {
     case 'phone':
       return Icons.phone;
+    case 'storefront':
+      return Icons.language;
     case 'viber':
     case 'tiktok':
     case 'instagram':

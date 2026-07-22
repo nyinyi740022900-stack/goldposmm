@@ -145,6 +145,10 @@ class OrderDetailSheet extends ConsumerWidget {
               children: [
                 Text('${l.orderPayment}: '),
                 Text(orderPaymentLabel(l, o.paymentStatus)),
+                if (o.paymentMethod != null && o.paymentMethod!.isNotEmpty) ...[
+                  const SizedBox(width: 8),
+                  _PaymentMethodChip(method: o.paymentMethod!),
+                ],
               ],
             ),
             if (o.paymentProofPath != null &&
@@ -214,12 +218,28 @@ class OrderDetailSheet extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: 8),
-            OutlinedButton.icon(
-              onPressed: items.isEmpty
-                  ? null
-                  : () => _shareInvoice(context, ref, o, items),
-              icon: const Icon(Icons.receipt_long),
-              label: Text(l.orderInvoice),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: items.isEmpty
+                        ? null
+                        : () => _printInvoice(context, ref, o, items),
+                    icon: const Icon(Icons.print_outlined),
+                    label: Text(l.orderPrint),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: items.isEmpty
+                        ? null
+                        : () => _shareInvoice(context, ref, o, items),
+                    icon: const Icon(Icons.receipt_long),
+                    label: Text(l.orderInvoice),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 8),
             TextButton.icon(
@@ -246,6 +266,18 @@ class OrderDetailSheet extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _printInvoice(BuildContext context, WidgetRef ref, Order o,
+      List<OrderItem> items) async {
+    try {
+      await printOrderInvoice(context, ref, o, items);
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('$e')));
+      }
+    }
   }
 
   Future<void> _shareInvoice(BuildContext context, WidgetRef ref, Order o,
@@ -375,6 +407,37 @@ class _PaymentProofState extends State<_PaymentProof> {
           ),
         );
       },
+    );
+  }
+}
+
+/// Small pill for "Bank transfer" vs "Cash on delivery" — these need visibly
+/// different shop workflows (review a screenshot vs collect cash at the
+/// door), so it sits right next to the payment status, not buried in notes.
+class _PaymentMethodChip extends StatelessWidget {
+  const _PaymentMethodChip({required this.method});
+  final String method;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final isCod = method == 'cod';
+    final label = isCod ? l.orderPaymentCod : l.orderPaymentTransfer;
+    final icon = isCod ? Icons.local_shipping_outlined : Icons.account_balance_outlined;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.secondaryContainer,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 13),
+          const SizedBox(width: 4),
+          Text(label, style: Theme.of(context).textTheme.labelSmall),
+        ],
+      ),
     );
   }
 }

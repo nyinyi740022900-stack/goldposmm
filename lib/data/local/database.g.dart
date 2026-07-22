@@ -6499,6 +6499,17 @@ class $OrdersTable extends Orders with TableInfo<$OrdersTable, Order> {
     requiredDuringInsert: false,
     defaultValue: const Constant('unpaid'),
   );
+  static const VerificationMeta _paymentMethodMeta = const VerificationMeta(
+    'paymentMethod',
+  );
+  @override
+  late final GeneratedColumn<String> paymentMethod = GeneratedColumn<String>(
+    'payment_method',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _noteMeta = const VerificationMeta('note');
   @override
   late final GeneratedColumn<String> note = GeneratedColumn<String>(
@@ -6589,6 +6600,7 @@ class $OrdersTable extends Orders with TableInfo<$OrdersTable, Order> {
     deliveryFee,
     itemsTotal,
     paymentStatus,
+    paymentMethod,
     note,
     saleId,
     paymentProofPath,
@@ -6719,6 +6731,15 @@ class $OrdersTable extends Orders with TableInfo<$OrdersTable, Order> {
         ),
       );
     }
+    if (data.containsKey('payment_method')) {
+      context.handle(
+        _paymentMethodMeta,
+        paymentMethod.isAcceptableOrUnknown(
+          data['payment_method']!,
+          _paymentMethodMeta,
+        ),
+      );
+    }
     if (data.containsKey('note')) {
       context.handle(
         _noteMeta,
@@ -6842,6 +6863,10 @@ class $OrdersTable extends Orders with TableInfo<$OrdersTable, Order> {
         DriftSqlType.string,
         data['${effectivePrefix}payment_status'],
       )!,
+      paymentMethod: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}payment_method'],
+      ),
       note: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}note'],
@@ -6905,6 +6930,13 @@ class Order extends DataClass implements Insertable<Order> {
 
   /// unpaid | partial | paid
   final String paymentStatus;
+
+  /// How the customer intends to pay: transfer (KPay/Wave, usually with a
+  /// screenshot) | cod (cash on delivery) | null (manually-created order,
+  /// not yet specified). Distinct from [paymentStatus] — a COD order is
+  /// legitimately "unpaid" until the courier collects cash at the door,
+  /// which is a different shop workflow than reviewing a transfer screenshot.
+  final String? paymentMethod;
   final String? note;
 
   /// Set once the order is converted to an in-store [Sales] row.
@@ -6946,6 +6978,7 @@ class Order extends DataClass implements Insertable<Order> {
     required this.deliveryFee,
     required this.itemsTotal,
     required this.paymentStatus,
+    this.paymentMethod,
     this.note,
     this.saleId,
     this.paymentProofPath,
@@ -6976,6 +7009,9 @@ class Order extends DataClass implements Insertable<Order> {
     map['delivery_fee'] = Variable<int>(deliveryFee);
     map['items_total'] = Variable<int>(itemsTotal);
     map['payment_status'] = Variable<String>(paymentStatus);
+    if (!nullToAbsent || paymentMethod != null) {
+      map['payment_method'] = Variable<String>(paymentMethod);
+    }
     if (!nullToAbsent || note != null) {
       map['note'] = Variable<String>(note);
     }
@@ -7021,6 +7057,9 @@ class Order extends DataClass implements Insertable<Order> {
       deliveryFee: Value(deliveryFee),
       itemsTotal: Value(itemsTotal),
       paymentStatus: Value(paymentStatus),
+      paymentMethod: paymentMethod == null && nullToAbsent
+          ? const Value.absent()
+          : Value(paymentMethod),
       note: note == null && nullToAbsent ? const Value.absent() : Value(note),
       saleId: saleId == null && nullToAbsent
           ? const Value.absent()
@@ -7064,6 +7103,7 @@ class Order extends DataClass implements Insertable<Order> {
       deliveryFee: serializer.fromJson<int>(json['deliveryFee']),
       itemsTotal: serializer.fromJson<int>(json['itemsTotal']),
       paymentStatus: serializer.fromJson<String>(json['paymentStatus']),
+      paymentMethod: serializer.fromJson<String?>(json['paymentMethod']),
       note: serializer.fromJson<String?>(json['note']),
       saleId: serializer.fromJson<String?>(json['saleId']),
       paymentProofPath: serializer.fromJson<String?>(json['paymentProofPath']),
@@ -7092,6 +7132,7 @@ class Order extends DataClass implements Insertable<Order> {
       'deliveryFee': serializer.toJson<int>(deliveryFee),
       'itemsTotal': serializer.toJson<int>(itemsTotal),
       'paymentStatus': serializer.toJson<String>(paymentStatus),
+      'paymentMethod': serializer.toJson<String?>(paymentMethod),
       'note': serializer.toJson<String?>(note),
       'saleId': serializer.toJson<String?>(saleId),
       'paymentProofPath': serializer.toJson<String?>(paymentProofPath),
@@ -7118,6 +7159,7 @@ class Order extends DataClass implements Insertable<Order> {
     int? deliveryFee,
     int? itemsTotal,
     String? paymentStatus,
+    Value<String?> paymentMethod = const Value.absent(),
     Value<String?> note = const Value.absent(),
     Value<String?> saleId = const Value.absent(),
     Value<String?> paymentProofPath = const Value.absent(),
@@ -7145,6 +7187,9 @@ class Order extends DataClass implements Insertable<Order> {
     deliveryFee: deliveryFee ?? this.deliveryFee,
     itemsTotal: itemsTotal ?? this.itemsTotal,
     paymentStatus: paymentStatus ?? this.paymentStatus,
+    paymentMethod: paymentMethod.present
+        ? paymentMethod.value
+        : this.paymentMethod,
     note: note.present ? note.value : this.note,
     saleId: saleId.present ? saleId.value : this.saleId,
     paymentProofPath: paymentProofPath.present
@@ -7190,6 +7235,9 @@ class Order extends DataClass implements Insertable<Order> {
       paymentStatus: data.paymentStatus.present
           ? data.paymentStatus.value
           : this.paymentStatus,
+      paymentMethod: data.paymentMethod.present
+          ? data.paymentMethod.value
+          : this.paymentMethod,
       note: data.note.present ? data.note.value : this.note,
       saleId: data.saleId.present ? data.saleId.value : this.saleId,
       paymentProofPath: data.paymentProofPath.present
@@ -7226,6 +7274,7 @@ class Order extends DataClass implements Insertable<Order> {
           ..write('deliveryFee: $deliveryFee, ')
           ..write('itemsTotal: $itemsTotal, ')
           ..write('paymentStatus: $paymentStatus, ')
+          ..write('paymentMethod: $paymentMethod, ')
           ..write('note: $note, ')
           ..write('saleId: $saleId, ')
           ..write('paymentProofPath: $paymentProofPath, ')
@@ -7254,6 +7303,7 @@ class Order extends DataClass implements Insertable<Order> {
     deliveryFee,
     itemsTotal,
     paymentStatus,
+    paymentMethod,
     note,
     saleId,
     paymentProofPath,
@@ -7281,6 +7331,7 @@ class Order extends DataClass implements Insertable<Order> {
           other.deliveryFee == this.deliveryFee &&
           other.itemsTotal == this.itemsTotal &&
           other.paymentStatus == this.paymentStatus &&
+          other.paymentMethod == this.paymentMethod &&
           other.note == this.note &&
           other.saleId == this.saleId &&
           other.paymentProofPath == this.paymentProofPath &&
@@ -7306,6 +7357,7 @@ class OrdersCompanion extends UpdateCompanion<Order> {
   final Value<int> deliveryFee;
   final Value<int> itemsTotal;
   final Value<String> paymentStatus;
+  final Value<String?> paymentMethod;
   final Value<String?> note;
   final Value<String?> saleId;
   final Value<String?> paymentProofPath;
@@ -7330,6 +7382,7 @@ class OrdersCompanion extends UpdateCompanion<Order> {
     this.deliveryFee = const Value.absent(),
     this.itemsTotal = const Value.absent(),
     this.paymentStatus = const Value.absent(),
+    this.paymentMethod = const Value.absent(),
     this.note = const Value.absent(),
     this.saleId = const Value.absent(),
     this.paymentProofPath = const Value.absent(),
@@ -7355,6 +7408,7 @@ class OrdersCompanion extends UpdateCompanion<Order> {
     this.deliveryFee = const Value.absent(),
     this.itemsTotal = const Value.absent(),
     this.paymentStatus = const Value.absent(),
+    this.paymentMethod = const Value.absent(),
     this.note = const Value.absent(),
     this.saleId = const Value.absent(),
     this.paymentProofPath = const Value.absent(),
@@ -7383,6 +7437,7 @@ class OrdersCompanion extends UpdateCompanion<Order> {
     Expression<int>? deliveryFee,
     Expression<int>? itemsTotal,
     Expression<String>? paymentStatus,
+    Expression<String>? paymentMethod,
     Expression<String>? note,
     Expression<String>? saleId,
     Expression<String>? paymentProofPath,
@@ -7408,6 +7463,7 @@ class OrdersCompanion extends UpdateCompanion<Order> {
       if (deliveryFee != null) 'delivery_fee': deliveryFee,
       if (itemsTotal != null) 'items_total': itemsTotal,
       if (paymentStatus != null) 'payment_status': paymentStatus,
+      if (paymentMethod != null) 'payment_method': paymentMethod,
       if (note != null) 'note': note,
       if (saleId != null) 'sale_id': saleId,
       if (paymentProofPath != null) 'payment_proof_path': paymentProofPath,
@@ -7435,6 +7491,7 @@ class OrdersCompanion extends UpdateCompanion<Order> {
     Value<int>? deliveryFee,
     Value<int>? itemsTotal,
     Value<String>? paymentStatus,
+    Value<String?>? paymentMethod,
     Value<String?>? note,
     Value<String?>? saleId,
     Value<String?>? paymentProofPath,
@@ -7460,6 +7517,7 @@ class OrdersCompanion extends UpdateCompanion<Order> {
       deliveryFee: deliveryFee ?? this.deliveryFee,
       itemsTotal: itemsTotal ?? this.itemsTotal,
       paymentStatus: paymentStatus ?? this.paymentStatus,
+      paymentMethod: paymentMethod ?? this.paymentMethod,
       note: note ?? this.note,
       saleId: saleId ?? this.saleId,
       paymentProofPath: paymentProofPath ?? this.paymentProofPath,
@@ -7519,6 +7577,9 @@ class OrdersCompanion extends UpdateCompanion<Order> {
     if (paymentStatus.present) {
       map['payment_status'] = Variable<String>(paymentStatus.value);
     }
+    if (paymentMethod.present) {
+      map['payment_method'] = Variable<String>(paymentMethod.value);
+    }
     if (note.present) {
       map['note'] = Variable<String>(note.value);
     }
@@ -7564,6 +7625,7 @@ class OrdersCompanion extends UpdateCompanion<Order> {
           ..write('deliveryFee: $deliveryFee, ')
           ..write('itemsTotal: $itemsTotal, ')
           ..write('paymentStatus: $paymentStatus, ')
+          ..write('paymentMethod: $paymentMethod, ')
           ..write('note: $note, ')
           ..write('saleId: $saleId, ')
           ..write('paymentProofPath: $paymentProofPath, ')
@@ -12018,6 +12080,7 @@ typedef $$OrdersTableCreateCompanionBuilder =
       Value<int> deliveryFee,
       Value<int> itemsTotal,
       Value<String> paymentStatus,
+      Value<String?> paymentMethod,
       Value<String?> note,
       Value<String?> saleId,
       Value<String?> paymentProofPath,
@@ -12044,6 +12107,7 @@ typedef $$OrdersTableUpdateCompanionBuilder =
       Value<int> deliveryFee,
       Value<int> itemsTotal,
       Value<String> paymentStatus,
+      Value<String?> paymentMethod,
       Value<String?> note,
       Value<String?> saleId,
       Value<String?> paymentProofPath,
@@ -12135,6 +12199,11 @@ class $$OrdersTableFilterComposer
 
   ColumnFilters<String> get paymentStatus => $composableBuilder(
     column: $table.paymentStatus,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get paymentMethod => $composableBuilder(
+    column: $table.paymentMethod,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -12258,6 +12327,11 @@ class $$OrdersTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get paymentMethod => $composableBuilder(
+    column: $table.paymentMethod,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get note => $composableBuilder(
     column: $table.note,
     builder: (column) => ColumnOrderings(column),
@@ -12360,6 +12434,11 @@ class $$OrdersTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<String> get paymentMethod => $composableBuilder(
+    column: $table.paymentMethod,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<String> get note =>
       $composableBuilder(column: $table.note, builder: (column) => column);
 
@@ -12433,6 +12512,7 @@ class $$OrdersTableTableManager
                 Value<int> deliveryFee = const Value.absent(),
                 Value<int> itemsTotal = const Value.absent(),
                 Value<String> paymentStatus = const Value.absent(),
+                Value<String?> paymentMethod = const Value.absent(),
                 Value<String?> note = const Value.absent(),
                 Value<String?> saleId = const Value.absent(),
                 Value<String?> paymentProofPath = const Value.absent(),
@@ -12457,6 +12537,7 @@ class $$OrdersTableTableManager
                 deliveryFee: deliveryFee,
                 itemsTotal: itemsTotal,
                 paymentStatus: paymentStatus,
+                paymentMethod: paymentMethod,
                 note: note,
                 saleId: saleId,
                 paymentProofPath: paymentProofPath,
@@ -12483,6 +12564,7 @@ class $$OrdersTableTableManager
                 Value<int> deliveryFee = const Value.absent(),
                 Value<int> itemsTotal = const Value.absent(),
                 Value<String> paymentStatus = const Value.absent(),
+                Value<String?> paymentMethod = const Value.absent(),
                 Value<String?> note = const Value.absent(),
                 Value<String?> saleId = const Value.absent(),
                 Value<String?> paymentProofPath = const Value.absent(),
@@ -12507,6 +12589,7 @@ class $$OrdersTableTableManager
                 deliveryFee: deliveryFee,
                 itemsTotal: itemsTotal,
                 paymentStatus: paymentStatus,
+                paymentMethod: paymentMethod,
                 note: note,
                 saleId: saleId,
                 paymentProofPath: paymentProofPath,

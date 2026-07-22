@@ -351,6 +351,7 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
   final _address = TextEditingController();
   final _note = TextEditingController();
   String? _township;
+  String _paymentMethod = 'transfer';
   bool _submitting = false;
   String? _orderNo;
   bool _downloading = false;
@@ -389,7 +390,7 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
     setState(() => _submitting = true);
     try {
       String? proofPath;
-      if (_proofBytes != null) {
+      if (_paymentMethod == 'transfer' && _proofBytes != null) {
         proofPath = await widget.api
             .uploadPaymentProof(_proofBytes!, _proofExt ?? 'jpg');
       }
@@ -400,7 +401,8 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
         address: _address.text.trim(),
         township: _township,
         note: _note.text.trim(),
-        paymentProofPath: proofPath,
+        paymentMethod: _paymentMethod,
+        paymentProofPath: _paymentMethod == 'transfer' ? proofPath : null,
         lines: widget.lines,
       );
       if (mounted) setState(() => _orderNo = no);
@@ -458,34 +460,69 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
                 controller: _note,
                 decoration: const InputDecoration(labelText: 'Note')),
             const SizedBox(height: 16),
-            if ((widget.info.payKpay ?? '').isNotEmpty ||
-                (widget.info.payWave ?? '').isNotEmpty) ...[
+            const Text('Payment', style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            SegmentedButton<String>(
+              segments: const [
+                ButtonSegment(
+                    value: 'transfer',
+                    label: Text('Bank transfer'),
+                    icon: Icon(Icons.account_balance_outlined)),
+                ButtonSegment(
+                    value: 'cod',
+                    label: Text('Cash on delivery'),
+                    icon: Icon(Icons.local_shipping_outlined)),
+              ],
+              selected: {_paymentMethod},
+              onSelectionChanged: (s) =>
+                  setState(() => _paymentMethod = s.first),
+            ),
+            const SizedBox(height: 12),
+            if (_paymentMethod == 'transfer') ...[
+              if ((widget.info.payKpay ?? '').isNotEmpty ||
+                  (widget.info.payWave ?? '').isNotEmpty) ...[
+                Card(
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Pay to:',
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                        if ((widget.info.payKpay ?? '').isNotEmpty)
+                          Text('KBZPay: ${widget.info.payKpay}'),
+                        if ((widget.info.payWave ?? '').isNotEmpty)
+                          Text('WavePay: ${widget.info.payWave}'),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+              ],
+              OutlinedButton.icon(
+                onPressed: _pickProof,
+                icon: const Icon(Icons.upload_file),
+                label: Text(_proofName == null
+                    ? 'Attach payment screenshot'
+                    : 'Screenshot: $_proofName'),
+              ),
+            ] else
               Card(
                 color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                child: const Padding(
+                  padding: EdgeInsets.all(12),
+                  child: Row(
                     children: [
-                      const Text('Pay to:',
-                          style: TextStyle(fontWeight: FontWeight.bold)),
-                      if ((widget.info.payKpay ?? '').isNotEmpty)
-                        Text('KBZPay: ${widget.info.payKpay}'),
-                      if ((widget.info.payWave ?? '').isNotEmpty)
-                        Text('WavePay: ${widget.info.payWave}'),
+                      Icon(Icons.info_outline, size: 18),
+                      SizedBox(width: 8),
+                      Expanded(
+                          child: Text(
+                              "You'll pay cash to the courier when your order arrives.")),
                     ],
                   ),
                 ),
               ),
-              const SizedBox(height: 8),
-            ],
-            OutlinedButton.icon(
-              onPressed: _pickProof,
-              icon: const Icon(Icons.upload_file),
-              label: Text(_proofName == null
-                  ? 'Attach payment screenshot'
-                  : 'Screenshot: $_proofName'),
-            ),
             const SizedBox(height: 16),
             Text('Total: ${_ks(widget.total)}',
                 style: Theme.of(context).textTheme.titleMedium),
@@ -562,14 +599,18 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
             const SizedBox(height: 16),
             InvoiceView(data: _invoiceData),
             const SizedBox(height: 12),
-            if ((widget.info.payKpay ?? '').isNotEmpty ||
-                (widget.info.payWave ?? '').isNotEmpty) ...[
+            if (_paymentMethod == 'transfer' &&
+                ((widget.info.payKpay ?? '').isNotEmpty ||
+                    (widget.info.payWave ?? '').isNotEmpty)) ...[
               const Text('Transfer and send the screenshot to the shop:'),
               const SizedBox(height: 8),
               if ((widget.info.payKpay ?? '').isNotEmpty)
                 Text('KBZPay: ${widget.info.payKpay}'),
               if ((widget.info.payWave ?? '').isNotEmpty)
                 Text('WavePay: ${widget.info.payWave}'),
+              const SizedBox(height: 16),
+            ] else if (_paymentMethod == 'cod') ...[
+              const Text("You'll pay cash to the courier on delivery."),
               const SizedBox(height: 16),
             ],
             Row(

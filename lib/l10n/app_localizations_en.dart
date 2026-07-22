@@ -400,7 +400,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get receiptCashier => 'Cashier';
 
   @override
-  String get receiptThankYou => 'Thank you!';
+  String get receiptCustomer => 'Customer';
+
+  @override
+  String get receiptPhone => 'Phone';
+
+  @override
+  String get receiptThankYou => 'Thank you for your patronage!';
 
   @override
   String get paper58 => '58 mm';
@@ -850,6 +856,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get orderChannelPhone => 'Phone';
 
   @override
+  String get orderChannelStorefront => 'Web';
+
+  @override
   String get orderChannelOther => 'Other';
 
   @override
@@ -900,6 +909,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get orderPayUnpaid => 'Unpaid';
+
+  @override
+  String get orderPaymentTransfer => 'Bank transfer';
+
+  @override
+  String get orderPaymentCod => 'Cash on delivery';
 
   @override
   String get orderPayPartial => 'Partial';
@@ -965,6 +980,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get orderInvoice => 'Share invoice';
+
+  @override
+  String get orderPrint => 'Print';
 
   @override
   String get deliverySection => 'Delivery';

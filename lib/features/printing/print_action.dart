@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/local/database.dart';
 import '../../l10n/app_localizations.dart';
 import '../invoices/receipt_mapper.dart';
+import '../sell/payment_labels.dart';
 import 'printing_providers.dart';
 
 /// Prints (or reprints) a receipt for the given sale. Returns silently after
@@ -25,7 +26,13 @@ Future<void> printSaleReceipt(
   }
 
   final shop = await settings.shopProfile();
-  final data = receiptFromSale(sale, items, shop);
+  final data = receiptFromSale(
+    sale,
+    items,
+    shop,
+    paymentMethodLabel: paymentLabel(l, sale.paymentMethod),
+    defaultFooter: l.receiptThankYou,
+  );
 
   final result = await ref.read(printerServiceProvider).printReceipt(
         data,

@@ -6,10 +6,13 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../data/local/database.dart';
+import '../../l10n/app_localizations.dart';
 import '../invoices/invoice_capture.dart';
 import '../invoices/invoice_view.dart';
+import '../invoices/receipt_mapper.dart';
 import '../printing/printing_providers.dart';
 import '../storefront/storefront_screen.dart' show storefrontRepositoryProvider;
+import 'order_labels.dart';
 
 /// Builds a polished invoice image for an order and opens the share sheet so
 /// the shop can save it (Photos/Files) or send it to the customer
@@ -24,6 +27,7 @@ Future<void> shareOrderInvoice(
   Order order,
   List<OrderItem> items,
 ) async {
+  final l = AppLocalizations.of(context);
   final profile = await ref.read(shopProfileProvider.future);
 
   // Best-effort: reuse the shop's published storefront logo, if any. Never
@@ -60,7 +64,9 @@ Future<void> shareOrderInvoice(
     ],
     deliveryFee: order.deliveryFee,
     paymentStatus: order.paymentStatus,
-    footer: profile.footer,
+    footer: (profile.footer != null && profile.footer!.isNotEmpty)
+        ? profile.footer
+        : l.receiptThankYou,
   );
 
   if (!context.mounted) return;
@@ -76,4 +82,45 @@ Future<void> shareOrderInvoice(
       subject: 'Invoice ${order.orderNo}',
     ),
   );
+}
+
+/// Prints an order directly to the shop's configured Bluetooth thermal
+/// printer — the same ESC/POS pipeline used for finalized sales. Shows a
+/// snackbar with the outcome; returns silently if no printer is configured.
+Future<void> printOrderInvoice(
+  BuildContext context,
+  WidgetRef ref,
+  Order order,
+  List<OrderItem> items,
+) async {
+  final l = AppLocalizations.of(context);
+  final messenger = ScaffoldMessenger.of(context);
+  final settings = ref.read(settingsRepositoryProvider);
+
+  final config = await settings.printerConfig();
+  if (!config.hasPrinter) {
+    messenger.showSnackBar(SnackBar(content: Text(l.printerNone)));
+    return;
+  }
+
+  final shop = await settings.shopProfile();
+  final data = receiptFromOrder(
+    order,
+    items,
+    shop,
+    paymentMethodLabel: orderPaymentLabel(l, order.paymentStatus),
+    deliveryFeeLabel: l.orderDeliveryFee,
+    defaultFooter: l.receiptThankYou,
+  );
+
+  final result = await ref.read(printerServiceProvider).printReceipt(
+        data,
+        paper: config.paper,
+        mac: config.mac!,
+        labels: receiptLabels(l),
+      );
+
+  messenger.showSnackBar(SnackBar(
+    content: Text(result.ok ? l.printSuccess : l.printFailed),
+  ));
 }

@@ -139,7 +139,9 @@
   "receiptInvoice": "Invoice",
   "receiptDate": "Date",
   "receiptCashier": "Cashier",
-  "receiptThankYou": "Thank you!",
+  "receiptCustomer": "Customer",
+  "receiptPhone": "Phone",
+  "receiptThankYou": "Thank you for your patronage!",
   "paper58": "58 mm",
   "paper80": "80 mm",
 
@@ -296,6 +298,7 @@
   "orderChannelTiktok": "TikTok",
   "orderChannelInstagram": "Instagram",
   "orderChannelPhone": "Phone",
+  "orderChannelStorefront": "Web",
   "orderChannelOther": "Other",
 
   "orderCustomerName": "Customer name",
@@ -314,6 +317,8 @@
   "orderTotal": "Total",
   "orderPayment": "Payment",
   "orderPayUnpaid": "Unpaid",
+  "orderPaymentTransfer": "Bank transfer",
+  "orderPaymentCod": "Cash on delivery",
   "orderPayPartial": "Partial",
   "orderPayPaid": "Paid",
 
@@ -337,6 +342,7 @@
   "orderPickPaymentMethod": "Payment method",
   "orderPaymentProof": "Payment screenshot",
   "orderInvoice": "Share invoice",
+  "orderPrint": "Print",
   "deliverySection": "Delivery",
   "deliveryTownship": "Township",
   "deliveryTownshipNone": "No township set",

@@ -393,7 +393,13 @@ class AppLocalizationsMy extends AppLocalizations {
   String get receiptCashier => 'ဝန်ထမ်း';
 
   @override
-  String get receiptThankYou => 'ကျေးဇူးတင်ပါသည်!';
+  String get receiptCustomer => 'ဖောက်သည်';
+
+  @override
+  String get receiptPhone => 'ဖုန်း';
+
+  @override
+  String get receiptThankYou => 'ဝယ်ယူအားပေးမှုအတွက် ကျေးဇူးတင်ပါသည်။';
 
   @override
   String get paper58 => '၅၈ မီလီမီတာ';
@@ -843,6 +849,9 @@ class AppLocalizationsMy extends AppLocalizations {
   String get orderChannelPhone => 'ဖုန်း';
 
   @override
+  String get orderChannelStorefront => 'ဝက်ဘ်ဆိုက်';
+
+  @override
   String get orderChannelOther => 'အခြား';
 
   @override
@@ -892,6 +901,12 @@ class AppLocalizationsMy extends AppLocalizations {
 
   @override
   String get orderPayUnpaid => 'မပေးရသေး';
+
+  @override
+  String get orderPaymentTransfer => 'ငွေလွှဲ';
+
+  @override
+  String get orderPaymentCod => 'အိမ်ရောက်ငွေချေ';
 
   @override
   String get orderPayPartial => 'တစ်စိတ်တစ်ပိုင်း';
@@ -957,6 +972,9 @@ class AppLocalizationsMy extends AppLocalizations {
 
   @override
   String get orderInvoice => 'ဘောက်ချာ မျှဝေ';
+
+  @override
+  String get orderPrint => 'Print ထုတ်';
 
   @override
   String get deliverySection => 'ပို့ဆောင်ရေး';

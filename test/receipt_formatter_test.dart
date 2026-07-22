@@ -6,6 +6,8 @@ const _labels = ReceiptLabels(
   invoice: 'Invoice',
   date: 'Date',
   cashier: 'Cashier',
+  customer: 'Customer',
+  phone: 'Phone',
   subtotal: 'Subtotal',
   discount: 'Discount',
   total: 'Total',
@@ -14,11 +16,14 @@ const _labels = ReceiptLabels(
   change: 'Change',
 );
 
-ReceiptData _sample({int discount = 0, String? longName}) => ReceiptData(
+ReceiptData _sample(
+        {int discount = 0, String? longName, String? customerName}) =>
+    ReceiptData(
       shopName: 'Aung Minimart',
       address: 'Yangon',
       invoiceNo: 'INV-20260710-001',
       dateTime: DateTime(2026, 7, 10, 14, 30),
+      customerName: customerName,
       items: [
         ReceiptLineItem(
             name: longName ?? 'Coca-Cola',
@@ -68,6 +73,19 @@ void main() {
       final withDisc = ReceiptFormatter(paper: PaperSize.mm58, labels: _labels)
           .format(_sample(discount: 200));
       expect(withDisc.any((l) => l.startsWith('Discount')), isTrue);
+    });
+
+    test('customer name is printed when present (credit sale traceability)',
+        () {
+      final withCustomer = ReceiptFormatter(
+              paper: PaperSize.mm58, labels: _labels)
+          .format(_sample(customerName: 'Ma Ma'));
+      expect(withCustomer.any((l) => l.contains('Ma Ma')), isTrue);
+
+      final without =
+          ReceiptFormatter(paper: PaperSize.mm58, labels: _labels)
+              .format(_sample());
+      expect(without.any((l) => l.startsWith('Customer')), isFalse);
     });
 
     test('long product names wrap without exceeding width', () {
