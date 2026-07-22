@@ -138,7 +138,9 @@
   "receiptInvoice": "ပြေစာ",
   "receiptDate": "ရက်စွဲ",
   "receiptCashier": "ဝန်ထမ်း",
-  "receiptThankYou": "ကျေးဇူးတင်ပါသည်!",
+  "receiptCustomer": "ဖောက်သည်",
+  "receiptPhone": "ဖုန်း",
+  "receiptThankYou": "ဝယ်ယူအားပေးမှုအတွက် ကျေးဇူးတင်ပါသည်။",
   "paper58": "၅၈ မီလီမီတာ",
   "paper80": "၈၀ မီလီမီတာ",
 
@@ -295,6 +297,7 @@
   "orderChannelTiktok": "TikTok",
   "orderChannelInstagram": "Instagram",
   "orderChannelPhone": "ဖုန်း",
+  "orderChannelStorefront": "ဝက်ဘ်ဆိုက်",
   "orderChannelOther": "အခြား",
 
   "orderCustomerName": "ဖောက်သည်အမည်",
@@ -313,6 +316,8 @@
   "orderTotal": "စုစုပေါင်း",
   "orderPayment": "ငွေပေးချေမှု",
   "orderPayUnpaid": "မပေးရသေး",
+  "orderPaymentTransfer": "ငွေလွှဲ",
+  "orderPaymentCod": "အိမ်ရောက်ငွေချေ",
   "orderPayPartial": "တစ်စိတ်တစ်ပိုင်း",
   "orderPayPaid": "ပေးပြီး",
 
@@ -336,6 +341,7 @@
   "orderPickPaymentMethod": "ငွေပေးချေနည်း",
   "orderPaymentProof": "ငွေပေးချေမှု screenshot",
   "orderInvoice": "ဘောက်ချာ မျှဝေ",
+  "orderPrint": "Print ထုတ်",
   "deliverySection": "ပို့ဆောင်ရေး",
   "deliveryTownship": "မြို့နယ်",
   "deliveryTownshipNone": "မြို့နယ် မသတ်မှတ်ရသေး",

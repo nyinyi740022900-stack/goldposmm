@@ -186,6 +186,13 @@ class Orders extends Table with SyncColumns {
   /// unpaid | partial | paid
   TextColumn get paymentStatus =>
       text().withDefault(const Constant('unpaid'))();
+
+  /// How the customer intends to pay: transfer (KPay/Wave, usually with a
+  /// screenshot) | cod (cash on delivery) | null (manually-created order,
+  /// not yet specified). Distinct from [paymentStatus] — a COD order is
+  /// legitimately "unpaid" until the courier collects cash at the door,
+  /// which is a different shop workflow than reviewing a transfer screenshot.
+  TextColumn get paymentMethod => text().nullable()();
   TextColumn get note => text().nullable()();
 
   /// Set once the order is converted to an in-store [Sales] row.

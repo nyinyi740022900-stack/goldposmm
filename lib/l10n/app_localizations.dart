@@ -836,10 +836,22 @@ abstract class AppLocalizations {
   /// **'Cashier'**
   String get receiptCashier;
 
+  /// No description provided for @receiptCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer'**
+  String get receiptCustomer;
+
+  /// No description provided for @receiptPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get receiptPhone;
+
   /// No description provided for @receiptThankYou.
   ///
   /// In en, this message translates to:
-  /// **'Thank you!'**
+  /// **'Thank you for your patronage!'**
   String get receiptThankYou;
 
   /// No description provided for @paper58.
@@ -1652,6 +1664,12 @@ abstract class AppLocalizations {
   /// **'Phone'**
   String get orderChannelPhone;
 
+  /// No description provided for @orderChannelStorefront.
+  ///
+  /// In en, this message translates to:
+  /// **'Web'**
+  String get orderChannelStorefront;
+
   /// No description provided for @orderChannelOther.
   ///
   /// In en, this message translates to:
@@ -1753,6 +1771,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unpaid'**
   String get orderPayUnpaid;
+
+  /// No description provided for @orderPaymentTransfer.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank transfer'**
+  String get orderPaymentTransfer;
+
+  /// No description provided for @orderPaymentCod.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash on delivery'**
+  String get orderPaymentCod;
 
   /// No description provided for @orderPayPartial.
   ///
@@ -1873,6 +1903,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Share invoice'**
   String get orderInvoice;
+
+  /// No description provided for @orderPrint.
+  ///
+  /// In en, this message translates to:
+  /// **'Print'**
+  String get orderPrint;
 
   /// No description provided for @deliverySection.
   ///

@@ -35,6 +35,8 @@ class ReceiptData {
   final String invoiceNo;
   final DateTime dateTime;
   final String? cashier;
+  final String? customerName;
+  final String? customerPhone;
   final List<ReceiptLineItem> items;
   final int subtotal;
   final int discount;
@@ -51,6 +53,8 @@ class ReceiptData {
     required this.invoiceNo,
     required this.dateTime,
     this.cashier,
+    this.customerName,
+    this.customerPhone,
     required this.items,
     required this.subtotal,
     required this.discount,

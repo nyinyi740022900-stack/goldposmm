@@ -94,7 +94,9 @@ class StorefrontApi {
     return path;
   }
 
-  /// Submits a guest order. Returns the order number.
+  /// Submits a guest order. [paymentMethod] is `'transfer'` (KPay/Wave,
+  /// usually with a screenshot) or `'cod'` (cash on delivery) — the shop sees
+  /// a different workflow cue for each. Returns the order number.
   Future<String> submitOrder({
     required String slug,
     required String customerName,
@@ -102,6 +104,7 @@ class StorefrontApi {
     String? address,
     String? township,
     String? note,
+    required String paymentMethod,
     String? paymentProofPath,
     required List<OrderLine> lines,
   }) async {
@@ -113,6 +116,7 @@ class StorefrontApi {
       'address': address,
       'township': township,
       'note': note,
+      'payment_method': paymentMethod,
       'payment_proof_path': paymentProofPath,
       'lines': [
         for (final l in lines)

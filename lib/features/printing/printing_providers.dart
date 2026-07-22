@@ -38,6 +38,8 @@ ReceiptLabels receiptLabels(AppLocalizations l) => ReceiptLabels(
       invoice: l.receiptInvoice,
       date: l.receiptDate,
       cashier: l.receiptCashier,
+      customer: l.receiptCustomer,
+      phone: l.receiptPhone,
       subtotal: l.sellSubtotal,
       discount: l.sellDiscount,
       total: l.commonTotal,

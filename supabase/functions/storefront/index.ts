@@ -7,8 +7,9 @@
 //
 // Actions:
 //   catalog       { slug }  -> { storefront, products }
-//   submit_order  { slug, customer_name, phone, address, note, lines[] }
-//                          -> { ok, order_no }
+//   submit_order  { slug, customer_name, phone, address, township, note,
+//                    payment_method ('transfer'|'cod'), payment_proof_path,
+//                    lines[] } -> { ok, order_no }
 //
 // Deploy: supabase functions deploy storefront
 
@@ -82,6 +83,11 @@ Deno.serve(async (req) => {
     // deno-lint-ignore no-explicit-any
     const lines = (body.lines ?? []) as any[];
     if (!name || lines.length === 0) return json({ error: "bad_request" }, 400);
+    // 'transfer' (KPay/Wave, usually with a screenshot) or 'cod' (cash on
+    // delivery) — anything else collapses to null (unspecified).
+    const rawMethod = `${body.payment_method ?? ""}`.trim();
+    const paymentMethod =
+      rawMethod === "transfer" || rawMethod === "cod" ? rawMethod : null;
 
     const itemsTotal = lines.reduce(
       (s, l) => s + (Number(l.price) || 0) * (Number(l.qty) || 0),
@@ -103,6 +109,7 @@ Deno.serve(async (req) => {
       township: (body.township ?? "").trim() || null,
       items_total: itemsTotal,
       payment_status: "unpaid",
+      payment_method: paymentMethod,
       note: (body.note ?? "").trim() || null,
       payment_proof_path: (body.payment_proof_path ?? "").trim() || null,
       created_at: now,

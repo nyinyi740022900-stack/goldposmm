@@ -41,6 +41,12 @@ class ReceiptFormatter {
     if (r.cashier != null && r.cashier!.isNotEmpty) {
       out.add(_two(labels.cashier, r.cashier!));
     }
+    if (r.customerName != null && r.customerName!.isNotEmpty) {
+      out.add(_two(labels.customer, r.customerName!));
+    }
+    if (r.customerPhone != null && r.customerPhone!.isNotEmpty) {
+      out.add(_two(labels.phone, r.customerPhone!));
+    }
     out.add(_divider());
 
     // Items: name on its own line, then "qty x price ....... lineTotal".
@@ -127,6 +133,8 @@ class ReceiptLabels {
   final String invoice;
   final String date;
   final String cashier;
+  final String customer;
+  final String phone;
   final String subtotal;
   final String discount;
   final String total;
@@ -138,6 +146,8 @@ class ReceiptLabels {
     required this.invoice,
     required this.date,
     required this.cashier,
+    required this.customer,
+    required this.phone,
     required this.subtotal,
     required this.discount,
     required this.total,
