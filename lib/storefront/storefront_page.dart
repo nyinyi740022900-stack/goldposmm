@@ -528,7 +528,7 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
         ],
       );
 
-  Future<void> _downloadInvoice(BuildContext context) async {
+  Future<void> _saveInvoiceToPhotos(BuildContext context) async {
     setState(() => _downloading = true);
     try {
       final invoice = _invoiceData;
@@ -540,7 +540,7 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
       if (!context.mounted) return;
       final bytes =
           await captureWidgetAsPng(context, InvoiceView(data: invoice));
-      downloadBytes(bytes, 'invoice-${invoice.invoiceNo}.png');
+      await saveImageToPhotos(bytes, 'invoice-${invoice.invoiceNo}.png');
     } finally {
       if (mounted) setState(() => _downloading = false);
     }
@@ -577,14 +577,14 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed:
-                        _downloading ? null : () => _downloadInvoice(context),
+                        _downloading ? null : () => _saveInvoiceToPhotos(context),
                     icon: _downloading
                         ? const SizedBox(
                             width: 16,
                             height: 16,
                             child: CircularProgressIndicator(strokeWidth: 2))
-                        : const Icon(Icons.download),
-                    label: const Text('Download'),
+                        : const Icon(Icons.photo_library_outlined),
+                    label: const Text('Save to Photos'),
                   ),
                 ),
                 const SizedBox(width: 8),
