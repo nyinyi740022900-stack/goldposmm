@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../features/analytics/analytics_screen.dart';
@@ -7,6 +8,7 @@ import '../features/invoices/invoices_screen.dart';
 import '../features/orders/orders_screen.dart';
 import '../features/sell/sell_screen.dart';
 import '../features/settings/settings_screen.dart';
+import '../features/staff/staff_providers.dart';
 import '../l10n/app_localizations.dart';
 
 final appRouter = GoRouter(
@@ -45,33 +47,57 @@ final appRouter = GoRouter(
   ],
 );
 
-class _ShellScaffold extends StatelessWidget {
+class _ShellScaffold extends ConsumerWidget {
   const _ShellScaffold({required this.shell});
 
   final StatefulNavigationShell shell;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context);
+    final isOwner = ref.watch(isOwnerProvider);
     // Tablet (wide) → rail; phone → bottom bar.
     final isWide = MediaQuery.sizeOf(context).width >= 640;
 
-    final destinations = <_Dest>[
-      _Dest(Icons.point_of_sale, l.navSell),
-      _Dest(Icons.inventory_2, l.navInventory),
-      _Dest(Icons.dashboard_customize_outlined, l.navOrders),
-      _Dest(Icons.receipt_long, l.navInvoices),
-      _Dest(Icons.bar_chart, l.navAnalytics),
-      _Dest(Icons.settings, l.navSettings),
+    // branchIndex matches the StatefulShellBranch order above (fixed —
+    // filtering only changes which of these show, never their identity).
+    // Analytics is business-sensitive and owner-only; Settings always stays
+    // visible even in Staff mode — it's the only way back to Owner (PIN).
+    final allDestinations = <_Dest>[
+      _Dest(0, Icons.point_of_sale, l.navSell),
+      _Dest(1, Icons.inventory_2, l.navInventory),
+      _Dest(2, Icons.dashboard_customize_outlined, l.navOrders),
+      _Dest(3, Icons.receipt_long, l.navInvoices),
+      _Dest(4, Icons.bar_chart, l.navAnalytics, ownerOnly: true),
+      _Dest(5, Icons.settings, l.navSettings),
     ];
+    final destinations =
+        allDestinations.where((d) => !d.ownerOnly || isOwner).toList();
+
+    var selectedIndex =
+        destinations.indexWhere((d) => d.branchIndex == shell.currentIndex);
+    if (selectedIndex < 0) {
+      // The branch we were on just became hidden (e.g. an owner viewing
+      // Analytics switched the device to Staff mode) — bounce to Sell rather
+      // than crash the nav widget on an out-of-range selected index.
+      selectedIndex = 0;
+      WidgetsBinding.instance
+          .addPostFrameCallback((_) => shell.goBranch(0, initialLocation: true));
+    }
+
+    void go(int filteredIndex) {
+      final branchIndex = destinations[filteredIndex].branchIndex;
+      shell.goBranch(branchIndex,
+          initialLocation: branchIndex == shell.currentIndex);
+    }
 
     if (isWide) {
       return Scaffold(
         body: Row(
           children: [
             NavigationRail(
-              selectedIndex: shell.currentIndex,
-              onDestinationSelected: _go,
+              selectedIndex: selectedIndex,
+              onDestinationSelected: go,
               labelType: NavigationRailLabelType.all,
               destinations: [
                 for (final d in destinations)
@@ -91,8 +117,8 @@ class _ShellScaffold extends StatelessWidget {
     return Scaffold(
       body: shell,
       bottomNavigationBar: NavigationBar(
-        selectedIndex: shell.currentIndex,
-        onDestinationSelected: _go,
+        selectedIndex: selectedIndex,
+        onDestinationSelected: go,
         destinations: [
           for (final d in destinations)
             NavigationDestination(icon: Icon(d.icon), label: d.label),
@@ -100,12 +126,12 @@ class _ShellScaffold extends StatelessWidget {
       ),
     );
   }
-
-  void _go(int i) => shell.goBranch(i, initialLocation: i == shell.currentIndex);
 }
 
 class _Dest {
+  final int branchIndex;
   final IconData icon;
   final String label;
-  const _Dest(this.icon, this.label);
+  final bool ownerOnly;
+  const _Dest(this.branchIndex, this.icon, this.label, {this.ownerOnly = false});
 }

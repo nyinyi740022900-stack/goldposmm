@@ -11,13 +11,12 @@ import 'package:mm_pos/features/inventory/inventory_providers.dart';
 import 'package:mm_pos/features/orders/orders_providers.dart';
 import 'package:mm_pos/features/printing/printing_providers.dart';
 import 'package:mm_pos/features/staff/staff_providers.dart';
-import 'package:mm_pos/features/sell/sell_screen.dart';
 
+/// Covers the router's role-based tab filtering: Analytics is hidden in Staff
+/// mode (business-sensitive), while Settings stays visible even for Staff (the
+/// only way back to Owner mode, via the PIN).
 void main() {
-  testWidgets('app boots to the sell screen with 6-tab bottom navigation',
-      (tester) async {
-    // Phone-sized viewport so the responsive shell uses the bottom
-    // NavigationBar (the default 800x600 surface shows the tablet rail).
+  Future<void> pump(WidgetTester tester, String role) async {
     tester.view.physicalSize = const Size(400, 800);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
@@ -25,37 +24,37 @@ void main() {
 
     final db = AppDatabase.forTesting(NativeDatabase.memory());
     addTearDown(db.close);
-    // Skip first-run onboarding — this test verifies the main tabbed shell.
     await SettingsRepository(db).markOnboardingComplete();
 
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           databaseProvider.overrideWithValue(db),
-          // Emit immediately so no loading spinner animates forever in the
-          // fake test clock (which would make pumpAndSettle never settle).
           productsStreamProvider
               .overrideWith((ref) => Stream.value(<ProductWithStock>[])),
-          // Single-value streams so the Drift watches (settings, categories)
-          // don't leave a query-stream subscription pending under the fake
-          // clock when the provider scope tears down.
           trackStockProvider.overrideWith((ref) => Stream.value(true)),
           categoriesStreamProvider
               .overrideWith((ref) => Stream.value(<Category>[])),
-          // The Orders tab is built eagerly by the IndexedStack shell; give it
-          // a single-value stream so its Drift watch doesn't stay pending.
           ordersStreamProvider.overrideWith((ref) => Stream.value(<Order>[])),
-          // The router's role-based tab filter watches this — single-value
-          // so it doesn't leave a pending Drift stream under the fake clock.
-          staffRoleProvider.overrideWith((ref) => Stream.value('owner')),
+          staffRoleProvider.overrideWith((ref) => Stream.value(role)),
         ],
         child: const MmPosApp(),
       ),
     );
     await tester.pumpAndSettle();
+  }
 
-    expect(find.byType(SellScreen), findsOneWidget);
-    expect(find.byType(NavigationBar), findsOneWidget);
+  testWidgets('owner sees all 6 tabs including Analytics', (tester) async {
+    await pump(tester, 'owner');
     expect(find.byType(NavigationDestination), findsNWidgets(6));
+  });
+
+  testWidgets(
+      'staff sees 5 tabs — Analytics hidden, Settings still visible (PIN escape hatch)',
+      (tester) async {
+    await pump(tester, 'staff');
+    expect(find.byType(NavigationDestination), findsNWidgets(5));
+    expect(find.byIcon(Icons.bar_chart), findsNothing);
+    expect(find.byIcon(Icons.settings), findsOneWidget);
   });
 }
