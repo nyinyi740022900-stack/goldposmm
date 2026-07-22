@@ -2,15 +2,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../printing/printing_providers.dart';
 
-/// Roles in privilege order (higher index = more access). Device-local, not
-/// synced — it's a per-device operating mode, set by the owner before handing
-/// the phone to staff.
-const staffRoles = <String>['cashier', 'manager', 'owner'];
-
-int _roleLevel(String role) {
-  final i = staffRoles.indexOf(role);
-  return i < 0 ? 0 : i;
-}
+/// Two device-local operating modes, not synced — set by the owner before
+/// handing the phone to staff. Kept deliberately simple: 'staff' (Sell +
+/// Orders only) and 'owner' (everything). A finer-grained role tier was tried
+/// and folded back into this — extra roles added complexity without a clear
+/// use case for a small shop.
+const staffRoles = <String>['staff', 'owner'];
 
 final staffRoleProvider = StreamProvider<String>((ref) {
   return ref.watch(settingsRepositoryProvider).watchStaffRole();
@@ -18,23 +15,19 @@ final staffRoleProvider = StreamProvider<String>((ref) {
 
 /// True when the current device mode is owner (or still loading, so the UI
 /// never briefly hides owner controls from the owner). Gates Analytics,
-/// Storefront, Delivery-carrier config, and staff-mode/License management.
+/// Inventory add/edit, Storefront, Delivery-carrier config, and staff-mode/
+/// License management.
 final isOwnerProvider = Provider<bool>((ref) {
   return (ref.watch(staffRoleProvider).valueOrNull ?? 'owner') == 'owner';
 });
 
-/// True for owner or manager. Gates Inventory add/edit — a manager runs stock
-/// day-to-day but doesn't see business analytics or shop settings.
-final canEditInventoryProvider = Provider<bool>((ref) {
-  final role = ref.watch(staffRoleProvider).valueOrNull ?? 'owner';
-  return role == 'owner' || role == 'manager';
-});
+/// Alias kept for call-site clarity in the Inventory screen — Inventory
+/// add/edit is owner-only, same gate as everything else non-Sell/Orders.
+final canEditInventoryProvider = Provider<bool>((ref) => ref.watch(isOwnerProvider));
 
-/// Switches the device's staff role and manages the owner PIN. Downgrading
-/// privilege (owner→manager, owner→cashier, manager→cashier) is always free —
-/// the current user is already at least as trusted as the target. Upgrading
-/// (cashier→manager, cashier→owner, manager→owner) requires the correct PIN
-/// (or succeeds if no PIN has been set yet).
+/// Switches the device's staff role and manages the owner PIN. Switching to
+/// 'staff' is always free (an owner locking the device down for a cashier);
+/// switching to 'owner' requires the correct PIN (or succeeds if none is set).
 class StaffController {
   StaffController(this._ref);
   final Ref _ref;
@@ -46,13 +39,11 @@ class StaffController {
   Future<void> setPin(String pin) =>
       _ref.read(settingsRepositoryProvider).setStaffPin(pin);
 
-  /// Attempts to switch to [targetRole]. [pin] is required only when the
-  /// switch is an upgrade in privilege; ignored for downgrades. Returns false
-  /// on a wrong PIN (role is left unchanged).
+  /// Attempts to switch to [targetRole]. [pin] is required only when
+  /// switching to 'owner'. Returns false on a wrong PIN (role unchanged).
   Future<bool> switchRole(String targetRole, {String? pin}) async {
     final repo = _ref.read(settingsRepositoryProvider);
-    final current = await repo.staffRole();
-    if (_roleLevel(targetRole) > _roleLevel(current)) {
+    if (targetRole == 'owner') {
       final saved = await repo.staffPin();
       if (saved != null && saved.isNotEmpty && saved != (pin ?? '')) {
         return false;

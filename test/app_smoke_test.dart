@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mm_pos/app.dart';
 import 'package:mm_pos/core/providers.dart';
 import 'package:mm_pos/data/local/database.dart';
+import 'package:mm_pos/data/repositories/settings_repository.dart';
 import 'package:mm_pos/domain/product_with_stock.dart';
 import 'package:mm_pos/features/inventory/inventory_providers.dart';
 import 'package:mm_pos/features/orders/orders_providers.dart';
@@ -23,6 +24,8 @@ void main() {
 
     final db = AppDatabase.forTesting(NativeDatabase.memory());
     addTearDown(db.close);
+    // Skip first-run onboarding — this test verifies the main tabbed shell.
+    await SettingsRepository(db).markOnboardingComplete();
 
     await tester.pumpWidget(
       ProviderScope(

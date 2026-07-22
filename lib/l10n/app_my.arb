@@ -97,6 +97,7 @@
   "settingsSectionFinance": "ငွေကြေး",
   "settingsSectionDevice": "စက်/ဝန်ထမ်း",
   "settingsSectionHelp": "အကူအညီ",
+  "settingsSectionOwnerTools": "ပိုင်ရှင် Tools",
   "settingsLanguage": "ဘာသာစကား",
   "settingsPrinter": "ပရင်တာ",
   "settingsShop": "ဆိုင်အချက်အလက်",
@@ -363,8 +364,7 @@
 
   "staffMode": "ဝန်ထမ်း mode",
   "staffRoleOwner": "ပိုင်ရှင်",
-  "staffRoleManager": "မန်နေဂျာ",
-  "staffRoleCashier": "ကက်ရှီယာ",
+  "staffRoleStaff": "ဝန်ထမ်း",
   "staffCurrentRole": "လက်ရှိ: {role}",
   "@staffCurrentRole": { "placeholders": { "role": { "type": "String" } } },
   "staffSwitchTo": "{role} သို့ ပြောင်း",
@@ -378,8 +378,7 @@
   "staffPinSaved": "PIN သိမ်းပြီး",
   "staffOwnerOnly": "ပိုင်ရှင်သာ ကြည့်နိုင်",
   "staffOwnerOnlyDesc": "ဒါကို ကြည့်ရန် Owner mode (Settings) သို့ ပြောင်းပါ။",
-  "staffCashierBadge": "Cashier mode",
-  "staffManagerBadge": "Manager mode",
+  "staffBadge": "ဝန်ထမ်း mode",
 
   "storefrontTitle": "ကျွန်ုပ်၏ Web ဆိုင်",
   "storefrontDesc": "ဖောက်သည်များ app မလိုဘဲ order တင်နိုင်တဲ့ public catalog ထုတ်ဝေပါ။",
@@ -390,6 +389,19 @@
   "storefrontCopied": "Link ကူးယူပြီး",
   "storefrontNeedsName": "ဆိုင်နာမည် ထည့်ပါ",
   "storefrontShare": "ဒီ link ကို Facebook, Viber စသည်တွင် ဖောက်သည်များထံ မျှဝေပါ။",
+
+  "onboardWelcomeTitle": "GoldPOSMM မှ ကြိုဆိုပါတယ်",
+  "onboardWelcomeBody": "မြန်မာဆိုင်များအတွက် offline-first POS app ပါ။ ဆိုင်ကို စတင်သတ်မှတ်ကြရအောင် — မိနစ်ပိုင်းပဲ ကြာပါမယ်။",
+  "onboardNext": "ရှေ့ဆက်",
+  "onboardSkip": "ကျော်",
+  "onboardGetStarted": "စတင်မည်",
+  "onboardShopTitle": "သင့်ဆိုင်",
+  "onboardShopBody": "ဒါက ပြေစာပေါ်မှာ ပါဝင်ပါမယ်။",
+  "onboardLicenseTitle": "အခမဲ့ Trial သို့မဟုတ် License Key",
+  "onboardLicenseBody": "Card မလို၊ sign up မလိုဘဲ ၂ လ အခမဲ့ trial အလိုအလျောက် ရရှိပါမယ်။ Agent ဆီက license key ရှိပြီးသားလား? အခုပဲ activate လုပ်ပါ ဒါမှမဟုတ် နောက်မှ Settings ကနေ ထည့်နိုင်ပါတယ်။",
+  "onboardActivateNow": "License key ချက်ချင်း activate",
+  "onboardStaffTitle": "Owner နှင့် Staff Mode",
+  "onboardStaffBody": "အခု Owner mode မှာ ရှိပါတယ် — အားလုံး ရနိုင်ပါတယ်။ ဖုန်းကို ဝန်ထမ်းကို လက်ဆင့်ကမ်းမလား? Settings → ပိုင်ရှင် Tools → Staff သို့ ပြောင်းပါ။ Staff mode မှာ Sell + Orders ပဲ မြင်ရမယ်၊ Owner ပြန်ဖို့ PIN လိုပါမယ်။",
 
   "currencySymbol": "ကျပ်"
 }

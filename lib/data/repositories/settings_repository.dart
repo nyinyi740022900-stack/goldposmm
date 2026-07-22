@@ -126,6 +126,13 @@ class SettingsRepository {
   Future<bool> trialUsed() async => (await _get(_kTrialUsed)) == 'true';
   Future<void> markTrialUsed() => _set(_kTrialUsed, 'true');
 
+  // First-run onboarding (shop profile / license / owner-staff-mode intro),
+  // shown once per install.
+  static const _kOnboardingDone = 'onboarding.done';
+  Future<bool> onboardingComplete() async =>
+      (await _get(_kOnboardingDone)) == 'true';
+  Future<void> markOnboardingComplete() => _set(_kOnboardingDone, 'true');
+
   /// Watermark of the referral commission total (Ks) already seen by the user.
   /// null = never checked, so the first check establishes a baseline silently
   /// (no notification for commissions earned before this feature shipped).
