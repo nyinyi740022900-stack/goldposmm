@@ -1,4 +1,7 @@
+import 'dart:ui' as ui;
+
 import 'package:esc_pos_utils_plus/esc_pos_utils_plus.dart' as esc;
+import 'package:http/http.dart' as http;
 import 'package:print_bluetooth_thermal/print_bluetooth_thermal.dart';
 
 import '../invoices/receipt_data.dart';
@@ -44,21 +47,38 @@ class PrinterService {
     return connect(mac);
   }
 
+  /// Best-effort: downloads and decodes the shop's logo for the receipt
+  /// header. Never throws — a network failure or bad image just means the
+  /// receipt prints without a logo, not that printing fails.
+  Future<ui.Image?> _fetchLogo(String? url) async {
+    if (url == null || url.isEmpty) return null;
+    try {
+      final res = await http.get(Uri.parse(url)).timeout(
+            const Duration(seconds: 5),
+          );
+      if (res.statusCode != 200) return null;
+      return decodeLogoImage(res.bodyBytes);
+    } catch (_) {
+      return null;
+    }
+  }
+
   /// Builds the ESC/POS byte stream for a receipt (raster image + cut).
   Future<List<int>> buildBytes(
     ReceiptData data, {
     required PaperSize paper,
     required ReceiptLabels labels,
   }) async {
-    final lines = ReceiptFormatter(
+    final bodyLines = ReceiptFormatter(
       paper: paper,
       labels: labels,
       // Always the ASCII 'Ks' on receipts so money columns stay aligned even
       // when the UI language is Burmese.
       currencySymbol: 'Ks',
-    ).format(data);
+    ).format(data, includeHeader: false);
 
-    final image = await renderReceiptImage(lines, paper);
+    final logo = await _fetchLogo(data.logoUrl);
+    final image = await renderReceiptImage(data, bodyLines, paper, logo: logo);
 
     final profile = await esc.CapabilityProfile.load();
     final generator = esc.Generator(

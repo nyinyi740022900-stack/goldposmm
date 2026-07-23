@@ -1,13 +1,18 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../core/env.dart';
+import '../../core/image_util.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/repositories/settings_repository.dart';
 import '../../l10n/app_localizations.dart';
 import '../printing/printing_providers.dart';
 
-/// Edit the shop's receipt header (name/address/phone) and footer line.
-/// Backs [ShopProfile], which the receipt builder reads.
+/// Edit the shop's receipt header (logo/name/address/phone) and footer line.
+/// Backs [ShopProfile], which the receipt builder (printed + shared invoices)
+/// reads.
 class ShopProfileScreen extends ConsumerStatefulWidget {
   const ShopProfileScreen({super.key});
 
@@ -21,8 +26,10 @@ class _ShopProfileScreenState extends ConsumerState<ShopProfileScreen> {
   final _address = TextEditingController();
   final _phone = TextEditingController();
   final _footer = TextEditingController();
+  String? _logoUrl;
   bool _loaded = false;
   bool _saving = false;
+  bool _uploadingLogo = false;
 
   @override
   void dispose() {
@@ -38,7 +45,39 @@ class _ShopProfileScreenState extends ConsumerState<ShopProfileScreen> {
     _address.text = p.address ?? '';
     _phone.text = p.phone ?? '';
     _footer.text = p.footer ?? '';
+    _logoUrl = p.logoUrl;
     _loaded = true;
+  }
+
+  Future<void> _pickLogo() async {
+    final res =
+        await FilePicker.platform.pickFiles(type: FileType.image, withData: true);
+    final file = res?.files.firstOrNull;
+    if (file == null || file.bytes == null) return;
+    setState(() => _uploadingLogo = true);
+    try {
+      // Downscale before upload — phone photos are often several MB, and this
+      // logo also gets embedded directly into the printed receipt.
+      final c = compressImage(file.bytes!,
+          fallbackExt: (file.extension ?? 'jpg').toLowerCase());
+      final path = 'shop-logo-${DateTime.now().millisecondsSinceEpoch}.${c.ext}';
+      final storage = Supabase.instance.client.storage.from('product-images');
+      await storage.uploadBinary(path, c.bytes,
+          fileOptions: const FileOptions(upsert: true));
+      final url = storage.getPublicUrl(path);
+      // Saved immediately — the logo isn't part of the rest of the form's
+      // "Save" step, same as the storefront logo picker.
+      await ref.read(settingsRepositoryProvider).setShopLogoUrl(url);
+      ref.invalidate(shopProfileProvider);
+      if (mounted) setState(() => _logoUrl = url);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('$e')));
+      }
+    } finally {
+      if (mounted) setState(() => _uploadingLogo = false);
+    }
   }
 
   Future<void> _save() async {
@@ -85,6 +124,10 @@ class _ShopProfileScreenState extends ConsumerState<ShopProfileScreen> {
                 Text(l.shopProfileHint,
                     style: Theme.of(context).textTheme.bodySmall),
                 const SizedBox(height: AppTheme.space4),
+                if (Env.hasBackend) ...[
+                  _logoField(l),
+                  const SizedBox(height: AppTheme.space4),
+                ],
                 _field(_name, l.shopName,
                     validator: (v) => (v == null || v.trim().isEmpty)
                         ? l.validationRequired
@@ -111,6 +154,41 @@ class _ShopProfileScreenState extends ConsumerState<ShopProfileScreen> {
           );
         },
       ),
+    );
+  }
+
+  Widget _logoField(AppLocalizations l) {
+    return Row(
+      children: [
+        Container(
+          width: 72,
+          height: 72,
+          clipBehavior: Clip.antiAlias,
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            shape: BoxShape.circle,
+          ),
+          child: (_logoUrl ?? '').isEmpty
+              ? const Icon(Icons.storefront, size: 32)
+              : Image.network(_logoUrl!,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, _, _) =>
+                      const Icon(Icons.broken_image_outlined)),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: OutlinedButton.icon(
+            onPressed: _uploadingLogo ? null : _pickLogo,
+            icon: _uploadingLogo
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2))
+                : const Icon(Icons.add_a_photo_outlined),
+            label: Text(l.shopLogo),
+          ),
+        ),
+      ],
     );
   }
 

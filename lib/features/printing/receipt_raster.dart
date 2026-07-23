@@ -1,61 +1,144 @@
+import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:image/image.dart' as img;
 
 import '../invoices/receipt_data.dart';
 
-/// Renders formatted receipt [lines] to a monochrome-friendly bitmap sized to
-/// the paper's dot width.
+/// Renders a receipt to a monochrome-friendly bitmap sized to the paper's dot
+/// width: an optional logo, a styled shop-info header (bold name, smaller
+/// address/phone, all centered), a divider rule, then the monospace [bodyLines]
+/// body (produced by `ReceiptFormatter.format(data, includeHeader: false)` so
+/// the shop info isn't printed twice).
 ///
-/// WHY raster: most cheap Bluetooth thermal printers ship without a Myanmar
-/// font, so ESC/POS text mode prints Burmese as boxes. Rendering to an image
-/// with Flutter's text engine (which has Noto/Pyidaungsu fallback) guarantees
-/// Burmese renders correctly on any printer.
-///
-/// Latin/number columns are laid out with a monospace family so the money
-/// columns stay aligned; Burmese product names fall back to a proportional
-/// Myanmar font on their own left-aligned lines.
+/// WHY raster at all: most cheap Bluetooth thermal printers ship without a
+/// Myanmar font, so ESC/POS text mode prints Burmese as boxes. Rendering with
+/// Flutter's text engine (which has Noto/Pyidaungsu fallback) guarantees
+/// Burmese renders correctly on any printer, and lets a logo image be embedded
+/// directly in the same picture.
 Future<img.Image> renderReceiptImage(
-  List<String> lines,
+  ReceiptData data,
+  List<String> bodyLines,
   PaperSize paper, {
+  ui.Image? logo,
   double fontSize = 22,
 }) async {
   final width = paper.dots;
-  final text = lines.join('\n');
+  final nameFontSize = fontSize * 1.35;
+  final smallFontSize = fontSize * 0.9;
+  const pad = 10.0;
+  const logoDisplaySize = 96.0;
 
-  final builder = ui.ParagraphBuilder(ui.ParagraphStyle(
-    fontFamily: 'monospace',
-    fontSize: fontSize,
-    height: 1.25,
-  ))
-    ..pushStyle(ui.TextStyle(
-      color: const ui.Color(0xFF000000),
-      fontFamily: 'monospace',
-      fontSize: fontSize,
-    ))
-    ..addText(text);
+  final namePara = _paragraph(data.shopName, width,
+      fontSize: nameFontSize, bold: true, align: ui.TextAlign.center);
 
-  final paragraph = builder.build()
-    ..layout(ui.ParagraphConstraints(width: width.toDouble()));
+  final contactLines = [
+    if ((data.address ?? '').isNotEmpty) data.address!,
+    if ((data.phone ?? '').isNotEmpty) data.phone!,
+  ];
+  final contactPara = contactLines.isEmpty
+      ? null
+      : _paragraph(contactLines.join('\n'), width,
+          fontSize: smallFontSize, align: ui.TextAlign.center);
 
-  final height = paragraph.height.ceil() + 16;
+  final bodyPara = _paragraph(bodyLines.join('\n'), width,
+      fontSize: fontSize, monospace: true, align: ui.TextAlign.left);
 
   final recorder = ui.PictureRecorder();
   final canvas = ui.Canvas(recorder);
   // White background so the thermal head only burns the dark glyphs.
   canvas.drawColor(const ui.Color(0xFFFFFFFF), ui.BlendMode.src);
-  canvas.drawParagraph(paragraph, const ui.Offset(0, 8));
 
+  var y = pad;
+  if (logo != null) {
+    final srcW = logo.width.toDouble();
+    final srcH = logo.height.toDouble();
+    final scale = logoDisplaySize / (srcW > srcH ? srcW : srcH);
+    final dstW = srcW * scale;
+    final dstH = srcH * scale;
+    canvas.drawImageRect(
+      logo,
+      ui.Rect.fromLTWH(0, 0, srcW, srcH),
+      ui.Rect.fromLTWH((width - dstW) / 2, y, dstW, dstH),
+      ui.Paint()..filterQuality = ui.FilterQuality.medium,
+    );
+    y += logoDisplaySize + pad;
+  }
+
+  canvas.drawParagraph(namePara, ui.Offset(0, y));
+  y += namePara.height;
+  if (contactPara != null) {
+    y += 2;
+    canvas.drawParagraph(contactPara, ui.Offset(0, y));
+    y += contactPara.height;
+  }
+
+  y += pad;
+  canvas.drawLine(
+    ui.Offset(0, y),
+    ui.Offset(width.toDouble(), y),
+    ui.Paint()
+      ..color = const ui.Color(0xFF000000)
+      ..strokeWidth = 1.5,
+  );
+  y += pad;
+
+  canvas.drawParagraph(bodyPara, ui.Offset(0, y));
+  y += bodyPara.height + pad;
+
+  final totalHeight = y.ceil();
   final picture = recorder.endRecording();
-  final uiImage = await picture.toImage(width, height);
+  final uiImage = await picture.toImage(width, totalHeight);
   final bytes =
       await uiImage.toByteData(format: ui.ImageByteFormat.rawRgba);
   uiImage.dispose();
 
   return img.Image.fromBytes(
     width: width,
-    height: height,
+    height: totalHeight,
     bytes: bytes!.buffer,
     numChannels: 4,
   );
+}
+
+ui.Paragraph _paragraph(
+  String text,
+  int width, {
+  required double fontSize,
+  bool bold = false,
+  bool monospace = false,
+  ui.TextAlign align = ui.TextAlign.left,
+}) {
+  final fontFamily = monospace ? 'monospace' : null;
+  final builder = ui.ParagraphBuilder(ui.ParagraphStyle(
+    fontFamily: fontFamily,
+    fontSize: fontSize,
+    fontWeight: bold ? ui.FontWeight.bold : ui.FontWeight.normal,
+    height: 1.25,
+    textAlign: align,
+  ))
+    ..pushStyle(ui.TextStyle(
+      color: const ui.Color(0xFF000000),
+      fontFamily: fontFamily,
+      fontSize: fontSize,
+      fontWeight: bold ? ui.FontWeight.bold : ui.FontWeight.normal,
+    ))
+    ..addText(text);
+
+  return builder.build()
+    ..layout(ui.ParagraphConstraints(width: width.toDouble()));
+}
+
+/// Decodes raw image bytes (e.g. a downloaded shop logo) into a [ui.Image]
+/// ready for [renderReceiptImage]. Returns null on any decode failure —
+/// callers should treat a missing/broken logo as "print without it", never
+/// as a reason to fail the whole receipt.
+Future<ui.Image?> decodeLogoImage(Uint8List bytes) async {
+  try {
+    final codec = await ui.instantiateImageCodec(bytes);
+    final frame = await codec.getNextFrame();
+    return frame.image;
+  } catch (_) {
+    return null;
+  }
 }

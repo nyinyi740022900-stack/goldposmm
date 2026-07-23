@@ -680,6 +680,12 @@ abstract class AppLocalizations {
   /// **'Shown on printed receipts.'**
   String get shopProfileHint;
 
+  /// No description provided for @shopLogo.
+  ///
+  /// In en, this message translates to:
+  /// **'Shop logo'**
+  String get shopLogo;
+
   /// No description provided for @shopName.
   ///
   /// In en, this message translates to:

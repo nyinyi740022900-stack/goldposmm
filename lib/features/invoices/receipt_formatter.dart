@@ -23,17 +23,23 @@ class ReceiptFormatter {
   final _money = NumberFormat('#,##0', 'en_US');
   String _amt(int v) => '${_money.format(v)} $currencySymbol';
 
-  List<String> format(ReceiptData r) {
+  /// [includeHeader] controls whether the shop name/address/phone block is
+  /// included as plain centered text. The raster renderer draws that block
+  /// itself (logo + styled shop name) and asks for `includeHeader: false` so
+  /// it isn't printed twice.
+  List<String> format(ReceiptData r, {bool includeHeader = true}) {
     final out = <String>[];
 
-    out.addAll(_center(r.shopName));
-    if (r.address != null && r.address!.isNotEmpty) {
-      out.addAll(_center(r.address!));
+    if (includeHeader) {
+      out.addAll(_center(r.shopName));
+      if (r.address != null && r.address!.isNotEmpty) {
+        out.addAll(_center(r.address!));
+      }
+      if (r.phone != null && r.phone!.isNotEmpty) {
+        out.addAll(_center(r.phone!));
+      }
+      out.add(_divider());
     }
-    if (r.phone != null && r.phone!.isNotEmpty) {
-      out.addAll(_center(r.phone!));
-    }
-    out.add(_divider());
 
     out.add(_two(labels.invoice, r.invoiceNo));
     out.add(_two(labels.date,

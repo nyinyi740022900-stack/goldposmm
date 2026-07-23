@@ -20,6 +20,7 @@ class SettingsRepository {
   static const _kShopName = 'shop.name';
   static const _kShopAddress = 'shop.address';
   static const _kShopPhone = 'shop.phone';
+  static const _kShopLogo = 'shop.logo_url';
   static const _kReceiptFooter = 'receipt.footer';
   static const _kTrackStock = 'shop.track_stock';
   static const _kReferralSeenEarned = 'referral.seen_earned';
@@ -171,9 +172,15 @@ class SettingsRepository {
       name: (await _get(_kShopName)) ?? 'My Shop',
       address: await _get(_kShopAddress),
       phone: await _get(_kShopPhone),
+      logoUrl: await _get(_kShopLogo),
       footer: await _get(_kReceiptFooter),
     );
   }
+
+  /// A dedicated setter (rather than routing through [saveShopProfile]) since
+  /// the logo is uploaded and saved the moment it's picked, independent of
+  /// the rest of the profile form.
+  Future<void> setShopLogoUrl(String url) => _set(_kShopLogo, url);
 
   /// Whether the shop tracks inventory. When false the app runs "invoice
   /// only": no stock badges/alerts, no decrement on sale. Defaults to true.
@@ -216,6 +223,12 @@ class ShopProfile {
   final String name;
   final String? address;
   final String? phone;
+  final String? logoUrl;
   final String? footer;
-  const ShopProfile({required this.name, this.address, this.phone, this.footer});
+  const ShopProfile(
+      {required this.name,
+      this.address,
+      this.phone,
+      this.logoUrl,
+      this.footer});
 }

@@ -319,6 +319,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shopProfileHint => 'Shown on printed receipts.';
 
   @override
+  String get shopLogo => 'Shop logo';
+
+  @override
   String get shopName => 'Shop name';
 
   @override
