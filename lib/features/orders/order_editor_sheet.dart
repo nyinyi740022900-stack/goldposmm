@@ -381,7 +381,24 @@ class DraftedContent extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(title, style: Theme.of(context).textTheme.titleLarge),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(title,
+                      style: Theme.of(context).textTheme.titleLarge),
+                ),
+                // Explicit close — this form can get tall (items list +
+                // expanded "More details"), so the drag-handle
+                // swipe-to-dismiss isn't always an obvious way out.
+                IconButton(
+                  tooltip: MaterialLocalizations.of(context)
+                      .closeButtonTooltip,
+                  icon: const Icon(Icons.close),
+                  visualDensity: VisualDensity.compact,
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              ],
+            ),
             const SizedBox(height: 16),
             ...children,
           ],

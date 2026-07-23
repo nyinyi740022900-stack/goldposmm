@@ -72,6 +72,17 @@ class OrderDetailSheet extends ConsumerWidget {
                     style: Theme.of(context).textTheme.titleMedium),
                 const Spacer(),
                 _StatusChip(status: o.status),
+                const SizedBox(width: 4),
+                // Explicit close — the content can be tall enough (items +
+                // payment proof photo + delivery section) that the sheet's
+                // drag-handle swipe-to-dismiss isn't an obvious way out.
+                IconButton(
+                  tooltip: MaterialLocalizations.of(context)
+                      .closeButtonTooltip,
+                  icon: const Icon(Icons.close),
+                  visualDensity: VisualDensity.compact,
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
               ],
             ),
             const SizedBox(height: 4),
