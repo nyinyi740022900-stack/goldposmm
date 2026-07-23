@@ -35,7 +35,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 9;
+  int get schemaVersion => 10;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -77,6 +77,11 @@ class AppDatabase extends _$AppDatabase {
           // v9: transfer vs cash-on-delivery, distinct from paymentStatus.
           if (from < 9) {
             await m.addColumn(orders, orders.paymentMethod);
+          }
+          // v10: refunds — a refund is a normal append-only Sales row
+          // pointing back at the sale it reverses.
+          if (from < 10) {
+            await m.addColumn(sales, sales.refundOfSaleId);
           }
         },
       );

@@ -88,6 +88,13 @@ class PrinterService {
 
     final bytes = <int>[];
     bytes.addAll(generator.imageRaster(image));
+    bytes.addAll(generator.feed(1));
+    // Code128 handles the hyphenated alphanumeric invoice/refund numbers
+    // (e.g. INV-20260722-001) that CODE39/EAN/ITF can't cleanly encode.
+    final chars = data.invoiceNo.split('');
+    if (chars.length >= 2) {
+      bytes.addAll(generator.barcode(esc.Barcode.code128(chars)));
+    }
     bytes.addAll(generator.feed(2));
     bytes.addAll(generator.cut());
     return bytes;

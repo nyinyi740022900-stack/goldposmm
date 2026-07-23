@@ -2853,6 +2853,17 @@ class $SalesTable extends Sales with TableInfo<$SalesTable, Sale> {
     requiredDuringInsert: false,
     defaultValue: currentDateAndTime,
   );
+  static const VerificationMeta _refundOfSaleIdMeta = const VerificationMeta(
+    'refundOfSaleId',
+  );
+  @override
+  late final GeneratedColumn<String> refundOfSaleId = GeneratedColumn<String>(
+    'refund_of_sale_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -2874,6 +2885,7 @@ class $SalesTable extends Sales with TableInfo<$SalesTable, Sale> {
     customerPhone,
     note,
     finalizedAt,
+    refundOfSaleId,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -3016,6 +3028,15 @@ class $SalesTable extends Sales with TableInfo<$SalesTable, Sale> {
         ),
       );
     }
+    if (data.containsKey('refund_of_sale_id')) {
+      context.handle(
+        _refundOfSaleIdMeta,
+        refundOfSaleId.isAcceptableOrUnknown(
+          data['refund_of_sale_id']!,
+          _refundOfSaleIdMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -3101,6 +3122,10 @@ class $SalesTable extends Sales with TableInfo<$SalesTable, Sale> {
         DriftSqlType.dateTime,
         data['${effectivePrefix}finalized_at'],
       )!,
+      refundOfSaleId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}refund_of_sale_id'],
+      ),
     );
   }
 
@@ -3132,6 +3157,12 @@ class Sale extends DataClass implements Insertable<Sale> {
   final String? customerPhone;
   final String? note;
   final DateTime finalizedAt;
+
+  /// Set on a refund row, pointing at the sale it reverses. A refund is a
+  /// normal append-only [Sales] row with negated subtotal/discount/total/paid
+  /// (so it nets out in analytics/reporting with no special-casing) — the
+  /// original sale is never mutated. Null on every ordinary sale.
+  final String? refundOfSaleId;
   const Sale({
     required this.id,
     required this.shopId,
@@ -3152,6 +3183,7 @@ class Sale extends DataClass implements Insertable<Sale> {
     this.customerPhone,
     this.note,
     required this.finalizedAt,
+    this.refundOfSaleId,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -3183,6 +3215,9 @@ class Sale extends DataClass implements Insertable<Sale> {
       map['note'] = Variable<String>(note);
     }
     map['finalized_at'] = Variable<DateTime>(finalizedAt);
+    if (!nullToAbsent || refundOfSaleId != null) {
+      map['refund_of_sale_id'] = Variable<String>(refundOfSaleId);
+    }
     return map;
   }
 
@@ -3213,6 +3248,9 @@ class Sale extends DataClass implements Insertable<Sale> {
           : Value(customerPhone),
       note: note == null && nullToAbsent ? const Value.absent() : Value(note),
       finalizedAt: Value(finalizedAt),
+      refundOfSaleId: refundOfSaleId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(refundOfSaleId),
     );
   }
 
@@ -3241,6 +3279,7 @@ class Sale extends DataClass implements Insertable<Sale> {
       customerPhone: serializer.fromJson<String?>(json['customerPhone']),
       note: serializer.fromJson<String?>(json['note']),
       finalizedAt: serializer.fromJson<DateTime>(json['finalizedAt']),
+      refundOfSaleId: serializer.fromJson<String?>(json['refundOfSaleId']),
     );
   }
   @override
@@ -3266,6 +3305,7 @@ class Sale extends DataClass implements Insertable<Sale> {
       'customerPhone': serializer.toJson<String?>(customerPhone),
       'note': serializer.toJson<String?>(note),
       'finalizedAt': serializer.toJson<DateTime>(finalizedAt),
+      'refundOfSaleId': serializer.toJson<String?>(refundOfSaleId),
     };
   }
 
@@ -3289,6 +3329,7 @@ class Sale extends DataClass implements Insertable<Sale> {
     Value<String?> customerPhone = const Value.absent(),
     Value<String?> note = const Value.absent(),
     DateTime? finalizedAt,
+    Value<String?> refundOfSaleId = const Value.absent(),
   }) => Sale(
     id: id ?? this.id,
     shopId: shopId ?? this.shopId,
@@ -3311,6 +3352,9 @@ class Sale extends DataClass implements Insertable<Sale> {
         : this.customerPhone,
     note: note.present ? note.value : this.note,
     finalizedAt: finalizedAt ?? this.finalizedAt,
+    refundOfSaleId: refundOfSaleId.present
+        ? refundOfSaleId.value
+        : this.refundOfSaleId,
   );
   Sale copyWithCompanion(SalesCompanion data) {
     return Sale(
@@ -3341,6 +3385,9 @@ class Sale extends DataClass implements Insertable<Sale> {
       finalizedAt: data.finalizedAt.present
           ? data.finalizedAt.value
           : this.finalizedAt,
+      refundOfSaleId: data.refundOfSaleId.present
+          ? data.refundOfSaleId.value
+          : this.refundOfSaleId,
     );
   }
 
@@ -3365,7 +3412,8 @@ class Sale extends DataClass implements Insertable<Sale> {
           ..write('customerName: $customerName, ')
           ..write('customerPhone: $customerPhone, ')
           ..write('note: $note, ')
-          ..write('finalizedAt: $finalizedAt')
+          ..write('finalizedAt: $finalizedAt, ')
+          ..write('refundOfSaleId: $refundOfSaleId')
           ..write(')'))
         .toString();
   }
@@ -3391,6 +3439,7 @@ class Sale extends DataClass implements Insertable<Sale> {
     customerPhone,
     note,
     finalizedAt,
+    refundOfSaleId,
   );
   @override
   bool operator ==(Object other) =>
@@ -3414,7 +3463,8 @@ class Sale extends DataClass implements Insertable<Sale> {
           other.customerName == this.customerName &&
           other.customerPhone == this.customerPhone &&
           other.note == this.note &&
-          other.finalizedAt == this.finalizedAt);
+          other.finalizedAt == this.finalizedAt &&
+          other.refundOfSaleId == this.refundOfSaleId);
 }
 
 class SalesCompanion extends UpdateCompanion<Sale> {
@@ -3437,6 +3487,7 @@ class SalesCompanion extends UpdateCompanion<Sale> {
   final Value<String?> customerPhone;
   final Value<String?> note;
   final Value<DateTime> finalizedAt;
+  final Value<String?> refundOfSaleId;
   final Value<int> rowid;
   const SalesCompanion({
     this.id = const Value.absent(),
@@ -3458,6 +3509,7 @@ class SalesCompanion extends UpdateCompanion<Sale> {
     this.customerPhone = const Value.absent(),
     this.note = const Value.absent(),
     this.finalizedAt = const Value.absent(),
+    this.refundOfSaleId = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   SalesCompanion.insert({
@@ -3480,6 +3532,7 @@ class SalesCompanion extends UpdateCompanion<Sale> {
     this.customerPhone = const Value.absent(),
     this.note = const Value.absent(),
     this.finalizedAt = const Value.absent(),
+    this.refundOfSaleId = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        shopId = Value(shopId),
@@ -3504,6 +3557,7 @@ class SalesCompanion extends UpdateCompanion<Sale> {
     Expression<String>? customerPhone,
     Expression<String>? note,
     Expression<DateTime>? finalizedAt,
+    Expression<String>? refundOfSaleId,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -3526,6 +3580,7 @@ class SalesCompanion extends UpdateCompanion<Sale> {
       if (customerPhone != null) 'customer_phone': customerPhone,
       if (note != null) 'note': note,
       if (finalizedAt != null) 'finalized_at': finalizedAt,
+      if (refundOfSaleId != null) 'refund_of_sale_id': refundOfSaleId,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -3550,6 +3605,7 @@ class SalesCompanion extends UpdateCompanion<Sale> {
     Value<String?>? customerPhone,
     Value<String?>? note,
     Value<DateTime>? finalizedAt,
+    Value<String?>? refundOfSaleId,
     Value<int>? rowid,
   }) {
     return SalesCompanion(
@@ -3572,6 +3628,7 @@ class SalesCompanion extends UpdateCompanion<Sale> {
       customerPhone: customerPhone ?? this.customerPhone,
       note: note ?? this.note,
       finalizedAt: finalizedAt ?? this.finalizedAt,
+      refundOfSaleId: refundOfSaleId ?? this.refundOfSaleId,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -3636,6 +3693,9 @@ class SalesCompanion extends UpdateCompanion<Sale> {
     if (finalizedAt.present) {
       map['finalized_at'] = Variable<DateTime>(finalizedAt.value);
     }
+    if (refundOfSaleId.present) {
+      map['refund_of_sale_id'] = Variable<String>(refundOfSaleId.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -3664,6 +3724,7 @@ class SalesCompanion extends UpdateCompanion<Sale> {
           ..write('customerPhone: $customerPhone, ')
           ..write('note: $note, ')
           ..write('finalizedAt: $finalizedAt, ')
+          ..write('refundOfSaleId: $refundOfSaleId, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -10336,6 +10397,7 @@ typedef $$SalesTableCreateCompanionBuilder =
       Value<String?> customerPhone,
       Value<String?> note,
       Value<DateTime> finalizedAt,
+      Value<String?> refundOfSaleId,
       Value<int> rowid,
     });
 typedef $$SalesTableUpdateCompanionBuilder =
@@ -10359,6 +10421,7 @@ typedef $$SalesTableUpdateCompanionBuilder =
       Value<String?> customerPhone,
       Value<String?> note,
       Value<DateTime> finalizedAt,
+      Value<String?> refundOfSaleId,
       Value<int> rowid,
     });
 
@@ -10462,6 +10525,11 @@ class $$SalesTableFilterComposer extends Composer<_$AppDatabase, $SalesTable> {
 
   ColumnFilters<DateTime> get finalizedAt => $composableBuilder(
     column: $table.finalizedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get refundOfSaleId => $composableBuilder(
+    column: $table.refundOfSaleId,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -10569,6 +10637,11 @@ class $$SalesTableOrderingComposer
     column: $table.finalizedAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get refundOfSaleId => $composableBuilder(
+    column: $table.refundOfSaleId,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$SalesTableAnnotationComposer
@@ -10644,6 +10717,11 @@ class $$SalesTableAnnotationComposer
     column: $table.finalizedAt,
     builder: (column) => column,
   );
+
+  GeneratedColumn<String> get refundOfSaleId => $composableBuilder(
+    column: $table.refundOfSaleId,
+    builder: (column) => column,
+  );
 }
 
 class $$SalesTableTableManager
@@ -10693,6 +10771,7 @@ class $$SalesTableTableManager
                 Value<String?> customerPhone = const Value.absent(),
                 Value<String?> note = const Value.absent(),
                 Value<DateTime> finalizedAt = const Value.absent(),
+                Value<String?> refundOfSaleId = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => SalesCompanion(
                 id: id,
@@ -10714,6 +10793,7 @@ class $$SalesTableTableManager
                 customerPhone: customerPhone,
                 note: note,
                 finalizedAt: finalizedAt,
+                refundOfSaleId: refundOfSaleId,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -10737,6 +10817,7 @@ class $$SalesTableTableManager
                 Value<String?> customerPhone = const Value.absent(),
                 Value<String?> note = const Value.absent(),
                 Value<DateTime> finalizedAt = const Value.absent(),
+                Value<String?> refundOfSaleId = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => SalesCompanion.insert(
                 id: id,
@@ -10758,6 +10839,7 @@ class $$SalesTableTableManager
                 customerPhone: customerPhone,
                 note: note,
                 finalizedAt: finalizedAt,
+                refundOfSaleId: refundOfSaleId,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

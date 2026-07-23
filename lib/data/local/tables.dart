@@ -88,6 +88,12 @@ class Sales extends Table with SyncColumns {
   DateTimeColumn get finalizedAt =>
       dateTime().withDefault(currentDateAndTime)();
 
+  /// Set on a refund row, pointing at the sale it reverses. A refund is a
+  /// normal append-only [Sales] row with negated subtotal/discount/total/paid
+  /// (so it nets out in analytics/reporting with no special-casing) — the
+  /// original sale is never mutated. Null on every ordinary sale.
+  TextColumn get refundOfSaleId => text().nullable()();
+
   @override
   Set<Column> get primaryKey => {id};
 }

@@ -43,6 +43,120 @@ class SalesRepository {
         .get();
   }
 
+  /// The refund row that reverses [saleId], if any (a sale can only be
+  /// refunded once — this both detects an existing refund and enforces that).
+  Future<Sale?> refundOf(String saleId) {
+    return (_db.select(_db.sales)
+          ..where((s) => s.refundOfSaleId.equals(saleId)))
+        .getSingleOrNull();
+  }
+
+  /// Reverses [saleId] as a new, append-only refund sale — the original row
+  /// is never touched (sales stay an immutable ledger). Restores stock via
+  /// `'return'` movements (skipped for invoice-only shops / free-text lines
+  /// with no product), and records a negative payment for whatever cash was
+  /// actually collected on the original (so a partially-paid credit sale only
+  /// reverses what was truly tendered, not the full billed total).
+  ///
+  /// Throws [StateError] if [saleId] has already been refunded.
+  Future<SaleResult> refundSale(String saleId, {bool trackStock = true}) async {
+    if (await refundOf(saleId) != null) {
+      throw StateError('already_refunded');
+    }
+    final original = await getSale(saleId);
+    final originalItems = await saleItems(saleId);
+
+    final refundId = _uuid.v4();
+    final now = DateTime.now();
+    late final String refundNo;
+
+    await _db.transaction(() async {
+      refundNo = await _nextRefundNo(now);
+
+      final refund = SalesCompanion.insert(
+        id: refundId,
+        shopId: _shopId,
+        invoiceNo: refundNo,
+        subtotal: Value(-original.subtotal),
+        discount: Value(-original.discount),
+        total: Value(-original.total),
+        paid: Value(-original.paid),
+        paymentMethod: Value(original.paymentMethod),
+        customerName: Value(original.customerName),
+        customerPhone: Value(original.customerPhone),
+        note: Value('Refund of ${original.invoiceNo}'),
+        refundOfSaleId: Value(saleId),
+        finalizedAt: Value(now),
+        updatedAt: Value(now),
+      );
+      await _db.into(_db.sales).insert(refund);
+      await _enqueue('sales', refundId, jsonEncode(
+          (await _one(_db.sales, (t) => t.id.equals(refundId))).toJson()));
+
+      for (final item in originalItems) {
+        final itemId = _uuid.v4();
+        await _db.into(_db.saleItems).insert(SaleItemsCompanion.insert(
+              id: itemId,
+              shopId: _shopId,
+              saleId: refundId,
+              productId: item.productId,
+              nameSnapshot: item.nameSnapshot,
+              priceSnapshot: item.priceSnapshot,
+              qty: -item.qty,
+              lineTotal: -item.lineTotal,
+              updatedAt: Value(now),
+            ));
+        await _enqueue('sale_items', itemId, jsonEncode(
+            (await _one(_db.saleItems, (t) => t.id.equals(itemId))).toJson()));
+
+        if (trackStock) {
+          await _recordStockReturn(item.productId, item.qty, refundId, now);
+        }
+      }
+
+      // Reverses exactly what was collected on the original — a credit sale
+      // that was never paid refunds no cash (there's nothing to give back).
+      if (original.paid != 0) {
+        final payId = _uuid.v4();
+        await _db.into(_db.payments).insert(PaymentsCompanion.insert(
+              id: payId,
+              shopId: _shopId,
+              saleId: refundId,
+              method: original.paymentMethod,
+              amount: -original.paid,
+              updatedAt: Value(now),
+            ));
+        await _enqueue('payments', payId, jsonEncode(
+            (await _one(_db.payments, (t) => t.id.equals(payId))).toJson()));
+      }
+
+      // If the original was still owed money (an unpaid/partial credit sale),
+      // close that obligation via the existing FIFO repayment mechanism —
+      // the customer no longer owes for goods they've returned. Reuses
+      // CreditRepository's own ledger rather than mutating the sale.
+      final owed = original.total - original.paid;
+      if (owed > 0 &&
+          original.customerName != null &&
+          original.customerName!.trim().isNotEmpty) {
+        final repayId = _uuid.v4();
+        await _db.into(_db.creditPayments).insert(
+            CreditPaymentsCompanion.insert(
+              id: repayId,
+              shopId: _shopId,
+              customerName: original.customerName!.trim(),
+              amount: owed,
+              note: Value('Refund closure for ${original.invoiceNo}'),
+              updatedAt: Value(now),
+            ));
+        await _enqueue('credit_payments', repayId, jsonEncode(
+            (await _one(_db.creditPayments, (t) => t.id.equals(repayId)))
+                .toJson()));
+      }
+    });
+
+    return SaleResult(refundId, refundNo);
+  }
+
   /// Finalizes [cart] and returns the new invoice reference.
   Future<SaleResult> finalizeSale({
     required CartState cart,
@@ -174,6 +288,52 @@ class SalesRepository {
         .get();
     final seq = (todays.length + 1).toString().padLeft(3, '0');
     return 'INV-${DateFormat('yyyyMMdd').format(now)}-$seq';
+  }
+
+  /// Per-shop, per-day sequential refund number: `RFD-yyyyMMdd-NNN` — a
+  /// separate sequence from invoices so a refund reads as its own document
+  /// (a credit note), not just another invoice.
+  Future<String> _nextRefundNo(DateTime now) async {
+    final dayStart = DateTime(now.year, now.month, now.day);
+    final todays = await (_db.select(_db.sales)
+          ..where((s) =>
+              s.shopId.equals(_shopId) &
+              s.refundOfSaleId.isNotNull() &
+              s.finalizedAt.isBiggerOrEqualValue(dayStart)))
+        .get();
+    final seq = (todays.length + 1).toString().padLeft(3, '0');
+    return 'RFD-${DateFormat('yyyyMMdd').format(now)}-$seq';
+  }
+
+  /// Restores stock for a refunded item — the inverse of [_recordStockOut].
+  Future<void> _recordStockReturn(
+      String productId, int qty, String refundSaleId, DateTime now) async {
+    final moveId = _uuid.v4();
+    await _db.into(_db.stockMovements).insert(StockMovementsCompanion.insert(
+          id: moveId,
+          shopId: _shopId,
+          productId: productId,
+          type: 'return',
+          qtyDelta: qty,
+          refId: Value(refundSaleId),
+          updatedAt: Value(now),
+        ));
+    await _enqueue('stock_movements', moveId, jsonEncode(
+        (await _one(_db.stockMovements, (t) => t.id.equals(moveId))).toJson()));
+
+    final level = await (_db.select(_db.stockLevels)
+          ..where((s) => s.productId.equals(productId)))
+        .getSingleOrNull();
+    if (level != null) {
+      await (_db.update(_db.stockLevels)..where((s) => s.id.equals(level.id)))
+          .write(StockLevelsCompanion(
+        quantity: Value(level.quantity + qty),
+        updatedAt: Value(now),
+        dirty: const Value(true),
+      ));
+      await _enqueue('stock_levels', level.id, jsonEncode(
+          (await _one(_db.stockLevels, (t) => t.id.equals(level.id))).toJson()));
+    }
   }
 
   Future<D> _one<T extends Table, D>(

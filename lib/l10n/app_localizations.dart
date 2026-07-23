@@ -770,6 +770,60 @@ abstract class AppLocalizations {
   /// **'Invoice'**
   String get invoiceDetail;
 
+  /// No description provided for @invoiceSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search invoice #, customer, phone'**
+  String get invoiceSearchHint;
+
+  /// No description provided for @invoiceScanToSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan barcode'**
+  String get invoiceScanToSearch;
+
+  /// No description provided for @invoiceRefund.
+  ///
+  /// In en, this message translates to:
+  /// **'Refund'**
+  String get invoiceRefund;
+
+  /// No description provided for @invoiceRefunded.
+  ///
+  /// In en, this message translates to:
+  /// **'Refunded'**
+  String get invoiceRefunded;
+
+  /// No description provided for @invoiceRefundConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Refund this invoice?'**
+  String get invoiceRefundConfirmTitle;
+
+  /// No description provided for @invoiceRefundConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This reverses the sale, restores stock, and cannot be undone.'**
+  String get invoiceRefundConfirmBody;
+
+  /// No description provided for @invoiceRefundOf.
+  ///
+  /// In en, this message translates to:
+  /// **'Refund of {invoiceNo}'**
+  String invoiceRefundOf(String invoiceNo);
+
+  /// No description provided for @invoiceRefundSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Refunded ({refundNo}).'**
+  String invoiceRefundSuccess(String refundNo);
+
+  /// No description provided for @invoiceAlreadyRefunded.
+  ///
+  /// In en, this message translates to:
+  /// **'This invoice was already refunded.'**
+  String get invoiceAlreadyRefunded;
+
   /// No description provided for @printerSettings.
   ///
   /// In en, this message translates to:
