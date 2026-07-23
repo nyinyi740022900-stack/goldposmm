@@ -88,6 +88,23 @@ void main() {
       expect(without.any((l) => l.startsWith('Customer')), isFalse);
     });
 
+    test(
+        'includeHeader:false omits shop name/address/phone (raster draws '
+        'them separately, styled)', () {
+      final full = ReceiptFormatter(paper: PaperSize.mm58, labels: _labels)
+          .format(_sample());
+      expect(full.any((l) => l.contains('Aung Minimart')), isTrue);
+      expect(full.any((l) => l.contains('Yangon')), isTrue);
+
+      final bodyOnly =
+          ReceiptFormatter(paper: PaperSize.mm58, labels: _labels)
+              .format(_sample(), includeHeader: false);
+      expect(bodyOnly.any((l) => l.contains('Aung Minimart')), isFalse);
+      expect(bodyOnly.any((l) => l.contains('Yangon')), isFalse);
+      // The body itself is unaffected — still starts with the invoice row.
+      expect(bodyOnly.first.startsWith('Invoice'), isTrue);
+    });
+
     test('long product names wrap without exceeding width', () {
       final lines = ReceiptFormatter(paper: PaperSize.mm58, labels: _labels)
           .format(_sample(

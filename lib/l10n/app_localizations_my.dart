@@ -312,6 +312,9 @@ class AppLocalizationsMy extends AppLocalizations {
   String get shopProfileHint => 'ပြေစာပေါ်တွင် ဖော်ပြပါမည်။';
 
   @override
+  String get shopLogo => 'ဆိုင်လိုဂို';
+
+  @override
   String get shopName => 'ဆိုင်အမည်';
 
   @override

@@ -110,6 +110,7 @@
   "settingsAskCustomerHint": "Show optional customer name + phone at checkout.",
 
   "shopProfileHint": "Shown on printed receipts.",
+  "shopLogo": "Shop logo",
   "shopName": "Shop name",
   "shopAddress": "Address",
   "shopPhone": "Phone",

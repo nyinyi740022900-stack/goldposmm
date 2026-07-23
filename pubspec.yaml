@@ -55,6 +55,7 @@ dependencies:
   # Local notifications (referral commission alerts)
   flutter_local_notifications: ^18.0.1
   web: ^1.1.1
+  http: ^1.6.0
 
 dev_dependencies:
   flutter_test:
