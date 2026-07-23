@@ -359,6 +359,39 @@ class AppLocalizationsMy extends AppLocalizations {
   String get invoiceDetail => 'ပြေစာ';
 
   @override
+  String get invoiceSearchHint =>
+      'ပြေစာနံပါတ်၊ ဖောက်သည်နာမည်၊ ဖုန်းနံပါတ် ရှာပါ';
+
+  @override
+  String get invoiceScanToSearch => 'barcode ဖတ်ရန်';
+
+  @override
+  String get invoiceRefund => 'ပြန်အမ်းငွေ';
+
+  @override
+  String get invoiceRefunded => 'ပြန်အမ်းပြီး';
+
+  @override
+  String get invoiceRefundConfirmTitle => 'ဒီပြေစာကို ပြန်အမ်းမှာလား?';
+
+  @override
+  String get invoiceRefundConfirmBody =>
+      'ရောင်းချမှုကို ပြန်ပြင်ပြီး ကုန်ပစ္စည်းအရေအတွက် ပြန်ဖြည့်ပါမည်။ နောက်ပြန်ရုတ်သိမ်း၍ မရပါ။';
+
+  @override
+  String invoiceRefundOf(String invoiceNo) {
+    return '$invoiceNo ၏ ပြန်အမ်းငွေ';
+  }
+
+  @override
+  String invoiceRefundSuccess(String refundNo) {
+    return 'ပြန်အမ်းပြီးပါပြီ ($refundNo)။';
+  }
+
+  @override
+  String get invoiceAlreadyRefunded => 'ဒီပြေစာကို ပြန်အမ်းပြီးသားဖြစ်ပါသည်။';
+
+  @override
   String get printerSettings => 'ပရင်တာ ဆက်တင်';
 
   @override

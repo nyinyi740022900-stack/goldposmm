@@ -28,6 +28,7 @@ class AnalyticsRepository {
               paymentMethod: s.paymentMethod,
               discount: s.discount,
               finalizedAt: s.finalizedAt,
+              isRefund: s.refundOfSaleId != null,
             ))
         .toList();
 

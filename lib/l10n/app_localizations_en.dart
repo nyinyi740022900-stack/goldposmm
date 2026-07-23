@@ -366,6 +366,38 @@ class AppLocalizationsEn extends AppLocalizations {
   String get invoiceDetail => 'Invoice';
 
   @override
+  String get invoiceSearchHint => 'Search invoice #, customer, phone';
+
+  @override
+  String get invoiceScanToSearch => 'Scan barcode';
+
+  @override
+  String get invoiceRefund => 'Refund';
+
+  @override
+  String get invoiceRefunded => 'Refunded';
+
+  @override
+  String get invoiceRefundConfirmTitle => 'Refund this invoice?';
+
+  @override
+  String get invoiceRefundConfirmBody =>
+      'This reverses the sale, restores stock, and cannot be undone.';
+
+  @override
+  String invoiceRefundOf(String invoiceNo) {
+    return 'Refund of $invoiceNo';
+  }
+
+  @override
+  String invoiceRefundSuccess(String refundNo) {
+    return 'Refunded ($refundNo).';
+  }
+
+  @override
+  String get invoiceAlreadyRefunded => 'This invoice was already refunded.';
+
+  @override
   String get printerSettings => 'Printer settings';
 
   @override

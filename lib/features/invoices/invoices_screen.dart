@@ -7,6 +7,7 @@ import '../../core/theme/app_theme.dart';
 import '../../data/local/database.dart';
 import '../../l10n/app_localizations.dart';
 import '../credit/credit_providers.dart';
+import '../sell/barcode_scanner_screen.dart';
 import '../sell/sales_providers.dart';
 import 'invoice_detail_screen.dart';
 
@@ -14,15 +15,25 @@ enum InvoiceFilter { all, credit }
 
 final invoiceFilterProvider =
     StateProvider<InvoiceFilter>((ref) => InvoiceFilter.all);
+final invoiceSearchProvider = StateProvider<String>((ref) => '');
 
 class InvoicesScreen extends ConsumerWidget {
   const InvoicesScreen({super.key});
+
+  Future<void> _scan(BuildContext context, WidgetRef ref) async {
+    final code = await Navigator.of(context).push<String>(
+        MaterialPageRoute(builder: (_) => const BarcodeScannerScreen()));
+    if (code != null && code.isNotEmpty) {
+      ref.read(invoiceSearchProvider.notifier).state = code;
+    }
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context);
     final sales = ref.watch(salesStreamProvider);
     final filter = ref.watch(invoiceFilterProvider);
+    final query = ref.watch(invoiceSearchProvider).trim().toLowerCase();
     final owedBySale = ref.watch(creditOwedBySaleProvider);
     final currency = l.currencySymbol;
     // Owed after repayments have been allocated to this invoice.
@@ -34,11 +45,24 @@ class InvoicesScreen extends ConsumerWidget {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('$e')),
         data: (all) {
-          final list = filter == InvoiceFilter.credit
+          var list = filter == InvoiceFilter.credit
               ? all.where((s) => owedOf(s) > 0).toList()
               : all;
+          if (query.isNotEmpty) {
+            list = list
+                .where((s) =>
+                    s.invoiceNo.toLowerCase().contains(query) ||
+                    (s.customerName?.toLowerCase().contains(query) ?? false) ||
+                    (s.customerPhone?.toLowerCase().contains(query) ?? false))
+                .toList();
+          }
           return Column(
             children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(AppTheme.space3,
+                    AppTheme.space3, AppTheme.space3, 0),
+                child: _InvoiceSearchField(onScan: () => _scan(context, ref)),
+              ),
               Padding(
                 padding: const EdgeInsets.all(AppTheme.space3),
                 child: Row(
@@ -71,11 +95,21 @@ class InvoicesScreen extends ConsumerWidget {
                           final s = list[i];
                           final owed = owedOf(s);
                           final isCredit = owed > 0;
+                          final isRefund = s.refundOfSaleId != null;
+                          final customerBits = [
+                            if (s.customerName?.trim().isNotEmpty ?? false)
+                              s.customerName!.trim(),
+                            if (s.customerPhone?.trim().isNotEmpty ?? false)
+                              s.customerPhone!.trim(),
+                          ].join(' · ');
                           return ListTile(
                             title: Row(
                               children: [
                                 Flexible(child: Text(s.invoiceNo)),
-                                if (isCredit) ...[
+                                if (isRefund) ...[
+                                  const SizedBox(width: 6),
+                                  _RefundBadge(label: l.invoiceRefunded),
+                                ] else if (isCredit) ...[
                                   const SizedBox(width: 6),
                                   _CreditBadge(
                                       settled: owed <= 0, label: l.paymentCredit),
@@ -83,8 +117,8 @@ class InvoicesScreen extends ConsumerWidget {
                               ],
                             ),
                             subtitle: Text(
-                              isCredit && s.customerName != null
-                                  ? '${DateFormat('yyyy-MM-dd HH:mm').format(s.finalizedAt)} · ${s.customerName}'
+                              customerBits.isNotEmpty
+                                  ? '${DateFormat('yyyy-MM-dd HH:mm').format(s.finalizedAt)} · $customerBits'
                                   : DateFormat('yyyy-MM-dd HH:mm')
                                       .format(s.finalizedAt),
                             ),
@@ -140,6 +174,77 @@ class _CreditBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(4),
       ),
       child: Text(label, style: TextStyle(fontSize: 11, color: color)),
+    );
+  }
+}
+
+class _RefundBadge extends StatelessWidget {
+  const _RefundBadge({required this.label});
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = Theme.of(context).colorScheme.error;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(label, style: TextStyle(fontSize: 11, color: color)),
+    );
+  }
+}
+
+class _InvoiceSearchField extends ConsumerStatefulWidget {
+  const _InvoiceSearchField({required this.onScan});
+  final VoidCallback onScan;
+
+  @override
+  ConsumerState<_InvoiceSearchField> createState() =>
+      _InvoiceSearchFieldState();
+}
+
+class _InvoiceSearchFieldState extends ConsumerState<_InvoiceSearchField> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: ref.read(invoiceSearchProvider));
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    ref.listen<String>(invoiceSearchProvider, (prev, next) {
+      if (next != _controller.text) {
+        _controller.value = TextEditingValue(
+          text: next,
+          selection: TextSelection.collapsed(offset: next.length),
+        );
+      }
+    });
+    return TextField(
+      controller: _controller,
+      decoration: InputDecoration(
+        hintText: l.invoiceSearchHint,
+        prefixIcon: const Icon(Icons.search),
+        suffixIcon: IconButton(
+          icon: const Icon(Icons.qr_code_scanner),
+          tooltip: l.invoiceScanToSearch,
+          onPressed: widget.onScan,
+        ),
+        isDense: true,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+      ),
+      onChanged: (v) => ref.read(invoiceSearchProvider.notifier).state = v,
     );
   }
 }

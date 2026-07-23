@@ -26,6 +26,13 @@ final saleDetailProvider =
   return (sale: sale, items: items);
 });
 
+/// The refund row for a sale, if one exists. Null if not refunded.
+final refundOfProvider =
+    FutureProvider.family<Sale?, String>((ref, saleId) {
+  ref.watch(salesStreamProvider);
+  return ref.watch(salesRepositoryProvider).refundOf(saleId);
+});
+
 /// Search + category filter for the Sell screen's product grid. Kept separate
 /// from the Inventory tab's filter so the two don't interfere.
 final sellSearchProvider = StateProvider<String>((ref) => '');

@@ -7,6 +7,7 @@ typedef SaleRow = ({
   String paymentMethod,
   int discount,
   DateTime finalizedAt,
+  bool isRefund,
 });
 typedef ItemRow = ({String productId, String name, int qty, int lineTotal});
 
@@ -91,10 +92,12 @@ AnalyticsSummary computeAnalytics({
   var discount = 0;
   var creditSales = 0;
   var creditOutstanding = 0;
+  var salesCount = 0;
   final byDay = <DateTime, int>{};
   for (final s in sales) {
     revenue += s.total;
     discount += s.discount;
+    if (!s.isRefund) salesCount += 1;
     final owed = s.total - s.paid;
     if (owed > 0) {
       creditSales += 1;
@@ -136,7 +139,7 @@ AnalyticsSummary computeAnalytics({
 
   return AnalyticsSummary(
     revenue: revenue,
-    salesCount: sales.length,
+    salesCount: salesCount,
     discount: discount,
     cost: cost,
     stockValue: stockValue,

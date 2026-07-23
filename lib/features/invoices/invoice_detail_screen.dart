@@ -1,3 +1,4 @@
+import 'package:barcode_widget/barcode_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -14,10 +15,43 @@ class InvoiceDetailScreen extends ConsumerWidget {
 
   final String saleId;
 
+  Future<void> _refund(BuildContext context, WidgetRef ref, String no) async {
+    final l = AppLocalizations.of(context);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l.invoiceRefundConfirmTitle),
+        content: Text(l.invoiceRefundConfirmBody),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.of(ctx).pop(false),
+              child: Text(l.commonCancel)),
+          FilledButton(
+              onPressed: () => Navigator.of(ctx).pop(true),
+              child: Text(l.invoiceRefund)),
+        ],
+      ),
+    );
+    if (confirmed != true || !context.mounted) return;
+
+    try {
+      final result =
+          await ref.read(salesRepositoryProvider).refundSale(saleId);
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l.invoiceRefundSuccess(result.invoiceNo))));
+    } on StateError {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(l.invoiceAlreadyRefunded)));
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context);
     final detail = ref.watch(saleDetailProvider(saleId));
+    final refundOf = ref.watch(refundOfProvider(saleId));
     final currency = l.currencySymbol;
 
     return Scaffold(
@@ -27,12 +61,38 @@ class InvoiceDetailScreen extends ConsumerWidget {
         error: (e, _) => Center(child: Text('$e')),
         data: (d) {
           final s = d.sale;
+          final isRefund = s.refundOfSaleId != null;
+          final refundRow = refundOf.valueOrNull;
           return ListView(
             padding: const EdgeInsets.all(AppTheme.space4),
             children: [
-              Text(s.invoiceNo,
-                  style: Theme.of(context).textTheme.titleLarge),
+              Row(
+                children: [
+                  Flexible(
+                    child: Text(s.invoiceNo,
+                        style: Theme.of(context).textTheme.titleLarge),
+                  ),
+                  if (isRefund || refundRow != null) ...[
+                    const SizedBox(width: 8),
+                    _RefundBadge(label: l.invoiceRefunded),
+                  ],
+                ],
+              ),
               Text(DateFormat('yyyy-MM-dd HH:mm').format(s.finalizedAt)),
+              if (isRefund)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text(s.note ?? '',
+                      style: Theme.of(context).textTheme.bodySmall),
+                ),
+              if (s.customerName != null && s.customerName!.trim().isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: AppTheme.space2),
+                  child: _row(context, l.receiptCustomer, s.customerName!),
+                ),
+              if (s.customerPhone != null &&
+                  s.customerPhone!.trim().isNotEmpty)
+                _row(context, l.receiptPhone, s.customerPhone!),
               const Divider(height: AppTheme.space5),
               ...d.items.map((it) => Padding(
                     padding: const EdgeInsets.symmetric(vertical: 4),
@@ -57,12 +117,30 @@ class InvoiceDetailScreen extends ConsumerWidget {
               _row(context, l.sellPaymentMethod,
                   paymentLabel(l, s.paymentMethod)),
               const SizedBox(height: AppTheme.space5),
+              Center(
+                child: BarcodeWidget(
+                  barcode: Barcode.code128(),
+                  data: s.invoiceNo,
+                  width: 220,
+                  height: 60,
+                  drawText: true,
+                ),
+              ),
+              const SizedBox(height: AppTheme.space5),
               FilledButton.icon(
                 onPressed: () => printSaleReceipt(context, ref,
                     sale: s, items: d.items),
                 icon: const Icon(Icons.print),
                 label: Text(l.invoiceReprint),
               ),
+              if (!isRefund && refundRow == null) ...[
+                const SizedBox(height: AppTheme.space3),
+                OutlinedButton.icon(
+                  onPressed: () => _refund(context, ref, s.invoiceNo),
+                  icon: const Icon(Icons.undo),
+                  label: Text(l.invoiceRefund),
+                ),
+              ],
             ],
           );
         },
@@ -79,6 +157,24 @@ class InvoiceDetailScreen extends ConsumerWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [Text(label, style: style), Text(value, style: style)],
       ),
+    );
+  }
+}
+
+class _RefundBadge extends StatelessWidget {
+  const _RefundBadge({required this.label});
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = Theme.of(context).colorScheme.error;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(label, style: TextStyle(fontSize: 11, color: color)),
     );
   }
 }

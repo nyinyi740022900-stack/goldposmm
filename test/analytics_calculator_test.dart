@@ -12,13 +12,15 @@ void main() {
           {int? paid,
           String method = 'cash',
           int discount = 0,
-          DateTime? at}) =>
+          DateTime? at,
+          bool isRefund = false}) =>
       (
         total: total,
         paid: paid ?? total,
         paymentMethod: method,
         discount: discount,
         finalizedAt: at ?? d1,
+        isRefund: isRefund,
       );
 
   test('aggregates revenue, sales count and discount', () {
@@ -120,5 +122,21 @@ void main() {
     expect(s.creditSales, 1); // only the one still owing
     expect(s.creditOutstanding, 3000); // 5000 − 2000
     expect(s.collected, 6000); // 9000 − 3000
+  });
+
+  test('a refund row nets out revenue but is excluded from salesCount', () {
+    final s = computeAnalytics(
+      sales: [
+        sale(2100, at: d1),
+        sale(-2100, paid: -2100, at: d1, isRefund: true),
+      ],
+      items: const [],
+      productCost: const {},
+      stockValue: 0,
+      start: start,
+      end: end,
+    );
+    expect(s.revenue, 0); // fully netted out
+    expect(s.salesCount, 1); // the refund row itself isn't counted as a sale
   });
 }

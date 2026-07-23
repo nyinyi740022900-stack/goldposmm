@@ -145,4 +145,123 @@ void main() {
           'stock_levels',
         }));
   });
+
+  group('refundSale', () {
+    test('creates a negated reversal sale and restores stock', () async {
+      final p = await seedProduct(name: 'Coke', price: 700, qty: 10);
+      final sold = await sales.finalizeSale(
+        cart: CartState(lines: [CartLine(product: p, qty: 3)]),
+        paymentMethod: 'cash',
+        paid: 2100,
+      );
+
+      final refund = await sales.refundSale(sold.saleId);
+
+      expect(refund.invoiceNo, startsWith('RFD-'));
+      final refundRow = await (db.select(db.sales)
+            ..where((s) => s.id.equals(refund.saleId)))
+          .getSingle();
+      expect(refundRow.total, -2100);
+      expect(refundRow.subtotal, -2100);
+      expect(refundRow.paid, -2100);
+      expect(refundRow.refundOfSaleId, sold.saleId);
+
+      final refundItems = await (db.select(db.saleItems)
+            ..where((i) => i.saleId.equals(refund.saleId)))
+          .get();
+      expect(refundItems.single.qty, -3);
+      expect(refundItems.single.lineTotal, -2100);
+
+      // Stock restored 7 -> 10.
+      final stock = await (db.select(db.stockLevels)
+            ..where((s) => s.productId.equals(p.id)))
+          .getSingle();
+      expect(stock.quantity, 10);
+
+      final returnMoves = (await db.select(db.stockMovements).get())
+          .where((m) => m.type == 'return')
+          .toList();
+      expect(returnMoves.single.qtyDelta, 3);
+
+      final refundPayments = await (db.select(db.payments)
+            ..where((pay) => pay.saleId.equals(refund.saleId)))
+          .get();
+      expect(refundPayments.single.amount, -2100);
+    });
+
+    test('the original sale row is never mutated', () async {
+      final p = await seedProduct(name: 'Water', price: 400, qty: 5);
+      final sold = await sales.finalizeSale(
+        cart: CartState(lines: [CartLine(product: p, qty: 2)]),
+        paymentMethod: 'cash',
+        paid: 800,
+      );
+      await sales.refundSale(sold.saleId);
+
+      final original = await (db.select(db.sales)
+            ..where((s) => s.id.equals(sold.saleId)))
+          .getSingle();
+      expect(original.total, 800);
+      expect(original.paid, 800);
+    });
+
+    test('refunding twice throws StateError', () async {
+      final p = await seedProduct(name: 'Soap', price: 800, qty: 20);
+      final sold = await sales.finalizeSale(
+        cart: CartState(lines: [CartLine(product: p, qty: 1)]),
+        paymentMethod: 'cash',
+        paid: 800,
+      );
+      await sales.refundSale(sold.saleId);
+      expect(() => sales.refundSale(sold.saleId), throwsStateError);
+    });
+
+    test('refunding an unpaid credit sale inserts a closing credit payment',
+        () async {
+      final p = await seedProduct(name: 'Rice bag', price: 50000, qty: 10);
+      final sold = await sales.finalizeSale(
+        cart: CartState(lines: [CartLine(product: p, qty: 1)]),
+        paymentMethod: 'credit',
+        paid: 0,
+        customerName: 'Ma Ma',
+      );
+      await sales.refundSale(sold.saleId);
+
+      final repayments = await (db.select(db.creditPayments)
+            ..where((c) => c.customerName.equals('Ma Ma')))
+          .get();
+      expect(repayments.single.amount, 50000);
+
+      // No payment row inserted (nothing was actually paid to reverse).
+      final refund = await sales.refundOf(sold.saleId);
+      final refundPayments = await (db.select(db.payments)
+            ..where((pay) => pay.saleId.equals(refund!.id)))
+          .get();
+      expect(refundPayments, isEmpty);
+    });
+
+    test('outbox queues rows for every affected table', () async {
+      final p = await seedProduct(name: 'Match', price: 100, qty: 50);
+      final sold = await sales.finalizeSale(
+        cart: CartState(lines: [CartLine(product: p, qty: 2)]),
+        paymentMethod: 'credit',
+        paid: 0,
+        customerName: 'Ko Ko',
+      );
+      await db.delete(db.outbox).go(); // clear the finalizeSale entries
+      await sales.refundSale(sold.saleId);
+
+      final tables =
+          (await db.select(db.outbox).get()).map((o) => o.entityTable).toSet();
+      expect(
+          tables,
+          containsAll(<String>{
+            'sales',
+            'sale_items',
+            'stock_movements',
+            'stock_levels',
+            'credit_payments',
+          }));
+    });
+  });
 }
